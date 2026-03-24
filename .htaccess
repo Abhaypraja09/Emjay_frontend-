@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Authorization header ko pass karein
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
   
   # API requests ko skip karein (Important)
   RewriteCond %{REQUEST_URI} ^/api [NC]
