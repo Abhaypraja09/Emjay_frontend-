@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { Mail, Lock, Loader2, Beer, ArrowRight } from 'lucide-react';
 
@@ -15,7 +15,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('user', JSON.stringify(data));
       toast.success('Successfully logged in!');
       router.push('/dashboard');
