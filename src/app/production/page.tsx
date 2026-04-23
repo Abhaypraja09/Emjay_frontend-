@@ -3,287 +3,496 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
-import { FlaskConical, Plus, Search, Calendar, History, ArrowRight, Package, Edit, Trash2, XCircle } from 'lucide-react';
+import {
+    Plus,
+    Trash2,
+    History,
+    FlaskConical,
+    Package,
+    XCircle,
+    ClipboardList,
+    ArrowUpRight,
+    ArrowDownLeft,
+    ChevronDown,
+    Database,
+    AlertCircle,
+    Search
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import MonthYearFilter from '@/components/MonthYearFilter';
 
 const Production = () => {
-  const [productions, setProductions] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [bottleStock, setBottleStock] = useState<number>(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const [currentTab, setCurrentTab] = useState<'ledger' | 'inventory'>('ledger');
+    const [inventorySubTab, setInventorySubTab] = useState<'Products' | 'Empty Bottles'>('Products');
 
-  const [editingItem, setEditingItem] = useState<any>(null);
+    const [products, setProducts] = useState<any[]>([]);
+    const [productions, setProductions] = useState<any[]>([]);
+    const [bottleStock, setBottleStock] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const [form, setForm] = useState({
-    juiceType: '',
-    quantityProduced: '',
-    date: new Date().toISOString().split('T')[0]
-  });
-
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [prodRes, prodTypeRes, bottleRes] = await Promise.all([
-        api.get('/production'),
-        api.get('/products'),
-        api.get('/bottles/stock')
-      ]);
-      setProductions(prodRes.data);
-      setProducts(prodTypeRes.data);
-      setBottleStock(bottleRes.data.availableEmptyBottles);
-    } catch (error) {
-      toast.error('Failed to load production data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem && Number(form.quantityProduced) > bottleStock) {
-      return toast.error('Insufficient empty bottles in stock!');
-    }
-    try {
-      if (editingItem) {
-        await api.put(`/production/${editingItem._id}`, form);
-        toast.success('Production record updated');
-      } else {
-        await api.post('/production', form);
-        toast.success('Production run completed!');
-      }
-      setIsModalOpen(false);
-      setEditingItem(null);
-      setForm({ juiceType: '', quantityProduced: '', date: new Date().toISOString().split('T')[0] });
-      fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save production');
-    }
-  };
-
-  const deleteProduction = async (id: string) => {
-    if (!confirm('Are you sure? This will reverse the stock changes (add back empty bottles and deduct juice stock).')) return;
-    try {
-      setIsDeleting(true);
-      await api.delete(`/production/${id}`);
-      toast.success('Production reversed and removed');
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to delete production');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const startEdit = (prod: any) => {
-    setEditingItem(prod);
-    setForm({
-      juiceType: prod.juiceType?._id || '',
-      quantityProduced: prod.quantityProduced.toString(),
-      date: new Date(prod.date).toISOString().split('T')[0]
+    // Production Ledger State
+    const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
+    const [ledgerData, setLedgerData] = useState<any[]>([]);
+    const [selectedProduct, setSelectedProduct] = useState<string>('');
+    const [productSearch, setProductSearch] = useState('');
+    const [ledgerLoading, setLedgerLoading] = useState(false);
+    const [productionForm, setProductionForm] = useState({
+        date: new Date().toISOString().split('T')[0],
+        juiceType: '',
+        quantityProduced: '',
+        nameOfVerk: '',
+        openingBalance: '0'
     });
-    setIsModalOpen(true);
-  };
 
-  return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <Sidebar />
-      <main className="flex-1 lg:ml-64 p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic underline decoration-indigo-500 underline-offset-8">Production Line</h1>
-            <p className="text-slate-500 mt-4 font-semibold uppercase tracking-widest text-[10px]">Convert empty bottles into finished product</p>
-          </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="btn-primary flex items-center gap-2 group shadow-xl shadow-indigo-600/20"
-          >
-            <div className="p-1 rounded bg-white/20 group-hover:bg-white/30 transition-all">
-                <Plus className="w-3 h-3 text-white" />
-            </div>
-            New Production Run
-          </button>
-        </div>
+    // Inventory Management State
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [productForm, setProductForm] = useState({
+        name: '',
+        size: '',
+        pricePerUnit: '',
+        currentStock: '0',
+        minStock: '10'
+    });
 
-        {/* Quick View */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="card bg-white border-indigo-200 flex items-center gap-6 p-8 group">
-            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 group-hover:scale-110 transition-transform">
-              <Package className="w-8 h-8 text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Empty Bottle Pool</p>
-              <h2 className="text-3xl font-bold text-slate-900 mt-1">{bottleStock}</h2>
-              <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1 italic underline decoration-indigo-200">Available for filling</p>
-            </div>
-          </div>
-          <div className="card bg-white border-emerald-200 flex items-center gap-6 p-8 group">
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 group-hover:scale-110 transition-transform">
-              <History className="w-8 h-8 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Total Productions</p>
-              <h2 className="text-3xl font-bold text-slate-900 mt-1">{productions.length} Runs</h2>
-              <p className="text-xs text-emerald-600 mt-1 italic underline decoration-emerald-200 font-medium tracking-tight">Across all juice types</p>
-            </div>
-          </div>
-        </div>
+    useEffect(() => {
+        fetchInitialData();
+    }, []);
 
-        {/* History Table */}
-          <div className="card !p-0 border-slate-200 shadow-sm overflow-hidden flex-1">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-              <h3 className="font-black text-slate-900 uppercase tracking-tight italic">Production History</h3>
-              <div className="flex gap-3">
-                 <div className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input type="text" placeholder="Search batches..." className="bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                 </div>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest h-12">
-                  <tr>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Date</th>
-                    <th className="px-6 py-4">Juice Type</th>
-                    <th className="px-6 py-4">Quantity</th>
-                    <th className="px-6 py-4">Stock Impact</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {productions.map((prod) => (
-                    <tr key={prod._id} className="hover:bg-slate-50/50 transition-all font-medium">
-                      <td className="px-6 py-4">
-                        <span className="flex items-center gap-1.5 text-[10px] text-emerald-600 font-black uppercase">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                          Completed
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">{new Date(prod.date).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 font-black text-slate-800 uppercase tracking-tight">{prod.juiceType?.name}</td>
-                      <td className="px-6 py-4">
-                        <span className="font-black text-slate-900">{prod.quantityProduced}</span>
-                        <span className="text-[10px] text-slate-500 ml-1 uppercase font-bold">bottles</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                          <ArrowRight className="w-3 h-3 rotate-[-45deg]" />
-                          Added
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button onClick={() => startEdit(prod)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"><Edit className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => deleteProduction(prod._id)} className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+    const fetchInitialData = async () => {
+        try {
+            setLoading(true);
+            const [itemRes, bottleRes, prodRes] = await Promise.all([
+                api.get('/products'),
+                api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
+                api.get('/production', { params: { month: selectedMonth, year: selectedYear } })
+            ]);
+            setProducts(itemRes.data);
+            setBottleStock(bottleRes.data);
+            setProductions(prodRes.data);
 
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-md animate-in fade-in" onClick={() => setIsModalOpen(false)}></div>
-            <div className="card w-full max-w-lg z-[110] relative animate-in zoom-in duration-300 border-indigo-100 shadow-2xl bg-white">
-              <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 shadow-sm transition-all">
-                    <FlaskConical className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tighter italic">{editingItem ? 'Edit Production' : 'New Batch Run'}</h2>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Batch Tracking Module</p>
-                  </div>
-                </div>
-                <button onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-900 transition-all"><XCircle className="w-6 h-6" /></button>
-              </div>
+            if (itemRes.data.length > 0 && !selectedProduct) {
+                setSelectedProduct(itemRes.data[0]._id);
+            }
+        } catch (error) {
+            toast.error('Could not load data');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Target Juice Variant</label>
-                    <select 
-                      required 
-                      className="input-field appearance-none"
-                      value={form.juiceType}
-                      onChange={(e) => setForm({...form, juiceType: e.target.value})}
-                    >
-                      <option value="">Select a variant...</option>
-                      {products.map(p => (
-                        <option key={p._id} value={p._id}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Production Date</label>
-                    <input 
-                      type="date" required
-                      className="input-field"
-                      value={form.date}
-                      onChange={(e) => setForm({...form, date: e.target.value})}
-                    />
-                  </div>
-                </div>
+    useEffect(() => {
+        fetchInitialData();
+    }, [selectedMonth, selectedYear]);
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-end">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Batch Volume (Units)</label>
-                    <span className={cn(
-                        "text-[10px] font-black uppercase px-2 py-1 rounded-full",
-                        bottleStock >= Number(form.quantityProduced) ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-rose-50 text-rose-600 border border-rose-100 animate-bounce"
-                    )}>
-                        Available Bottles: {bottleStock}
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <Package className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input 
-                        type="number" required
-                        className={cn(
-                            "input-field pl-12 h-14 text-xl font-black italic",
-                            Number(form.quantityProduced) > bottleStock && "border-rose-500 ring-rose-500/20"
-                        )}
-                        placeholder="e.g. 50"
-                        value={form.quantityProduced}
-                        onChange={(e) => setForm({...form, quantityProduced: e.target.value})}
-                    />
-                  </div>
-                </div>
+    const fetchLedger = async (productId: string) => {
+        if (!productId) return;
+        setLedgerLoading(true);
+        try {
+            const res = await api.get('/reports/production-stock', {
+                params: { productId, month: selectedMonth, year: selectedYear }
+            });
+            const sorted = res.data.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            setLedgerData(sorted);
+        } catch (error) {
+            toast.error('Failed to load stock report');
+        } finally {
+            setLedgerLoading(false);
+        }
+    };
 
-                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase text-indigo-900">
-                        <span>Transaction Summary</span>
-                        <History className="w-3 h-3" />
+    useEffect(() => {
+        if (selectedProduct && currentTab === 'ledger') {
+            fetchLedger(selectedProduct);
+        }
+    }, [selectedProduct, currentTab, selectedMonth, selectedYear]);
+
+    const handleProductionSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/production', productionForm);
+            toast.success('Production entry added');
+            setIsProductionModalOpen(false);
+            setProductionForm({ date: new Date().toISOString().split('T')[0], juiceType: '', quantityProduced: '', nameOfVerk: '', openingBalance: '0' });
+            fetchInitialData();
+            if (productionForm.juiceType === selectedProduct) fetchLedger(selectedProduct);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to save entry');
+        }
+    };
+
+    const handleProductSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/products', productForm);
+            toast.success('Product added successfully');
+            setIsProductModalOpen(false);
+            setProductForm({ name: '', size: '', pricePerUnit: '', currentStock: '0', minStock: '10' });
+            fetchInitialData();
+        } catch (error) {
+            toast.error('Failed to add product');
+        }
+    };
+
+    if (loading) return <div className="flex h-screen bg-white items-center justify-center font-bold text-gray-400">Loading...</div>;
+
+    return (
+        <div className="flex min-h-screen bg-gray-50">
+            <Sidebar />
+            <main className="flex-1 lg:ml-64 p-6 md:p-10">
+
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Production & Inventory</h1>
+                        <p className="text-gray-500 text-sm mt-1">Manage daily production and stock levels</p>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        This operation will deduct <span className="font-black text-indigo-600">{form.quantityProduced || 0}</span> from empty bottle stock and add to finished juice inventory.
-                    </p>
+                    <div className="flex flex-col md:flex-row items-center gap-4">
+                        <MonthYearFilter
+                            selectedMonth={selectedMonth}
+                            selectedYear={selectedYear}
+                            onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
+                        />
+                        <div className="flex gap-3">
+                            {currentTab === 'ledger' ? (
+                                <button
+                                    onClick={() => setIsProductionModalOpen(true)}
+                                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    New Production
+                                </button>
+                            ) : (
+                                inventorySubTab === 'Products' && (
+                                    <button
+                                        onClick={() => setIsProductModalOpen(true)}
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        Add Product
+                                    </button>
+                                )
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-3 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all font-black text-xs uppercase tracking-widest text-slate-500">Discard</button>
-                  <button type="submit" className="flex-[2] btn-primary shadow-xl shadow-indigo-600/20 font-black text-xs uppercase tracking-widest" disabled={!editingItem && Number(form.quantityProduced) > bottleStock}>
-                    {editingItem ? 'Update Batch' : 'Confirm & Finalize Run'}
-                  </button>
+                {/* Top Level Tabs */}
+                <div className="flex bg-white p-1 rounded-xl border border-gray-200 w-fit mb-10 shadow-sm">
+                    <button
+                        onClick={() => setCurrentTab('ledger')}
+                        className={cn(
+                            "px-8 py-2.5 rounded-lg text-xs font-semibold transition-all",
+                            currentTab === 'ledger' ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-gray-900"
+                        )}
+                    >
+                        Production Ledger
+                    </button>
+                    <button
+                        onClick={() => setCurrentTab('inventory')}
+                        className={cn(
+                            "px-8 py-2.5 rounded-lg text-xs font-semibold transition-all",
+                            currentTab === 'inventory' ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:text-gray-900"
+                        )}
+                    >
+                        Stock Inventory
+                    </button>
                 </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+
+                {currentTab === 'ledger' ? (
+                    <>
+                        <div className="flex flex-col lg:flex-row gap-6 mb-10 items-start">
+                            {/* Compact Total Production Card */}
+                            <div className="w-full lg:w-48 shrink-0 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Total Produced</p>
+                                <h3 className="text-xl font-bold text-gray-900 leading-none">
+                                    {productions.reduce((acc, p) => acc + (p.quantityProduced || 0), 0)}
+                                    <span className="text-[10px] font-normal text-gray-400 ml-1">Units</span>
+                                </h3>
+                            </div>
+
+                            {/* Product Selector Scroll */}
+                            <div className="flex-1 w-full overflow-hidden">
+                                <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
+                                    {products
+                                        .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                                        .map(p => (
+                                            <button
+                                                key={p._id}
+                                                onClick={() => setSelectedProduct(p._id)}
+                                                className={cn(
+                                                    "shrink-0 w-32 p-3 rounded-xl border flex flex-col justify-between transition-all",
+                                                    selectedProduct === p._id ? "bg-white border-blue-600 shadow-md ring-1 ring-blue-600" : "bg-white border-gray-200 hover:border-blue-300"
+                                                )}
+                                            >
+                                                <p className="text-[9px] font-bold text-gray-400 uppercase mb-1 truncate text-left">{p.name}</p>
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-lg font-bold text-gray-900 leading-none">{p.currentStock || 0}</h3>
+                                                    <FlaskConical className={cn(
+                                                        "w-3 h-3",
+                                                        selectedProduct === p._id ? "text-blue-600" : "text-gray-300"
+                                                    )} />
+                                                </div>
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Ledger Table */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Database className="w-5 h-5" /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">
+                                            {products.find(p => p._id === selectedProduct)?.name} Ledger
+                                        </h3>
+                                        <p className="text-xs text-gray-400 font-medium">Daily stock flow analysis</p>
+                                    </div>
+                                </div>
+                                {ledgerData.length > 0 && (
+                                    <div className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100">
+                                        <p className="text-[10px] font-bold uppercase">Balance</p>
+                                        <p className="text-lg font-bold">{ledgerData[ledgerData.length - 1].closingStock} Units</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wider h-12 border-b border-gray-100">
+                                        <tr>
+                                            <th className="px-8 py-3">Date</th>
+                                            <th className="px-8 py-3 text-center">Opening</th>
+                                            <th className="px-8 py-3 text-center text-blue-600">Production (+)</th>
+                                            <th className="px-8 py-3 text-center text-red-600">Sales (-)</th>
+                                            <th className="px-8 py-3 text-center">Closing Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {ledgerLoading ? (
+                                            <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium animate-pulse">Loading Ledger...</td></tr>
+                                        ) : ledgerData.length === 0 ? (
+                                            <tr><td colSpan={5} className="p-16 text-center text-gray-400">No records found.</td></tr>
+                                        ) : (
+                                            ledgerData.map((row, idx) => (
+                                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-8 py-4">
+                                                        <p className="font-semibold text-gray-700 text-sm">
+                                                            {new Date(row.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-8 py-4 text-center text-sm font-medium text-gray-500">{row.openingStock}</td>
+                                                    <td className="px-8 py-4 text-center">
+                                                        <span className="text-blue-600 font-bold text-sm">+{row.production}</span>
+                                                    </td>
+                                                    <td className="px-8 py-4 text-center">
+                                                        <span className="text-red-600 font-bold text-sm">-{row.sales}</span>
+                                                    </td>
+                                                    <td className="px-8 py-4 text-center">
+                                                        <span className="px-3 py-1 bg-gray-900 text-white rounded font-bold text-sm">
+                                                            {row.closingStock}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="space-y-8">
+                        {/* Inventory Sub-Tabs */}
+                        <div className="flex bg-gray-200/50 p-1 rounded-xl w-fit border border-gray-200">
+                            {['Products', 'Empty Bottles'].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setInventorySubTab(tab as any)}
+                                    className={cn(
+                                        "px-6 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                        inventorySubTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                    )}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
+                        {inventorySubTab === 'Products' ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {products.map(p => (
+                                    <div key={p._id} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                                                <FlaskConical className="w-4 h-4" />
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Stock</p>
+                                                <p className={cn(
+                                                    "text-lg font-bold leading-none",
+                                                    p.currentStock <= p.minStock ? "text-red-500" : "text-gray-900"
+                                                )}>{p.currentStock}</p>
+                                            </div>
+                                        </div>
+                                        <h3 className="text-sm font-bold text-gray-900 truncate" title={p.name}>{p.name}</h3>
+                                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                                            <p className="text-[10px] font-bold text-gray-900">₹{p.pricePerUnit}</p>
+                                            {p.currentStock <= p.minStock && (
+                                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Low Stock" />
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Empty Bottles</p>
+                                        <h3 className="text-xl font-bold text-gray-900 leading-none">{bottleStock?.availableEmptyBottles || 0}</h3>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Stock Value</p>
+                                        <h3 className="text-xl font-bold text-gray-900 leading-none">₹{bottleStock?.totalValue?.toLocaleString() || 0}</h3>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+                                        <div className="p-2 bg-gray-50 text-gray-400 rounded-lg"><History className="w-5 h-5" /></div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 text-lg">Purchase History</h3>
+                                            <p className="text-xs text-gray-400 font-medium">Tracking bottle acquisitions</p>
+                                        </div>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wider h-12 border-b border-gray-100">
+                                                <tr>
+                                                    <th className="px-8 py-3">Date</th>
+                                                    <th className="px-8 py-3">Type</th>
+                                                    <th className="px-8 py-3">Supplier</th>
+                                                    <th className="px-8 py-3 text-center">Quantity</th>
+                                                    <th className="px-8 py-3 text-right">Price</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {bottleStock?.history?.map((h: any, i: number) => (
+                                                    <tr key={i} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-8 py-4 text-gray-500 font-medium">
+                                                            {new Date(h.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </td>
+                                                        <td className="px-8 py-4 font-bold text-gray-800 text-xs">{h.type}</td>
+                                                        <td className="px-8 py-4 text-gray-600 text-xs font-medium uppercase tracking-tight">{h.supplier || 'Internal'}</td>
+                                                        <td className="px-8 py-4 text-center">
+                                                            <span className="text-blue-600 font-bold">+{h.quantity}</span>
+                                                        </td>
+                                                        <td className="px-8 py-4 text-right font-bold text-gray-900">₹{h.costPerUnit}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Modals */}
+                <AnimatePresence>
+                    {isProductionModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsProductionModalOpen(false)} />
+                            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                                    <h2 className="text-xl font-bold text-gray-900">New Production Entry</h2>
+                                    <button onClick={() => setIsProductionModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
+                                </div>
+
+                                <form onSubmit={handleProductionSubmit} className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Date</label>
+                                            <input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" value={productionForm.date} onChange={e => setProductionForm({ ...productionForm, date: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Product</label>
+                                            <select required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" value={productionForm.juiceType} onChange={e => setProductionForm({ ...productionForm, juiceType: e.target.value })}>
+                                                <option value="">Select...</option>
+                                                {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Quantity (Units)</label>
+                                            <input type="number" required className="w-full bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-lg font-bold text-blue-600 outline-none focus:border-blue-500" placeholder="0" value={productionForm.quantityProduced} onChange={e => setProductionForm({ ...productionForm, quantityProduced: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Batch Name</label>
+                                            <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" placeholder="Batch A" value={productionForm.nameOfVerk} onChange={e => setProductionForm({ ...productionForm, nameOfVerk: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
+                                        Save Record
+                                    </button>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {isProductModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsProductModalOpen(false)} />
+                            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                                    <h2 className="text-xl font-bold text-gray-900">Add New Product</h2>
+                                    <button onClick={() => setIsProductModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
+                                </div>
+
+                                <form onSubmit={handleProductSubmit} className="p-6 space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-500">Product Name</label>
+                                        <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" placeholder="Classic Juice" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Size (ml)</label>
+                                            <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" placeholder="500" value={productForm.size} onChange={e => setProductForm({ ...productForm, size: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">MRP (₹)</label>
+                                            <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold outline-none focus:border-blue-500" placeholder="0" value={productForm.pricePerUnit} onChange={e => setProductForm({ ...productForm, pricePerUnit: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Initial Stock</label>
+                                            <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold" value={productForm.currentStock} onChange={e => setProductForm({ ...productForm, currentStock: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-red-500">Low Stock Alert at</label>
+                                            <input type="number" required className="w-full bg-red-50 border border-red-100 rounded-lg px-4 py-2 text-sm font-bold text-red-600 outline-none" value={productForm.minStock} onChange={e => setProductForm({ ...productForm, minStock: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">Create Product</button>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+            </main>
+        </div>
+    );
 };
 
 export default Production;

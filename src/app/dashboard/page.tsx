@@ -12,11 +12,12 @@ import {
   IndianRupee,
   Activity,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  BarChart3,
+  Waves,
+  Calendar
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -26,6 +27,7 @@ import {
   Area 
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = () => {
   const [stats, setStats] = useState<any>(null);
@@ -45,134 +47,83 @@ const Dashboard = () => {
       setStats(statsRes.data);
       setChartData(chartRes.data);
     } catch (error: any) {
-      toast.error('Failed to load dashboard data');
+      toast.error('Could not load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return (
-    <div className="flex h-screen bg-slate-50">
-      <Sidebar />
-      <div className="flex-1 lg:ml-64 p-8 overflow-y-auto">
-        <div className="animate-pulse space-y-8">
-          <div className="flex justify-between items-center">
-            <div className="space-y-3">
-              <div className="h-8 w-64 bg-slate-200 rounded-lg"></div>
-              <div className="h-4 w-48 bg-slate-100 rounded-md"></div>
-            </div>
-            <div className="h-10 w-32 bg-slate-200 rounded-xl"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-32 bg-white rounded-2xl border border-slate-200"></div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 h-96 bg-white rounded-2xl border border-slate-200"></div>
-            <div className="space-y-6">
-              <div className="h-48 bg-white rounded-2xl border border-slate-200"></div>
-              <div className="h-40 bg-white rounded-2xl border border-slate-200"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="flex h-screen bg-gray-50 items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       
       <main className="flex-1 lg:ml-64 p-8 overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic underline decoration-indigo-500 underline-offset-8">Financial Overview</h1>
-            <p className="text-slate-500 mt-4 font-semibold uppercase tracking-widest text-[10px]">Real-time statistics for Emjay Brewery</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-indigo-600 font-bold text-xs uppercase tracking-widest transition-all shadow-sm">
-            <Activity className="w-4 h-4" />
-            Live Feed
-          </button>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+           <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-500 mt-1">Overview of sales and inventory for Emjay Brewery</p>
+           </div>
+           <div className="flex items-center gap-3">
+                <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-green-500" />
+                    <span className="text-xs font-medium text-gray-600">System Online</span>
+                </div>
+           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Total Sales" 
-            value={stats?.totalSales} 
-            icon={<ShoppingCart className="text-emerald-500" />} 
-            trend="+12.5%" 
-            prefix="₹"
-            color="emerald"
-          />
-          <StatCard 
-            title="Available Empty Stock" 
-            value={stats?.availableEmptyStock} 
-            icon={<Package className="text-indigo-500" />} 
-            trend="-2.4%"
-            color="indigo"
-          />
-           <StatCard 
-            title="Total Filled stock" 
-            value={stats?.totalFilledStock} 
-            icon={<FlaskConical className="text-purple-500" />} 
-            trend="+5.1%"
-            color="purple"
-          />
-          <StatCard 
-            title="Estimated Profit" 
-            value={stats?.profit} 
-            icon={<IndianRupee className="text-amber-500" />} 
-            trend="+8.2%"
-            prefix="₹"
-            color="amber"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <SimpleStatCard title="Total Sales" value={stats?.totalSales} icon={<IndianRupee />} color="blue" prefix="₹" />
+          <SimpleStatCard title="Empty Bottles" value={stats?.availableEmptyStock} icon={<Package />} color="blue" />
+          <SimpleStatCard title="Filled Bottles" value={stats?.totalFilledStock} icon={<FlaskConical />} color="blue" />
+          <SimpleStatCard title="Total Profit" value={stats?.profit} icon={<TrendingUp />} color="blue" prefix="₹" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Chart */}
-          <div className="lg:col-span-2 card p-6 min-h-[400px] flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-lg flex items-center gap-2 uppercase tracking-tight italic">
-                <TrendingUp className="w-5 h-5 text-indigo-500" />
-                Sales Performance
-              </h3>
-              <select className="bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold px-3 py-1.5 text-slate-600 focus:ring-1 focus:ring-indigo-500 outline-none">
-                <option>Last 30 Days</option>
-                <option>Last 7 Days</option>
-              </select>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Sales Chart */}
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col p-6">
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 border-l-4 border-blue-600 pl-3">
+                    Sales History
+                  </h3>
+                </div>
             </div>
-            <div className="flex-1 w-full">
-              <ResponsiveContainer width="100%" height={300}>
+            
+            <div className="flex-1 w-full min-h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis 
                     dataKey="date" 
                     stroke="#94a3b8" 
-                    fontSize={10} 
-                    fontWeight="bold"
+                    fontSize={11} 
                     tickLine={false} 
                     axisLine={false}
                     tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                   />
-                  <YAxis stroke="#94a3b8" fontSize={10} fontWeight="bold" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                    itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="sales" 
-                    stroke="#6366f1" 
-                    strokeWidth={2}
+                    stroke="#2563eb" 
+                    strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorSales)" 
                   />
@@ -181,41 +132,36 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Side Info Cards */}
+          {/* Sidebar */}
           <div className="space-y-6">
-            <div className="card p-6 border-amber-200 bg-amber-50">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="text-amber-600 w-6 h-6" />
-                <h3 className="font-bold uppercase tracking-tight text-amber-900">Low Stock Alerts</h3>
+            {/* Low Stock */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <h3 className="font-bold text-gray-900">Low Stock Alerts</h3>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {stats?.lowStockProducts?.length > 0 ? (
                   stats.lowStockProducts.map((p: any) => (
-                    <div key={p._id} className="flex items-center justify-between p-3 rounded-xl bg-white border border-amber-200 shadow-sm">
+                    <div key={p._id} className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-100">
                       <div>
-                        <p className="font-bold text-sm text-slate-800">{p.name}</p>
-                        <p className="text-[10px] font-bold text-amber-700 uppercase">Only {p.currentStock} units left</p>
+                        <p className="font-semibold text-sm text-gray-900">{p.name}</p>
+                        <p className="text-xs text-red-600">Only {p.currentStock} left</p>
                       </div>
-                      <span className="px-2 py-1 rounded bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest">Critical</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500 italic font-medium">No low stock alerts at the moment.</p>
+                  <p className="text-sm text-gray-500">All products have enough stock.</p>
                 )}
               </div>
             </div>
 
-            <div className="card p-6 bg-indigo-50 border-indigo-100">
-              <h3 className="font-bold uppercase tracking-tight text-indigo-900 mb-4 italic">Quick Stats</h3>
+            {/* Quick Summary */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="font-bold text-gray-900 mb-6">Quick Summary</h3>
               <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Total Purchase Volume</span>
-                  <span className="text-indigo-900 font-black italic">{stats?.totalBottlesPurchased}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Pending Payments</span>
-                  <span className="text-rose-600 font-black italic">₹{stats?.pendingPayments?.toLocaleString()}</span>
-                </div>
+                <MetadataRow label="Bottles Purchased" value={stats?.totalBottlesPurchased} />
+                <MetadataRow label="Pending Payments" value={`₹${stats?.pendingPayments?.toLocaleString()}`} color="text-red-600" />
               </div>
             </div>
           </div>
@@ -225,30 +171,27 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ title, value, icon, trend, prefix = '', color = 'indigo' }: any) => {
-  const isPositive = trend.startsWith('+');
+const SimpleStatCard = ({ title, value, icon, color, prefix = '' }: any) => {
   return (
-    <div className="card group hover:border-indigo-500/30 transition-all cursor-default bg-white">
-      <div className="flex items-start justify-between">
-        <div className={`p-4 rounded-2xl bg-slate-50 border border-slate-100 transition-colors group-hover:border-${color}-500/30 group-hover:scale-110 transition-transform`}>
-          {React.cloneElement(icon, { className: `w-6 h-6 text-${color}-600` })}
-        </div>
-        <div className={cn(
-          "flex items-center gap-1 text-[10px] font-black uppercase px-2 py-1 rounded-full",
-          isPositive ? "text-emerald-600 bg-emerald-500/10" : "text-rose-600 bg-rose-500/10"
-        )}>
-          {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-          {trend}
-        </div>
+    <div className="card flex items-center gap-5">
+      <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+        {icon}
       </div>
-      <div className="mt-6">
-        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">{title}</p>
-        <h4 className="text-3xl font-black text-slate-900 mt-1 tracking-tighter">
-          {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
+      <div>
+        <p className="text-sm font-medium text-gray-500">{title}</p>
+        <h4 className="text-xl font-bold text-gray-900">
+          {prefix}{typeof value === 'number' ? value.toLocaleString() : value || 0}
         </h4>
       </div>
     </div>
   );
 };
+
+const MetadataRow = ({ label, value, color = "text-gray-900" }: any) => (
+    <div className="flex justify-between items-center text-sm">
+        <span className="text-gray-500">{label}</span>
+        <span className={`font-bold ${color}`}>{value}</span>
+    </div>
+)
 
 export default Dashboard;

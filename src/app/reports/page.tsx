@@ -195,7 +195,7 @@ const ReportStatCard = ({ label, value, icon, trend, suffix = '' }: any) => (
             <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">{label}</p>
             <h4 className="text-xl font-black text-white italic group-hover:text-indigo-400 transition-colors">
                 {typeof value === 'number' && !suffix.includes('units') ? '₹' : ''}
-                {value.toLocaleString()}{suffix}
+                {(value || 0).toLocaleString()}{suffix}
             </h4>
         </div>
         <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 group-hover:bg-indigo-500/10 transition-colors">

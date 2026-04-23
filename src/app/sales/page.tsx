@@ -4,66 +4,71 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { 
-  ShoppingCart, 
   Plus, 
-  Search, 
-  Calendar, 
-  User, 
-  Building2, 
-  CreditCard, 
-  CheckCircle, 
-  XCircle, 
-  Filter, 
+  Trash2, 
+  PencilLine,
+  XCircle,
+  Package,
+  Calendar,
+  User,
+  Store,
+  Wallet,
   ArrowRight,
-  TrendingUp,
-  PackageCheck,
-  Edit,
-  Trash2
+  ChevronDown,
+  ArrowUpDown
 } from 'lucide-react';
+import MonthYearFilter from '@/components/MonthYearFilter';
+
 import { cn } from '@/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Sales = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [globalLedger, setGlobalLedger] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('All');
+  const [activeMainTab, setActiveMainTab] = useState('ledger');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [form, setForm] = useState({
     customerName: '',
     shopName: '',
-    type: 'B2C',
+    type: 'B2B',
     juiceType: '',
     quantity: '',
     paidAmount: '',
-    pricePerUnit: ''
+    pricePerUnit: '',
+    date: new Date().toISOString().split('T')[0]
   });
+
+  // Removed computeStockFlow frontend logic - using backend report instead
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
+  const [productions, setProductions] = useState<any[]>([]);
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [orderRes, productRes] = await Promise.all([
-        api.get('/orders'),
-        api.get('/products')
+      const [orderRes, productRes, prodRes, ledgerRes] = await Promise.all([
+        api.get('/orders', { params: { month: selectedMonth, year: selectedYear } }),
+        api.get('/products'),
+        api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
+        api.get('/reports/global-stock', { params: { month: selectedMonth, year: selectedYear } })
       ]);
       setOrders(orderRes.data);
       setProducts(productRes.data);
+      setProductions(prodRes.data);
+      setGlobalLedger(ledgerRes.data);
     } catch (error) {
-      toast.error('Failed to load sales data');
+      toast.error('Data loading failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleProductSelect = (id: string) => {
-    const product = products.find(p => p._id === id);
-    if (product) {
-      setForm({ ...form, juiceType: id, pricePerUnit: product.pricePerUnit.toString() });
     }
   };
 
@@ -71,335 +76,330 @@ const Sales = () => {
     e.preventDefault();
     const totalAmount = Number(form.quantity) * Number(form.pricePerUnit);
     const orderData = {
-      customerName: form.customerName,
-      shopName: form.shopName,
-      type: form.type,
-      items: [{ juiceType: form.juiceType, quantity: Number(form.quantity), price: Number(form.pricePerUnit) }],
+      ...form,
+      items: [{ 
+          juiceType: form.juiceType, 
+          quantity: Number(form.quantity), 
+          price: Number(form.pricePerUnit) 
+      }],
       totalAmount,
-      paidAmount: Number(form.paidAmount)
+      paidAmount: Number(form.paidAmount) || 0
     };
 
     try {
-      if (editingItem) {
-        await api.put(`/orders/${editingItem._id}`, orderData);
-        toast.success('Order updated successfully');
+      if (editingOrder) {
+        await api.put(`/orders/${editingOrder._id}`, orderData);
+        toast.success('Sale Updated');
       } else {
         await api.post('/orders', orderData);
-        toast.success('Sale recorded successfully');
+        toast.success('Sale Saved');
       }
       setIsModalOpen(false);
-      setEditingItem(null);
-      setForm({ customerName: '', shopName: '', type: 'B2C', juiceType: '', quantity: '', paidAmount: '', pricePerUnit: '' });
+      resetForm();
       fetchData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save order');
+      toast.error(error.response?.data?.message || 'Error occurred');
     }
   };
 
-  const deleteOrder = async (id: string) => {
-    if (!confirm('Are you sure? This will delete the order and restore the juice stock.')) return;
-    try {
-      await api.delete(`/orders/${id}`);
-      toast.success('Order removed and stock restored');
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to delete order');
-    }
-  };
-
-  const startEdit = (order: any) => {
-    setEditingItem(order);
-    const item = order.items[0] || {};
+  const handleEdit = (order: any) => {
+    setEditingOrder(order);
+    const jtId = order.items[0]?.juiceType?._id || order.items[0]?.juiceType;
     setForm({
       customerName: order.customerName,
       shopName: order.shopName || '',
       type: order.type,
-      juiceType: item.juiceType?._id || '',
-      quantity: item.quantity?.toString() || '',
-      paidAmount: order.paidAmount?.toString() || '',
-      pricePerUnit: item.price?.toString() || ''
+      juiceType: jtId,
+      quantity: order.items[0]?.quantity.toString() || '',
+      paidAmount: (order.paidAmount || 0).toString(),
+      pricePerUnit: (order.items[0]?.price || 0).toString() || '',
+      date: new Date(order.date).toISOString().split('T')[0]
     });
     setIsModalOpen(true);
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    try {
-      await api.put(`/orders/${id}/status`, { status });
-      toast.success('Order status updated');
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to update status');
-    }
+  const resetForm = () => {
+    setEditingOrder(null);
+    setForm({ customerName: '', shopName: '', type: 'B2B', juiceType: '', quantity: '', paidAmount: '', pricePerUnit: '', date: new Date().toISOString().split('T')[0] });
   };
 
+  const filteredOrders = orders.filter(o => {
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Wholesale') return o.type === 'B2B';
+    return o.type === 'B2C';
+  });
+
+  if (loading) return <div className="flex h-screen bg-white items-center justify-center font-bold text-gray-400">Loading...</div>;
+
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 p-8 overflow-y-auto">
+      <main className="flex-1 lg:ml-64 p-6">
+        
+        {/* Simple Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic underline decoration-indigo-500 underline-offset-8">Sales & Logistics</h1>
-            <p className="text-slate-500 mt-4 font-semibold uppercase tracking-widest text-[10px]">Manage B2B/B2C orders and payment status</p>
-          </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="btn-primary flex items-center gap-2 group shadow-xl shadow-indigo-600/20"
-          >
-            <div className="p-1 rounded bg-white/20 group-hover:bg-white/30 transition-all">
-                <Plus className="w-3 h-3 text-white" />
+           <div>
+              <h1 className="text-2xl font-bold text-gray-800">Sales Record</h1>
+              <p className="text-gray-500 text-sm">Daily sales and customer tracking</p>
+           </div>
+            <div className="flex items-center gap-4">
+                <MonthYearFilter 
+                    selectedMonth={selectedMonth} 
+                    selectedYear={selectedYear} 
+                    onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
+                />
+                <button 
+                    onClick={() => { resetForm(); setIsModalOpen(true); }}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                >
+                    <Plus className="w-5 h-5" />
+                    Add New Sale
+                </button>
             </div>
-            Create New Order
-          </button>
         </div>
 
-        {/* Sales Stats Panel */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-[12px] font-black uppercase tracking-widest">
-          <div className="card border-emerald-100 bg-emerald-50 group">
-             <div className="flex items-center gap-3 text-emerald-600 mb-2 font-black italic">
-                <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Total Volume</span>
-             </div>
-             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">₹{orders.reduce((acc, o) => acc + o.totalAmount, 0).toLocaleString()}</h2>
-             <p className="text-[10px] text-slate-500 mt-2 italic underline decoration-emerald-200">Financial Recognition</p>
-          </div>
-          <div className="card border-blue-100 bg-blue-50 group">
-             <div className="flex items-center gap-3 text-blue-600 mb-2 font-black italic">
-                <PackageCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Orders Handled</span>
-             </div>
-             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{orders.length} Units</h2>
-             <p className="text-[10px] text-slate-500 mt-2 italic underline decoration-blue-200">Fulfillment Status</p>
-          </div>
-          <div className="card border-rose-100 bg-rose-50 group">
-             <div className="flex items-center gap-3 text-rose-600 mb-2 font-black italic">
-                <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Outstandings</span>
-             </div>
-             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">₹{orders.reduce((acc, o) => acc + o.dueAmount, 0).toLocaleString()}</h2>
-             <p className="text-[10px] text-slate-500 mt-2 italic underline decoration-rose-200">Pending collections</p>
-          </div>
+        {/* Totals Block */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Sales</p>
+                <h3 className="text-2xl font-bold text-gray-800">₹{orders.reduce((a, b) => a + b.totalAmount, 0).toLocaleString()}</h3>
+            </div>
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Collected</p>
+                <h3 className="text-2xl font-bold text-green-600">₹{orders.reduce((a, b) => a + (b.paidAmount || 0), 0).toLocaleString()}</h3>
+            </div>
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Pcs Sold</p>
+                <h3 className="text-2xl font-bold text-gray-800">{orders.reduce((a, b) => a + (b.items[0]?.quantity || 0), 0)} Pcs</h3>
+            </div>
         </div>
 
-        {/* Orders Table */}
-          <div className="card !p-0 border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-               <h3 className="font-black text-slate-900 uppercase tracking-tight italic">Order Registry</h3>
-               <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input type="text" placeholder="Search orders..." className="bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                  </div>
-               </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest h-12">
-                  <tr>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Order Detail</th>
-                    <th className="px-6 py-4">Client</th>
-                    <th className="px-6 py-4">Items</th>
-                    <th className="px-6 py-4">Financials</th>
-                    <th className="px-6 py-4">State</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600 font-medium lowercase">
-                  {orders.map((order) => (
-                    <tr key={order._id} className="hover:bg-slate-50/50 transition-all font-medium first-letter:uppercase">
-                      <td className="px-6 py-4">
-                         <div className={cn(
-                           "w-10 h-10 rounded-xl flex items-center justify-center border transition-all",
-                           order.orderStatus === 'delivered' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
-                         )}>
-                           {order.orderStatus === 'delivered' ? <CheckCircle className="w-5 h-5" /> : <PackageCheck className="w-5 h-5" />}
-                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter italic">#{order._id.slice(-6).toUpperCase()}</p>
-                         <p className="text-sm font-black text-slate-900 mt-1">{new Date(order.date).toLocaleDateString()}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-indigo-600">
-                                {order.type === 'B2B' ? <Building2 className="w-4 h-4" /> : <User className="w-4 h-4" />}
-                            </div>
-                            <div>
-                               <p className="font-black text-slate-900 uppercase text-xs tracking-tight italic">{order.customerName}</p>
-                               <p className="text-[10px] text-slate-400 font-bold uppercase">{order.shopName || 'retail'}</p>
-                            </div>
-                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                         {order.items.map((item: any, i: number) => (
-                           <div key={i} className="flex items-center gap-1.5">
-                              <span className="text-indigo-600 font-black italic underline decoration-indigo-200">{item.juiceType?.name}</span>
-                              <span className="text-[10px] font-black text-slate-500 uppercase">x{item.quantity}</span>
-                           </div>
-                         ))}
-                      </td>
-                      <td className="px-6 py-4">
-                         <p className="text-lg font-black text-slate-900 tracking-tighter">₹{order.totalAmount}</p>
-                         <p className={cn("text-[10px] font-black tracking-widest uppercase", order.dueAmount > 0 ? "text-rose-500" : "text-emerald-500")}>
-                            {order.dueAmount > 0 ? `Due: ₹${order.dueAmount}` : 'Settled'}
-                         </p>
-                      </td>
-                      <td className="px-6 py-4">
-                         <span className={cn(
-                           "px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
-                           order.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'
-                         )}>
-                           {order.paymentStatus}
-                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          {order.orderStatus === 'pending' && (
-                            <button onClick={() => updateStatus(order._id, 'delivered')} className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all" title="Mark Delivered"><CheckCircle className="w-4 h-4" /></button>
-                          )}
-                          <button onClick={() => startEdit(order)} className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-indigo-600 rounded-lg transition-all"><Edit className="w-4 h-4" /></button>
-                          <button onClick={() => deleteOrder(order._id)} className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {/* Main Tab System */}
+        <div className="flex bg-gray-200/50 p-1.5 rounded-2xl w-fit mb-8 shadow-inner">
+            <button 
+                onClick={() => setActiveMainTab('ledger')}
+                className={cn(
+                    "px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                    activeMainTab === 'ledger' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
+                )}
+            >Sales Ledger</button>
+            <button 
+                onClick={() => setActiveMainTab('stock')}
+                className={cn(
+                    "px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                    activeMainTab === 'stock' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
+                )}
+            >Daily Stock Entry</button>
+        </div>
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-md animate-in fade-in" onClick={() => { setIsModalOpen(false); setEditingItem(null); }}></div>
-            <div className="card w-full max-w-2xl z-[110] relative animate-in zoom-in duration-300 border-indigo-100 shadow-2xl bg-white">
-              <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 shadow-sm transition-all">
-                    <ShoppingCart className="w-6 h-6 text-indigo-600" />
-                  </div>
+        {activeMainTab === 'ledger' ? (
+          <>
+            {/* Sales Ledger Content (Original) */}
+            <div className="flex bg-white p-1 rounded-lg border border-gray-200 w-fit mb-6">
+                {['All', 'Wholesale', 'Retail'].map(tab => (
+                    <button 
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={cn(
+                            "px-6 py-2 rounded-md text-sm font-bold transition-all",
+                            activeTab === tab ? "bg-gray-800 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"
+                        )}
+                    >
+                        {tab}
+                    </button>
+                ))}
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Party / Customer</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Bill Amount</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 italic-none">
+                            {filteredOrders.length > 0 ? filteredOrders.map((o, i) => (
+                                <tr key={i} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-600">
+                                        {new Date(o.date).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-bold text-gray-800 leading-tight">{o.customerName}</p>
+                                        <p className="text-xs text-gray-400 uppercase font-medium mt-0.5">{o.shopName || 'Market'}</p>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-700">
+                                        {o.items[0]?.juiceType?.name}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-800">
+                                        {o.items[0]?.quantity} Pcs
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="text-sm font-bold text-gray-800">₹{(o.totalAmount || 0).toLocaleString()}</p>
+                                        <p className={cn(
+                                            "text-[10px] font-bold uppercase",
+                                            (o.paidAmount >= o.totalAmount) ? "text-green-500" : "text-red-500"
+                                        )}>
+                                            {o.paidAmount >= o.totalAmount ? 'Fully Paid' : `Due: ₹${o.totalAmount - o.paidAmount}`}
+                                        </p>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-3">
+                                            <button onClick={() => handleEdit(o)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><PencilLine className="w-5 h-5" /></button>
+                                            <button 
+                                                onClick={async () => {
+                                                    if(confirm('Delete record?')) {
+                                                        await api.delete(`/orders/${o._id}`);
+                                                        fetchData();
+                                                    }
+                                                }} 
+                                                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan={6} className="p-10 text-center text-gray-400 font-bold">No Records Found</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700">
+              <div className="p-8 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tighter italic">{editingItem ? 'Edit Order' : 'New Sales Transaction'}</h2>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Financial Receipting Module</p>
+                    <h3 className="text-xl font-black text-gray-900 italic uppercase tracking-tight">Daily Stock Flow Ledger</h3>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Real-time inventory calculation (Opening + Prod - Sales = Closing)</p>
                   </div>
-                </div>
-                <button onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-900 transition-all"><XCircle className="w-6 h-6" /></button>
               </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Client Name</label>
-                    <input 
-                      type="text" required
-                      className="input-field"
-                      placeholder="e.g. John Doe"
-                      value={form.customerName}
-                      onChange={(e) => setForm({...form, customerName: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Outlet Reference</label>
-                    <input 
-                      type="text"
-                      className="input-field"
-                      placeholder="e.g. corner store"
-                      value={form.shopName}
-                      onChange={(e) => setForm({...form, shopName: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 items-end">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Market Type</label>
-                    <div className="flex bg-slate-100 p-1 rounded-2xl gap-1">
-                      <button 
-                        type="button" 
-                        onClick={() => setForm({...form, type: 'B2C'})}
-                        className={cn("flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", form.type === 'B2C' ? "bg-indigo-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-900")}
-                      >Retail (B2C)</button>
-                      <button 
-                        type="button" 
-                        onClick={() => setForm({...form, type: 'B2B'})}
-                        className={cn("flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", form.type === 'B2B' ? "bg-indigo-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-900")}
-                      >Merchant (B2B)</button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Juice Inventory Selection</label>
-                    <div className="relative">
-                      <select 
-                        required 
-                        className="input-field appearance-none"
-                        value={form.juiceType}
-                        onChange={(e) => handleProductSelect(e.target.value)}
-                      >
-                        <option value="">Choose item...</option>
-                        {products.map(p => (
-                          <option key={p._id} value={p._id}>{p.name} (Stk: {p.currentStock})</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Volume (Units)</label>
-                    <input 
-                      type="number" required
-                      className="input-field h-12 text-lg font-black italic"
-                      placeholder="e.g. 10"
-                      value={form.quantity}
-                      onChange={(e) => setForm({...form, quantity: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Rate (₹/Unit)</label>
-                    <input 
-                      type="number" required
-                      className="input-field bg-slate-50 border-dashed border-2 cursor-not-allowed font-black h-12 text-lg italic text-slate-400"
-                      readOnly
-                      value={form.pricePerUnit}
-                    />
-                  </div>
-                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic italic">Payment Recvd (₹)</label>
-                    <input 
-                      type="number" required
-                      className="input-field border-indigo-500/20 focus:ring-emerald-500 h-12 text-lg font-black italic text-emerald-600"
-                      placeholder="e.g. 500"
-                      value={form.paidAmount}
-                      onChange={(e) => setForm({...form, paidAmount: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-indigo-600 shadow-xl shadow-indigo-600/20 flex items-center justify-between text-white border-none">
-                   <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-black tracking-[0.2em] flex items-center gap-2 opacity-80">
-                         Total Invoice Value
-                      </p>
-                      <h4 className="text-4xl font-black italic">₹{(Number(form.quantity) * Number(form.pricePerUnit)).toLocaleString() || 0}</h4>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-[10px] opacity-80 uppercase font-black tracking-widest">Balance Credit</p>
-                      <p className="text-xl font-black italic text-indigo-200">₹{( (Number(form.quantity) * Number(form.pricePerUnit)) - Number(form.paidAmount) ).toLocaleString() || 0}</p>
-                   </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="flex-1 px-4 py-4 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all font-black text-xs uppercase tracking-widest text-slate-500">Cancel</button>
-                  <button type="submit" className="flex-[2] btn-primary shadow-xl shadow-indigo-600/20 font-black text-xs uppercase tracking-widest py-4 flex items-center justify-center gap-3 group">
-                      {editingItem ? 'Update Invoicing' : 'Finalize Sale & Receipt'}
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                      <thead className="bg-[#1e293b] text-white text-[10px] uppercase font-black tracking-[0.2em] h-14">
+                          <tr>
+                              <th className="px-8 py-4 border-r border-slate-700/50">Date</th>
+                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Opening Stock</th>
+                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Production (+)</th>
+                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Sales (-)</th>
+                              <th className="px-8 py-4 text-center">Closing Stock</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 italic-none">
+                          {globalLedger.map((row, idx) => (
+                              <tr key={idx} className="hover:bg-blue-50/30 transition-all font-medium border-l-4 border-l-transparent hover:border-l-blue-600">
+                                  <td className="px-8 py-6 text-sm font-black text-gray-900 italic">{new Date(row.date).toLocaleDateString()}</td>
+                                  <td className="px-8 py-6 text-center text-gray-500 font-bold">{row.openingStock}</td>
+                                  <td className="px-8 py-6 text-center text-emerald-600 font-black italic bg-emerald-50/30">+{row.production}</td>
+                                  <td className="px-8 py-6 text-center text-rose-600 font-black italic bg-rose-50/30">-{row.sales}</td>
+                                  <td className="px-8 py-6 text-center">
+                                      <span className="px-4 py-2 bg-slate-900 text-white rounded-lg font-black italic shadow-lg shadow-slate-900/10">
+                                          {row.closingStock}
+                                      </span>
+                                  </td>
+                              </tr>
+                          ))}
+                          {globalLedger.length === 0 && (
+                              <tr><td colSpan={5} className="p-12 text-center text-gray-400 font-bold">No flow records for this period</td></tr>
+                          )}
+                      </tbody>
+                  </table>
+              </div>
           </div>
         )}
+
+        {/* Modal - Simple and Clean */}
+        <AnimatePresence>
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setIsModalOpen(false)} />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        className="bg-white rounded-lg w-full max-w-lg z-50 relative shadow-2xl overflow-hidden"
+                    >
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-800">{editingOrder ? 'Edit Sale' : 'New Sale Entry'}</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Party / Customer Name</label>
+                                    <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter name" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
+                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+                                        <option value="B2B">Wholesale (Dukan)</option>
+                                        <option value="B2C">Retail (Direct)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Shop Name (Optional)</label>
+                                    <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.shopName} onChange={e => setForm({...form, shopName: e.target.value})} placeholder="e.g. ABC Store" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Date</label>
+                                    <input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Juice Variant</label>
+                                        <select 
+                                            required 
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" 
+                                            value={form.juiceType} 
+                                            onChange={e => {
+                                                const p = products.find(pr => pr._id === e.target.value);
+                                                setForm({...form, juiceType: e.target.value, pricePerUnit: p?.pricePerUnit.toString() || ''});
+                                            }}
+                                        >
+                                            <option value="">Select Juice...</option>
+                                            {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Quantity (Pcs)</label>
+                                        <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} placeholder="Total Pieces" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Cash Received</label>
+                                        <input type="number" className="w-full bg-green-50 border border-green-100 rounded-lg px-4 py-3 text-sm font-bold text-green-700 outline-none focus:border-green-500" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: e.target.value})} placeholder="Amount got" />
+                                    </div>
+                                    <div className="flex flex-col justify-end text-right">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Total Bill</p>
+                                        <p className="text-2xl font-black text-blue-600 tracking-tight">₹{(Number(form.quantity) * Number(form.pricePerUnit)).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-lg text-sm font-bold uppercase transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                                {editingOrder ? 'Update Record' : 'Save Sale Entry'}
+                            </button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
       </main>
     </div>
   );
