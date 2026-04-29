@@ -34,18 +34,48 @@ const Sales = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const [form, setForm] = useState({
-    customerName: '',
-    shopName: '',
-    type: 'B2B',
+  const [orderItems, setOrderItems] = useState([{
     juiceType: '',
     quantity: '',
+    pricePerUnit: ''
+  }]);
+
+  const [form, setForm] = useState({
+    customerName: '',
+    type: 'B2B',
     paidAmount: '',
-    pricePerUnit: '',
+    gst: '',
+    discount: '',
+    paymentMode: 'Cash',
     date: new Date().toISOString().split('T')[0]
   });
 
-  // Removed computeStockFlow frontend logic - using backend report instead
+  const addItem = () => {
+    setOrderItems([...orderItems, { juiceType: '', quantity: '', pricePerUnit: '' }]);
+  };
+
+  const removeItem = (index: number) => {
+    setOrderItems(orderItems.filter((_, i) => i !== index));
+  };
+
+  const updateOrderItem = (index: number, field: string, value: any) => {
+    const newItems = [...orderItems];
+    newItems[index] = { ...newItems[index], [field]: value };
+    if (field === 'juiceType') {
+        const p = products.find(pr => pr._id === value);
+        newItems[index].pricePerUnit = p?.pricePerUnit.toString() || '';
+    }
+    setOrderItems(newItems);
+  };
+
+  const calculateSubtotal = () => {
+    return orderItems.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.pricePerUnit)), 0);
+  };
+
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal + Number(form.gst || 0) - Number(form.discount || 0);
+  };
 
   useEffect(() => {
     fetchData();
@@ -74,15 +104,17 @@ const Sales = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const totalAmount = Number(form.quantity) * Number(form.pricePerUnit);
+    const subtotal = calculateSubtotal();
     const orderData = {
       ...form,
-      items: [{ 
-          juiceType: form.juiceType, 
-          quantity: Number(form.quantity), 
-          price: Number(form.pricePerUnit) 
-      }],
-      totalAmount,
+      items: orderItems.map(item => ({
+          juiceType: item.juiceType,
+          quantity: Number(item.quantity),
+          price: Number(item.pricePerUnit)
+      })),
+      totalAmount: subtotal,
+      gst: Number(form.gst) || 0,
+      discount: Number(form.discount) || 0,
       paidAmount: Number(form.paidAmount) || 0
     };
 
@@ -104,15 +136,18 @@ const Sales = () => {
 
   const handleEdit = (order: any) => {
     setEditingOrder(order);
-    const jtId = order.items[0]?.juiceType?._id || order.items[0]?.juiceType;
+    setOrderItems(order.items.map((i: any) => ({
+        juiceType: i.juiceType?._id || i.juiceType,
+        quantity: i.quantity.toString(),
+        pricePerUnit: i.price.toString()
+    })));
     setForm({
       customerName: order.customerName,
-      shopName: order.shopName || '',
       type: order.type,
-      juiceType: jtId,
-      quantity: order.items[0]?.quantity.toString() || '',
       paidAmount: (order.paidAmount || 0).toString(),
-      pricePerUnit: (order.items[0]?.price || 0).toString() || '',
+      gst: (order.gst || 0).toString(),
+      discount: (order.discount || 0).toString(),
+      paymentMode: order.paymentMode || 'Cash',
       date: new Date(order.date).toISOString().split('T')[0]
     });
     setIsModalOpen(true);
@@ -120,7 +155,16 @@ const Sales = () => {
 
   const resetForm = () => {
     setEditingOrder(null);
-    setForm({ customerName: '', shopName: '', type: 'B2B', juiceType: '', quantity: '', paidAmount: '', pricePerUnit: '', date: new Date().toISOString().split('T')[0] });
+    setOrderItems([{ juiceType: '', quantity: '', pricePerUnit: '' }]);
+    setForm({ 
+        customerName: '', 
+        type: 'B2B', 
+        paidAmount: '', 
+        gst: '', 
+        discount: '', 
+        paymentMode: 'Cash', 
+        date: new Date().toISOString().split('T')[0] 
+    });
   };
 
   const filteredOrders = orders.filter(o => {
@@ -162,7 +206,7 @@ const Sales = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Sales</p>
-                <h3 className="text-2xl font-bold text-gray-800">₹{orders.reduce((a, b) => a + b.totalAmount, 0).toLocaleString()}</h3>
+                <h3 className="text-2xl font-bold text-gray-800">₹{orders.reduce((a, b) => a + (b.grandTotal || b.totalAmount), 0).toLocaleString()}</h3>
             </div>
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">Collected</p>
@@ -170,7 +214,7 @@ const Sales = () => {
             </div>
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Pcs Sold</p>
-                <h3 className="text-2xl font-bold text-gray-800">{orders.reduce((a, b) => a + (b.items[0]?.quantity || 0), 0)} Pcs</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{orders.reduce((a, b) => a + b.items.reduce((acc: number, item: any) => acc + item.quantity, 0), 0)} Pcs</h3>
             </div>
         </div>
 
@@ -217,8 +261,8 @@ const Sales = () => {
                             <tr>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Party / Customer</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Product(s)</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Bill Amount</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
@@ -231,21 +275,23 @@ const Sales = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <p className="font-bold text-gray-800 leading-tight">{o.customerName}</p>
-                                        <p className="text-xs text-gray-400 uppercase font-medium mt-0.5">{o.shopName || 'Market'}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold mt-0.5">{o.paymentMode || 'Cash'}</p>
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-700">
-                                        {o.items[0]?.juiceType?.name}
+                                    <td className="px-6 py-4 text-xs font-bold text-gray-700">
+                                        {o.items.map((item: any, idx: number) => (
+                                            <div key={idx}>{item.juiceType?.name} ({item.quantity})</div>
+                                        ))}
                                     </td>
                                     <td className="px-6 py-4 text-sm font-bold text-gray-800">
-                                        {o.items[0]?.quantity} Pcs
+                                        {o.items.reduce((acc: number, item: any) => acc + item.quantity, 0)} Pcs
                                     </td>
                                     <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-gray-800">₹{(o.totalAmount || 0).toLocaleString()}</p>
+                                        <p className="text-sm font-bold text-gray-800">₹{(o.grandTotal || o.totalAmount || 0).toLocaleString()}</p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase",
-                                            (o.paidAmount >= o.totalAmount) ? "text-green-500" : "text-red-500"
+                                            (o.paidAmount >= (o.grandTotal || o.totalAmount)) ? "text-green-500" : "text-red-500"
                                         )}>
-                                            {o.paidAmount >= o.totalAmount ? 'Fully Paid' : `Due: ₹${o.totalAmount - o.paidAmount}`}
+                                            {o.paidAmount >= (o.grandTotal || o.totalAmount) ? 'Fully Paid' : `Due: ₹${(o.grandTotal || o.totalAmount) - o.paidAmount}`}
                                         </p>
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -324,14 +370,14 @@ const Sales = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 30 }}
-                        className="bg-white rounded-lg w-full max-w-lg z-50 relative shadow-2xl overflow-hidden"
+                        className="bg-white rounded-lg w-full max-w-2xl z-50 relative shadow-2xl overflow-hidden"
                     >
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">{editingOrder ? 'Edit Sale' : 'New Sale Entry'}</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
                         </div>
                         
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Party / Customer Name</label>
@@ -348,8 +394,13 @@ const Sales = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Shop Name (Optional)</label>
-                                    <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.shopName} onChange={e => setForm({...form, shopName: e.target.value})} placeholder="e.g. ABC Store" />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Payment Mode</label>
+                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
+                                        <option value="Cash">Cash</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Credit">Credit (Udhaar)</option>
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Date</label>
@@ -358,43 +409,67 @@ const Sales = () => {
                             </div>
 
                             <div className="space-y-4 pt-4 border-t border-gray-100">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Juice Variant</label>
-                                        <select 
-                                            required 
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" 
-                                            value={form.juiceType} 
-                                            onChange={e => {
-                                                const p = products.find(pr => pr._id === e.target.value);
-                                                setForm({...form, juiceType: e.target.value, pricePerUnit: p?.pricePerUnit.toString() || ''});
-                                            }}
-                                        >
-                                            <option value="">Select Juice...</option>
-                                            {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Quantity (Pcs)</label>
-                                        <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} placeholder="Total Pieces" />
-                                    </div>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Juice Variants</h3>
+                                    <button type="button" onClick={addItem} className="text-blue-600 text-[10px] font-black uppercase flex items-center gap-1 hover:underline">
+                                        <Plus className="w-4 h-4" /> Add Product
+                                    </button>
                                 </div>
+                                {orderItems.map((item, idx) => (
+                                    <div key={idx} className="grid grid-cols-12 gap-3 items-end bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <div className="col-span-5 space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Product</label>
+                                            <select 
+                                                required 
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" 
+                                                value={item.juiceType} 
+                                                onChange={e => updateOrderItem(idx, 'juiceType', e.target.value)}
+                                            >
+                                                <option value="">Select...</option>
+                                                {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Qty</label>
+                                            <input type="number" required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" value={item.quantity} onChange={e => updateOrderItem(idx, 'quantity', e.target.value)} />
+                                        </div>
+                                        <div className="col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Rate</label>
+                                            <input type="number" required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" value={item.pricePerUnit} onChange={e => updateOrderItem(idx, 'pricePerUnit', e.target.value)} />
+                                        </div>
+                                        <div className="col-span-1 flex justify-end">
+                                            {orderItems.length > 1 && (
+                                                <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 className="w-4 h-4" /></button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase">Cash Received</label>
-                                        <input type="number" className="w-full bg-green-50 border border-green-100 rounded-lg px-4 py-3 text-sm font-bold text-green-700 outline-none focus:border-green-500" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: e.target.value})} placeholder="Amount got" />
-                                    </div>
-                                    <div className="flex flex-col justify-end text-right">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Total Bill</p>
-                                        <p className="text-2xl font-black text-blue-600 tracking-tight">₹{(Number(form.quantity) * Number(form.pricePerUnit)).toLocaleString()}</p>
-                                    </div>
+                            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase">GST (₹)</label>
+                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold" value={form.gst} onChange={e => setForm({...form, gst: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (₹)</label>
+                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold" value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase">Cash Received</label>
+                                    <input type="number" className="w-full bg-green-50 border border-green-100 rounded-lg px-4 py-2 text-sm font-bold text-green-700" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: e.target.value})} />
                                 </div>
                             </div>
 
-                            <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-lg text-sm font-bold uppercase transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-[0.98]">
-                                {editingOrder ? 'Update Record' : 'Save Sale Entry'}
-                            </button>
+                            <div className="flex items-center justify-between bg-blue-50 p-6 rounded-2xl">
+                                <div>
+                                    <p className="text-[10px] font-black text-blue-400 uppercase">Grand Total</p>
+                                    <p className="text-3xl font-black text-blue-600 tracking-tight">₹{calculateGrandTotal().toLocaleString()}</p>
+                                </div>
+                                <button type="submit" className="bg-blue-600 text-white py-4 px-10 rounded-xl text-sm font-bold uppercase transition-all hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-[0.98]">
+                                    {editingOrder ? 'Update Sale' : 'Confirm Sale'}
+                                </button>
+                            </div>
                         </form>
                     </motion.div>
                 </div>

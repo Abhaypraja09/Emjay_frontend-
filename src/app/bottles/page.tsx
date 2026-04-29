@@ -29,19 +29,40 @@ const Bottles = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'purchases' | 'ledger'>('purchases');
+  const [activeTab, setActiveTab] = useState<'purchases' | 'ledger'>('ledger');
 
   const [ledgerData, setLedgerData] = useState<any[]>([]);
-  const [bottleTypeFilter, setBottleTypeFilter] = useState('New');
+  const [bottleTypeFilter, setBottleTypeFilter] = useState('Bottles');
   const [ledgerLoading, setLedgerLoading] = useState(false);
 
-  const [form, setForm] = useState({
-    type: 'New',
+  const [items, setItems] = useState([{
+    bottleType: 'New',
     quantity: '',
     pricePerUnit: '',
+    totalCost: 0
+  }]);
+
+  const [form, setForm] = useState({
     supplier: '',
     date: new Date().toISOString().split('T')[0]
   });
+
+  const addItem = () => {
+    setItems([...items, { bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    if (field === 'quantity' || field === 'pricePerUnit') {
+        newItems[index].totalCost = Number(newItems[index].quantity) * Number(newItems[index].pricePerUnit);
+    }
+    setItems(newItems);
+  };
 
   const fetchData = async () => {
     try {
@@ -82,19 +103,26 @@ const Bottles = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Send all items in one request
       await api.post('/bottles/purchase', {
-        ...form,
-        costPerUnit: Number(form.pricePerUnit),
-        supplierName: form.supplier,
-        totalCost: Number(form.quantity) * Number(form.pricePerUnit)
+          items: items.map(item => ({
+              ...item,
+              quantity: Number(item.quantity),
+              pricePerUnit: Number(item.pricePerUnit),
+              totalCost: Number(item.quantity) * Number(item.pricePerUnit)
+          })),
+          supplierName: form.supplier,
+          date: form.date
       });
-      toast.success('Purchase recorded');
+
+      toast.success('Purchases recorded');
       setIsModalOpen(false);
-      setForm({ type: 'New', quantity: '', pricePerUnit: '', supplier: '', date: new Date().toISOString().split('T')[0] });
+      setItems([{ bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0 }]);
+      setForm({ supplier: '', date: new Date().toISOString().split('T')[0] });
       fetchData();
       if (activeTab === 'ledger') fetchLedger();
-    } catch (error) {
-      toast.error('Failed to record purchase');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to record purchase');
     }
   };
 
@@ -180,16 +208,6 @@ const Bottles = () => {
         {/* Section Tabs */}
         <div className="flex bg-white p-1 rounded-xl border border-gray-200 w-fit mb-6 shadow-sm">
             <button 
-                onClick={() => setActiveTab('purchases')}
-                className={cn(
-                    "px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
-                    activeTab === 'purchases' ? "bg-slate-900 text-white shadow-md" : "text-gray-500 hover:bg-slate-50"
-                )}
-            >
-                <Truck className="w-4 h-4" />
-                Purchase History
-            </button>
-            <button 
                 onClick={() => setActiveTab('ledger')}
                 className={cn(
                     "px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
@@ -198,6 +216,16 @@ const Bottles = () => {
             >
                 <ClipboardList className="w-4 h-4" />
                 Stock Flow Report
+            </button>
+            <button 
+                onClick={() => setActiveTab('purchases')}
+                className={cn(
+                    "px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
+                    activeTab === 'purchases' ? "bg-slate-900 text-white shadow-md" : "text-gray-500 hover:bg-slate-50"
+                )}
+            >
+                <Truck className="w-4 h-4" />
+                Purchase History
             </button>
         </div>
 
@@ -226,8 +254,8 @@ const Bottles = () => {
                                     <td className="px-6 py-5">
                                         <span className={cn(
                                             "px-2.5 py-1 rounded text-[10px] font-black uppercase ring-1 shadow-sm",
-                                            h.type === 'New' ? 'bg-blue-50 text-blue-600 ring-blue-100' : 'bg-orange-50 text-orange-600 ring-orange-100'
-                                        )}>{h.type}</span>
+                                            h.bottleType === 'New' || h.bottleType === 'Old' ? 'bg-blue-50 text-blue-600 ring-blue-100' : 'bg-orange-50 text-orange-600 ring-orange-100'
+                                        )}>{h.bottleType}</span>
                                     </td>
                                     <td className="px-6 py-5 text-sm text-gray-900 font-black italic">{h.supplierName || 'N/A'}</td>
                                     <td className="px-6 py-5 text-center font-black text-gray-800 tracking-tighter">{h.quantity} units</td>
@@ -244,13 +272,9 @@ const Bottles = () => {
                 <div className="flex justify-between items-center">
                     <div className="flex bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
                         <button 
-                            onClick={() => setBottleTypeFilter('New')}
-                            className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", bottleTypeFilter === 'New' ? "bg-blue-600 text-white shadow-md" : "text-gray-500")}
-                        >New Bottles</button>
-                        <button 
-                            onClick={() => setBottleTypeFilter('Old')}
-                            className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", bottleTypeFilter === 'Old' ? "bg-blue-600 text-white shadow-md" : "text-gray-500")}
-                        >Old Bottles</button>
+                            onClick={() => setBottleTypeFilter('Bottles')}
+                            className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", bottleTypeFilter === 'Bottles' ? "bg-blue-600 text-white shadow-md" : "text-gray-500")}
+                        >Bottles</button>
                         <button 
                             onClick={() => setBottleTypeFilter('Caps')}
                             className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", bottleTypeFilter === 'Caps' ? "bg-blue-600 text-white shadow-md" : "text-gray-500")}
@@ -322,21 +346,17 @@ const Bottles = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl w-full max-w-2xl z-50 relative shadow-xl overflow-hidden">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-lg font-bold text-gray-900">Record Procurement</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
                         </div>
                         
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Bottle Variant</label>
-                                    <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                                        <option value="New">New Bottles</option>
-                                        <option value="Old">Old Bottles</option>
-                                        <option value="Caps">Bottle Caps</option>
-                                    </select>
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Supplier Name</label>
+                                    <input type="text" className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="ABC Bottles Ltd." value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Date</label>
@@ -344,26 +364,44 @@ const Bottles = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Supplier Designation</label>
-                                <input type="text" className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="ABC Bottles Ltd." value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Unit Quantity</label>
-                                    <input type="number" required className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full font-bold text-indigo-600" placeholder="0" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Items</h3>
+                                    <button type="button" onClick={addItem} className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:underline">
+                                        <Plus className="w-4 h-4" /> Add Item
+                                    </button>
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Rate (₹/unit)</label>
-                                    <input type="number" step="0.01" required className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="0.00" value={form.pricePerUnit} onChange={e => setForm({...form, pricePerUnit: e.target.value})} />
-                                </div>
+                                {items.map((item, idx) => (
+                                    <div key={idx} className="grid grid-cols-12 gap-3 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                          <div className="col-span-4 space-y-1">
+                                              <label className="text-[10px] font-bold text-gray-400 uppercase">Variant</label>
+                                              <select className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.bottleType} onChange={e => updateItem(idx, 'bottleType', e.target.value)}>
+                                                  <option value="New">New Bottles</option>
+                                                  <option value="Old">Old Bottles</option>
+                                                  <option value="Caps">Bottle Caps</option>
+                                              </select>
+                                          </div>
+                                        <div className="col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Qty</label>
+                                            <input type="number" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} />
+                                        </div>
+                                        <div className="col-span-3 space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Rate (₹)</label>
+                                            <input type="number" step="0.01" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.pricePerUnit} onChange={e => updateItem(idx, 'pricePerUnit', e.target.value)} />
+                                        </div>
+                                        <div className="col-span-2 flex justify-end">
+                                            {items.length > 1 && (
+                                                <button type="button" onClick={() => removeItem(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                             <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                                 <div>
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Gross Commitment</p>
-                                    <p className="text-2xl font-black text-indigo-600 italic tracking-tighter">₹{(Number(form.quantity) * Number(form.pricePerUnit)).toLocaleString()}</p>
+                                    <p className="text-2xl font-black text-indigo-600 italic tracking-tighter">₹{items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.pricePerUnit)), 0).toLocaleString()}</p>
                                 </div>
                                 <button type="submit" className="bg-blue-600 text-white py-3 px-8 rounded-lg font-bold shadow-lg shadow-indigo-600/20">Authorize Purchase</button>
                             </div>

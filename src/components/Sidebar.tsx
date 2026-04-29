@@ -18,6 +18,7 @@ import {
   Wine,
   ShoppingBag,
   CreditCard,
+  Wallet,
   ShieldCheck,
   ClipboardList
 } from 'lucide-react';
@@ -45,6 +46,7 @@ const Sidebar = () => {
     { name: 'Production', path: '/production', icon: FlaskConical },
     { name: 'Purchases', path: '/purchases', icon: ShoppingBag },
     { name: 'Sales', path: '/sales', icon: ShoppingCart },
+    { name: 'Cash Book', path: '/cash-book', icon: Wallet },
     { name: 'Party Ledgers', path: '/party-ledgers', icon: CreditCard },
     { name: 'Staff', path: '/staff', icon: ShieldCheck },
     { name: 'Reports', path: '/reports', icon: FileText },

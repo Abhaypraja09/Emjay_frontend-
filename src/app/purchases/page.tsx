@@ -24,6 +24,9 @@ const PurchasesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredPurchases = purchases.filter(p => selectedCategory === 'All' || p.category === selectedCategory);
 
   const [form, setForm] = useState({
     item: '',
@@ -134,37 +137,30 @@ const PurchasesPage = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="card bg-white border border-slate-200 p-8 flex items-center justify-between group hover:border-blue-500 transition-all cursor-default">
+        <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
+          <div className="card bg-slate-900 border border-slate-800 p-8 flex items-center justify-between group hover:shadow-xl transition-all cursor-default w-full md:w-80 shadow-lg shadow-slate-900/10">
               <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Shop Entries</p>
-                  <h4 className="text-3xl font-black text-slate-900 italic tracking-tighter">{purchases.length}</h4>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Purchase Cost</p>
+                  <h4 className="text-3xl font-black text-white italic tracking-tighter">₹{purchases.reduce((acc, p) => acc + (p.cost || 0), 0).toLocaleString()}</h4>
               </div>
-              <div className="p-4 bg-slate-50 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl shadow-sm">
-                  <ShoppingCart className="w-6 h-6" />
+              <div className="p-4 bg-white/10 text-white rounded-2xl shadow-sm group-hover:bg-blue-600 transition-colors">
+                  <IndianRupee className="w-6 h-6" />
               </div>
           </div>
-          <div className="card bg-white border border-slate-200 p-8 flex items-center justify-between group hover:border-emerald-500 transition-all cursor-default">
-              <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Vendors</p>
-                  <h4 className="text-3xl font-black text-slate-900 italic tracking-tighter">
-                      {new Set(purchases.map(p => p.supplier).filter(Boolean)).size}
-                  </h4>
-              </div>
-              <div className="p-4 bg-slate-50 text-slate-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors rounded-2xl shadow-sm">
-                  <Truck className="w-6 h-6" />
-              </div>
-          </div>
-          <div className="card bg-white border border-slate-200 p-8 flex items-center justify-between group hover:border-amber-500 transition-all cursor-default">
-              <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Expense Categorys</p>
-                  <h4 className="text-3xl font-black text-slate-900 italic tracking-tighter">
-                      {new Set(purchases.map(p => p.category)).size}
-                  </h4>
-              </div>
-              <div className="p-4 bg-slate-50 text-slate-400 group-hover:bg-amber-600 group-hover:text-white transition-colors rounded-2xl shadow-sm">
-                  <Package className="w-6 h-6" />
-              </div>
+
+          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+              <Package className="w-4 h-4 text-blue-600" />
+              <select 
+                  value={selectedCategory} 
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-transparent text-xs font-black uppercase outline-none cursor-pointer text-gray-700"
+              >
+                  {['All', 'Raw Materials', 'Bottles', 'Packaging', 'Machinery', 'Other'].map(cat => (
+                      <option key={cat} value={cat}>
+                          {cat} {cat !== 'All' ? `(₹${purchases.filter(p => p.category === cat).reduce((acc, p) => acc + (p.cost || 0), 0).toLocaleString()})` : ''}
+                      </option>
+                  ))}
+              </select>
           </div>
         </div>
 
@@ -190,7 +186,7 @@ const PurchasesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {purchases.map(p => (
+                {filteredPurchases.map(p => (
                   <tr key={p._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-600">{new Date(p.date).toLocaleDateString()}</td>
                     <td className="px-6 py-4">

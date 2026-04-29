@@ -44,7 +44,8 @@ const Production = () => {
         juiceType: '',
         quantityProduced: '',
         nameOfVerk: '',
-        openingBalance: '0'
+        openingBalance: '0',
+        bottleType: 'New'
     });
 
     // Inventory Management State
@@ -115,7 +116,7 @@ const Production = () => {
             await api.post('/production', productionForm);
             toast.success('Production entry added');
             setIsProductionModalOpen(false);
-            setProductionForm({ date: new Date().toISOString().split('T')[0], juiceType: '', quantityProduced: '', nameOfVerk: '', openingBalance: '0' });
+            setProductionForm({ date: new Date().toISOString().split('T')[0], juiceType: '', quantityProduced: '', nameOfVerk: '', openingBalance: '0', bottleType: 'New' });
             fetchInitialData();
             if (productionForm.juiceType === selectedProduct) fetchLedger(selectedProduct);
         } catch (error: any) {
@@ -204,6 +205,15 @@ const Production = () => {
                 {currentTab === 'ledger' ? (
                     <>
                         <div className="flex flex-col lg:flex-row gap-6 mb-10 items-start">
+                            {/* Last Closing Balance Card */}
+                            <div className="w-full lg:w-48 shrink-0 bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-lg shadow-slate-900/10">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Last Closing Balance</p>
+                                <h3 className="text-xl font-bold text-white leading-none">
+                                    {ledgerData.length > 0 ? ledgerData[ledgerData.length - 1].closingStock : 0}
+                                    <span className="text-[10px] font-normal text-slate-500 ml-1">Units</span>
+                                </h3>
+                            </div>
+
                             {/* Compact Total Production Card */}
                             <div className="w-full lg:w-48 shrink-0 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                                 <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Total Produced</p>
@@ -387,7 +397,7 @@ const Production = () => {
                                                         <td className="px-8 py-4 text-gray-500 font-medium">
                                                             {new Date(h.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                         </td>
-                                                        <td className="px-8 py-4 font-bold text-gray-800 text-xs">{h.type}</td>
+                                                        <td className="px-8 py-4 font-bold text-gray-800 text-xs">{h.bottleType || 'N/A'}</td>
                                                         <td className="px-8 py-4 text-gray-600 text-xs font-medium uppercase tracking-tight">{h.supplier || 'Internal'}</td>
                                                         <td className="px-8 py-4 text-center">
                                                             <span className="text-blue-600 font-bold">+{h.quantity}</span>
@@ -416,6 +426,17 @@ const Production = () => {
                                 </div>
 
                                 <form onSubmit={handleProductionSubmit} className="p-6 space-y-4">
+                                    <div className="bg-blue-50 p-4 rounded-xl flex justify-between items-center border border-blue-100 mb-2">
+                                        <div className="text-center flex-1 border-r border-blue-100">
+                                            <p className="text-[10px] font-bold text-blue-400 uppercase">Avail. Bottles</p>
+                                            <p className="text-lg font-black text-blue-600">{bottleStock?.availableEmptyBottles || 0}</p>
+                                        </div>
+                                        <div className="text-center flex-1">
+                                            <p className="text-[10px] font-bold text-blue-400 uppercase">Avail. Caps</p>
+                                            <p className="text-lg font-black text-blue-600">{bottleStock?.availableCaps || 0}</p>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-gray-500">Date</label>
@@ -432,13 +453,21 @@ const Production = () => {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-500">Bottle Type</label>
+                                            <select required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" value={productionForm.bottleType || 'New'} onChange={e => setProductionForm({ ...productionForm, bottleType: e.target.value })}>
+                                                <option value="New">New Bottles</option>
+                                                <option value="Old">Old Bottles</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
                                             <label className="text-xs font-bold text-gray-500">Quantity (Units)</label>
                                             <input type="number" required className="w-full bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-lg font-bold text-blue-600 outline-none focus:border-blue-500" placeholder="0" value={productionForm.quantityProduced} onChange={e => setProductionForm({ ...productionForm, quantityProduced: e.target.value })} />
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-bold text-gray-500">Batch Name</label>
-                                            <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" placeholder="Batch A" value={productionForm.nameOfVerk} onChange={e => setProductionForm({ ...productionForm, nameOfVerk: e.target.value })} />
-                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-500">Batch Name</label>
+                                        <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:border-blue-500" placeholder="Batch A" value={productionForm.nameOfVerk} onChange={e => setProductionForm({ ...productionForm, nameOfVerk: e.target.value })} />
                                     </div>
 
                                     <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">

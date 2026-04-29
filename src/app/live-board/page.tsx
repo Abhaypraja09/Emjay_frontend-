@@ -70,7 +70,7 @@ const LiveBoard = () => {
   const fetchDailyReport = async () => {
       try {
           setReportLoading(true);
-          const dateStr = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
+          const dateStr = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
           const res = await api.get(`/dashboard/daily-report?date=${dateStr}`);
           setDailyReport(res.data);
       } catch (error) {
@@ -241,36 +241,35 @@ const LiveBoard = () => {
             </div>
         </div>
 
-        {/* Chart Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-blue-600" /> Performance
-                </h3>
-                <RefreshCcw onClick={fetchInitialData} className="w-3.5 h-3.5 text-gray-400 hover:text-blue-600 cursor-pointer transition-all" />
+        {/* Quick Summary Section (Replacing Chart) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+                 <h3 className="font-bold text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
+                     <Activity className="w-4 h-4 text-blue-600" /> Daily Efficiency
+                 </h3>
+                 <div className="space-y-6">
+                     <div className="flex justify-between items-center">
+                         <p className="text-xs font-bold text-gray-400 uppercase">Sales Conversion</p>
+                         <p className="text-sm font-black text-gray-900">{(dailyReport?.summary.totalProduced > 0 ? (dailyReport?.summary.totalSales / dailyReport?.summary.totalProduced * 100).toFixed(1) : 0)}%</p>
+                     </div>
+                     <div className="h-px bg-gray-50 w-full" />
+                     <div className="flex justify-between items-center">
+                         <p className="text-xs font-bold text-gray-400 uppercase">Bottle Utilization</p>
+                         <p className="text-sm font-black text-emerald-600">Optimal</p>
+                     </div>
+                 </div>
             </div>
-            <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                        <defs>
-                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                        <XAxis 
-                            dataKey="date" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{fill: '#94a3b8', fontSize: 9}} 
-                            tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                        />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 9}} />
-                        <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
-                        <Area type="monotone" dataKey="sales" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#chartGradient)" />
-                    </AreaChart>
-                </ResponsiveContainer>
+
+            <div className="bg-slate-900 rounded-xl p-8 shadow-xl relative overflow-hidden group">
+                 <div className="relative z-10">
+                    <h3 className="font-bold text-slate-400 uppercase text-xs tracking-widest mb-6">Business Health</h3>
+                    <div className="flex items-end gap-4">
+                        <h2 className="text-5xl font-black text-white italic tracking-tighter">Live</h2>
+                        <div className="mb-2 w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
+                    </div>
+                    <p className="text-slate-500 text-xs mt-4 font-bold uppercase tracking-widest">Feed auto-updates every 60s</p>
+                 </div>
+                 <Activity className="absolute -right-8 -bottom-8 w-48 h-48 text-white/5 rotate-12 group-hover:rotate-0 transition-all duration-700" />
             </div>
         </div>
 
