@@ -3,7 +3,7 @@ import axios from 'axios';
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'http://localhost:5000/api';
+    return 'http://localhost:5001/api';
   }
   return 'https://emjay.yatreedestination.com/api';
 };
@@ -28,5 +28,18 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

@@ -15,13 +15,15 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   ChevronDown,
-  Warehouse
+  Warehouse,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import MonthYearFilter from '@/components/MonthYearFilter';
+import { Pencil } from 'lucide-react';
 
 const Bottles = () => {
   const [data, setData] = useState<any>(null);
@@ -35,20 +37,33 @@ const Bottles = () => {
   const [bottleTypeFilter, setBottleTypeFilter] = useState('Bottles');
   const [ledgerLoading, setLedgerLoading] = useState(false);
 
-  const [items, setItems] = useState([{
+  const [items, setItems] = useState<{bottleType: string, quantity: string, pricePerUnit: string, totalCost: number, billFile: File | null}[]>([{
     bottleType: 'New',
     quantity: '',
     pricePerUnit: '',
-    totalCost: 0
+    totalCost: 0,
+    billFile: null
   }]);
 
   const [form, setForm] = useState({
     supplier: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    paymentMode: 'Cash'
+  });
+  const [viewBillModal, setViewBillModal] = useState(false);
+  const [selectedBillUrl, setSelectedBillUrl] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    bottleType: '',
+    quantity: '',
+    pricePerUnit: '',
+    supplierName: '',
+    date: ''
   });
 
   const addItem = () => {
-    setItems([...items, { bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0 }]);
+    setItems([...items, { bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0, billFile: null }]);
   };
 
   const removeItem = (index: number) => {
@@ -103,26 +118,76 @@ const Bottles = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Send all items in one request
-      await api.post('/bottles/purchase', {
-          items: items.map(item => ({
-              ...item,
-              quantity: Number(item.quantity),
-              pricePerUnit: Number(item.pricePerUnit),
-              totalCost: Number(item.quantity) * Number(item.pricePerUnit)
-          })),
-          supplierName: form.supplier,
-          date: form.date
+      const formData = new FormData();
+      formData.append('items', JSON.stringify(items.map(item => ({
+          bottleType: item.bottleType,
+          quantity: Number(item.quantity),
+          pricePerUnit: Number(item.pricePerUnit),
+          totalCost: Number(item.quantity) * Number(item.pricePerUnit)
+      }))));
+      formData.append('supplierName', form.supplier);
+      formData.append('date', form.date);
+      formData.append('paymentMode', form.paymentMode);
+
+      items.forEach((item, index) => {
+          if (item.billFile) {
+              formData.append(`billImage_${index}`, item.billFile);
+          }
+      });
+
+      await api.post('/bottles/purchase', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       toast.success('Purchases recorded');
       setIsModalOpen(false);
-      setItems([{ bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0 }]);
-      setForm({ supplier: '', date: new Date().toISOString().split('T')[0] });
+      setItems([{ bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0, billFile: null }]);
+      setForm({ supplier: '', date: new Date().toISOString().split('T')[0], paymentMode: 'Cash' });
       fetchData();
       if (activeTab === 'ledger') fetchLedger();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to record purchase');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    try {
+      await api.delete(`/bottles/${id}`);
+      toast.success('Record deleted');
+      fetchData();
+      if (activeTab === 'ledger') fetchLedger();
+    } catch (error) {
+      toast.error('Failed to delete record');
+    }
+  };
+
+  const handleEdit = (record: any) => {
+    setEditingRecord(record);
+    setEditForm({
+      bottleType: record.bottleType,
+      quantity: record.quantity.toString(),
+      pricePerUnit: record.costPerUnit.toString(),
+      supplierName: record.supplierName || '',
+      date: new Date(record.date).toISOString().split('T')[0]
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.put(`/bottles/${editingRecord._id}`, {
+        ...editForm,
+        quantity: Number(editForm.quantity),
+        costPerUnit: Number(editForm.pricePerUnit)
+      });
+      toast.success('Record updated');
+      setIsEditModalOpen(false);
+      fetchData();
+      if (activeTab === 'ledger') fetchLedger();
+    } catch (error) {
+      toast.error('Failed to update record');
     }
   };
 
@@ -135,13 +200,13 @@ const Bottles = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-8 relative">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
            <div>
               <h1 className="text-2xl font-bold text-gray-900">Empty Bottle Management</h1>
-              <p className="text-sm text-gray-500 mt-1">Track purchasing and production usage</p>
+              <p className="text-sm text-gray-500 mt-1">Track purchasing, production usage & bill records</p>
            </div>
             <div className="flex flex-col md:flex-row items-center gap-4">
                 <MonthYearFilter 
@@ -166,7 +231,7 @@ const Bottles = () => {
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Buy Bottles</p>
                    <h3 className="text-2xl font-black text-gray-900 italic tracking-tighter">{data?.totalPurchased || 0}</h3>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-4">
                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors"><Truck className="w-5 h-5" /></div>
                 </div>
             </div>
@@ -176,7 +241,7 @@ const Bottles = () => {
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Production</p>
                    <h3 className="text-2xl font-black text-gray-900 italic tracking-tighter">{data?.totalUsed || 0}</h3>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-4">
                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors"><ArrowUpRight className="w-5 h-5" /></div>
                 </div>
             </div>
@@ -186,7 +251,7 @@ const Bottles = () => {
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Empty Bottles</p>
                    <h3 className="text-2xl font-black text-blue-600 italic tracking-tighter">{data?.availableEmptyBottles || 0}</h3>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-4">
                     <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Package className="w-5 h-5" /></div>
                 </div>
             </div>
@@ -196,11 +261,22 @@ const Bottles = () => {
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Caps Inventory</p>
                    <h3 className="text-2xl font-black text-white italic tracking-tighter">{data?.availableCaps || 0}</h3>
                 </div>
-                <div className="flex justify-end z-10">
-                    <div className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"><ClipboardList className="w-5 h-5" /></div>
+                <div className="flex justify-end mt-4 z-10">
+                    <div className="p-2 bg-white/10 text-white rounded-lg border border-white/10 hover:bg-white/20 transition-colors"><ClipboardList className="w-5 h-5" /></div>
                 </div>
                 <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 scale-150">
                      <Package className="w-24 h-24 text-white" />
+                </div>
+            </div>
+
+            {/* Re-adding Stock Value card to match original length exactly */}
+            <div className="card bg-emerald-600 border border-emerald-500 p-6 flex flex-col justify-between hover:shadow-xl transition-all group relative overflow-hidden">
+                <div className="z-10">
+                   <p className="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-1">Stock Value</p>
+                   <h3 className="text-2xl font-black text-white italic tracking-tighter">₹{(data?.history?.reduce((acc: number, h: any) => acc + (h.quantity * h.costPerUnit), 0) || 0).toLocaleString()}</h3>
+                </div>
+                <div className="flex justify-end mt-4 z-10">
+                    <div className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"><IndianRupee className="w-5 h-5" /></div>
                 </div>
             </div>
         </div>
@@ -243,6 +319,7 @@ const Bottles = () => {
                                 <th className="px-6 py-4">Supplier Entity</th>
                                 <th className="px-6 py-4 text-center">Batch Quantity</th>
                                 <th className="px-6 py-4 text-right">Investment</th>
+                                <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -260,9 +337,24 @@ const Bottles = () => {
                                     <td className="px-6 py-5 text-sm text-gray-900 font-black italic">{h.supplierName || 'N/A'}</td>
                                     <td className="px-6 py-5 text-center font-black text-gray-800 tracking-tighter">{h.quantity} units</td>
                                     <td className="px-6 py-5 text-right font-black text-blue-600">₹{(h.quantity * h.costPerUnit).toLocaleString()}</td>
+                                    <td className="px-6 py-5 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            {h.billImage && (
+                                                <button 
+                                                    onClick={() => { setSelectedBillUrl(h.billImage); setViewBillModal(true); }} 
+                                                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title="View Bill"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            <button onClick={() => handleEdit(h)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDelete(h._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
-                            {!data?.history?.length && <tr><td colSpan={5} className="p-12 text-center text-gray-400">No purchase records found.</td></tr>}
+                            {!data?.history?.length && <tr><td colSpan={6} className="p-12 text-center text-gray-400">No purchase records found.</td></tr>}
                         </tbody>
                     </table>
                 </div>
@@ -346,7 +438,7 @@ const Bottles = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl w-full max-w-2xl z-50 relative shadow-xl overflow-hidden">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl w-full max-w-3xl z-50 relative shadow-xl overflow-hidden">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-lg font-bold text-gray-900">Record Procurement</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
@@ -362,6 +454,14 @@ const Bottles = () => {
                                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Date</label>
                                     <input type="date" required className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
                                 </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Payment Mode</label>
+                                    <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Online/UPI">Online/UPI</option>
+                                        <option value="Due">Due</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="space-y-4">
@@ -372,27 +472,42 @@ const Bottles = () => {
                                     </button>
                                 </div>
                                 {items.map((item, idx) => (
-                                    <div key={idx} className="grid grid-cols-12 gap-3 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                          <div className="col-span-4 space-y-1">
-                                              <label className="text-[10px] font-bold text-gray-400 uppercase">Variant</label>
-                                              <select className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.bottleType} onChange={e => updateItem(idx, 'bottleType', e.target.value)}>
-                                                  <option value="New">New Bottles</option>
-                                                  <option value="Old">Old Bottles</option>
-                                                  <option value="Caps">Bottle Caps</option>
-                                              </select>
-                                          </div>
-                                        <div className="col-span-3 space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Qty</label>
-                                            <input type="number" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} />
+                                    <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-4 relative">
+                                        {items.length > 1 && (
+                                            <button type="button" onClick={() => removeItem(idx)} className="absolute -top-3 -right-3 p-1.5 bg-red-100 text-red-600 hover:bg-red-500 hover:text-white rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
+                                        )}
+                                        <div className="grid grid-cols-12 gap-3 items-end">
+                                            <div className="col-span-12 md:col-span-4 space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Variant</label>
+                                                <select className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.bottleType} onChange={e => updateItem(idx, 'bottleType', e.target.value)}>
+                                                    <option value="New">New Bottles</option>
+                                                    <option value="Old">Old Bottles</option>
+                                                    <option value="Caps">Bottle Caps</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-span-6 md:col-span-4 space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Qty</label>
+                                                <input type="number" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} />
+                                            </div>
+                                            <div className="col-span-6 md:col-span-4 space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Rate (₹)</label>
+                                                <input type="number" step="0.01" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.pricePerUnit} onChange={e => updateItem(idx, 'pricePerUnit', e.target.value)} />
+                                            </div>
                                         </div>
-                                        <div className="col-span-3 space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Rate (₹)</label>
-                                            <input type="number" step="0.01" required className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs w-full" value={item.pricePerUnit} onChange={e => updateItem(idx, 'pricePerUnit', e.target.value)} />
-                                        </div>
-                                        <div className="col-span-2 flex justify-end">
-                                            {items.length > 1 && (
-                                                <button type="button" onClick={() => removeItem(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                                            )}
+                                        <div className="pt-2 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                            <div className="space-y-1 flex-1 w-full">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Attach Bill (Optional)</label>
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*,application/pdf"
+                                                    className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600 w-full file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 transition-all cursor-pointer" 
+                                                    onChange={e => updateItem(idx, 'billFile', e.target.files?.[0] || null)} 
+                                                />
+                                            </div>
+                                            <div className="text-right sm:text-left">
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Item Total</p>
+                                                <p className="text-lg font-black text-indigo-600 tracking-tighter">₹{item.totalCost.toLocaleString()}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -406,6 +521,81 @@ const Bottles = () => {
                                 <button type="submit" className="bg-blue-600 text-white py-3 px-8 rounded-lg font-bold shadow-lg shadow-indigo-600/20">Authorize Purchase</button>
                             </div>
                         </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+
+        {/* Edit Modal */}
+        <AnimatePresence>
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h2 className="text-lg font-bold text-gray-900">Edit Purchase Record</h2>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
+                        </div>
+                        
+                        <form onSubmit={handleUpdate} className="p-6 space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 uppercase">Supplier Name</label>
+                                <input type="text" className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={editForm.supplierName} onChange={e => setEditForm({...editForm, supplierName: e.target.value})} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 uppercase">Date</label>
+                                    <input type="date" required className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 uppercase">Variant</label>
+                                    <select className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm w-full" value={editForm.bottleType} onChange={e => setEditForm({...editForm, bottleType: e.target.value})}>
+                                        <option value="New">New Bottles</option>
+                                        <option value="Old">Old Bottles</option>
+                                        <option value="Caps">Bottle Caps</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 uppercase">Qty</label>
+                                    <input type="number" required className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm w-full" value={editForm.quantity} onChange={e => setEditForm({...editForm, quantity: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 uppercase">Rate (₹)</label>
+                                    <input type="number" step="0.01" required className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm w-full" value={editForm.pricePerUnit} onChange={e => setEditForm({...editForm, pricePerUnit: e.target.value})} />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-600/20 mt-4">Update Record</button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+
+        {/* View Bill Modal */}
+        <AnimatePresence>
+            {viewBillModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setViewBillModal(false)} />
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-xl w-full max-w-4xl z-[70] relative shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Eye className="w-5 h-5 text-indigo-600" />
+                                Digital Bill Receipt
+                            </h2>
+                            <button onClick={() => setViewBillModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><XCircle className="w-6 h-6 text-gray-400" /></button>
+                        </div>
+                        <div className="flex-1 bg-gray-50 overflow-auto p-4 flex items-center justify-center">
+                            {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
+                                <iframe src={selectedBillUrl} className="w-full h-full min-h-[600px] rounded-lg shadow-inner" />
+                            ) : (
+                                <img src={selectedBillUrl} alt="Bill" className="max-w-full h-auto rounded-lg shadow-lg" />
+                            )}
+                        </div>
+                        <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
+                            <button onClick={() => window.open(selectedBillUrl, '_blank')} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors">Open in New Tab</button>
+                        </div>
                     </motion.div>
                 </div>
             )}

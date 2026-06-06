@@ -39,6 +39,7 @@ const LiveBoard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dailyReport, setDailyReport] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('production');
 
   useEffect(() => {
     fetchInitialData();
@@ -133,112 +134,141 @@ const LiveBoard = () => {
         </div>
 
         {/* Daily Stats Summary */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <MetricCard 
-                title="Sales" 
+                title="Total Sales (₹)" 
                 value={dailyReport?.summary.totalSales} 
                 prefix="₹" 
                 color="blue" 
                 icon={<TrendingUp className="w-4 h-4" />} 
             />
             <MetricCard 
-                title="Production" 
+                title="Product Sold (Qty)" 
+                value={dailyReport?.summary.totalProductSoldQty} 
+                color="indigo" 
+                icon={<ShoppingCart className="w-4 h-4" />} 
+                breakdown={dailyReport?.summary.salesBreakdown}
+            />
+            <MetricCard 
+                title="Total Production" 
                 value={dailyReport?.summary.totalProduced} 
                 color="emerald" 
                 icon={<FlaskConical className="w-4 h-4" />} 
+                breakdown={dailyReport?.summary.productionBreakdown}
             />
             <MetricCard 
-                title="Bottles In" 
+                title="Total Buy Bottles" 
                 value={dailyReport?.summary.bottlesIn} 
                 color="amber" 
                 icon={<PlusCircle className="w-4 h-4" />} 
             />
             <MetricCard 
-                title="Bottles Out" 
+                title="Bottles Used" 
                 value={dailyReport?.summary.bottlesOut} 
                 color="rose" 
                 icon={<MinusCircle className="w-4 h-4" />} 
             />
         </div>
 
-        {/* Logs Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Production Log */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                        <FlaskConical className="w-3.5 h-3.5 text-emerald-600" /> Production Log
-                    </h3>
-                </div>
-                <div className="p-2 space-y-1 max-h-[350px] overflow-y-auto">
-                    {dailyReport?.productions.map((p: any) => (
-                        <div key={p._id} className="p-3 rounded-lg border border-transparent hover:border-emerald-100 hover:bg-emerald-50/30 transition-all">
-                             <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">{p.juiceType?.name}</p>
-                             <div className="flex justify-between items-center">
-                                 <h4 className="text-base font-bold text-gray-900">+{p.quantityProduced}</h4>
-                                 <p className="text-[9px] font-medium text-gray-500 uppercase">{p.nameOfVerk}</p>
+        {/* Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-2 scrollbar-hide">
+             <button onClick={() => setActiveTab('production')} className={cn("px-5 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-2 border", activeTab === 'production' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50")}>
+                  PRODUCTION <span className={cn("px-2 py-0.5 rounded-full text-[10px]", activeTab === 'production' ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>{dailyReport?.productions?.length || 0}</span>
+             </button>
+             <button onClick={() => setActiveTab('sales')} className={cn("px-5 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-2 border", activeTab === 'sales' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50")}>
+                  SALES <span className={cn("px-2 py-0.5 rounded-full text-[10px]", activeTab === 'sales' ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>{dailyReport?.orders?.length || 0}</span>
+             </button>
+             <button onClick={() => setActiveTab('bottles')} className={cn("px-5 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-2 border", activeTab === 'bottles' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50")}>
+                  BOTTLES <span className={cn("px-2 py-0.5 rounded-full text-[10px]", activeTab === 'bottles' ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>{dailyReport?.bottles?.length || 0}</span>
+             </button>
+        </div>
+
+        {/* Tab Content Grid */}
+        <div className="mb-10">
+            {activeTab === 'production' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dailyReport?.productions?.map((p: any) => (
+                        <div key={p._id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all">
+                             <div className="flex justify-between items-start mb-5">
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-xl border border-emerald-100">{p.juiceType?.name?.charAt(0) || 'P'}</div>
+                                     <div>
+                                         <h4 className="font-bold text-gray-900 text-base">{p.juiceType?.name || 'Unknown Product'}</h4>
+                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{p.nameOfVerk}</p>
+                                     </div>
+                                 </div>
+                                 <span className="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider">Produced</span>
+                             </div>
+                             <div className="bg-gray-50 rounded-xl p-3 flex justify-between items-center border border-gray-100">
+                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Quantity</span>
+                                 <span className="text-xl font-black text-emerald-600">+{p.quantityProduced}</span>
                              </div>
                         </div>
                     ))}
-                    {!dailyReport?.productions?.length && <p className="p-6 text-center text-[10px] text-gray-400 font-bold uppercase">No records</p>}
+                    {!dailyReport?.productions?.length && <div className="col-span-full py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-sm bg-white rounded-xl border border-gray-200 border-dashed">No production recorded today</div>}
                 </div>
-            </div>
+            )}
 
-            {/* Sales Log */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                        <ShoppingCart className="w-3.5 h-3.5 text-blue-600" /> Sales Ledger
-                    </h3>
-                </div>
-                <div className="p-2 space-y-1 max-h-[350px] overflow-y-auto">
-                    {dailyReport?.orders.map((o: any) => (
-                        <div key={o._id} className="p-3 rounded-lg border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all">
-                             <div className="flex justify-between items-start mb-0.5">
-                                <p className="text-[9px] font-bold uppercase text-gray-900 truncate">{o.customerName}</p>
-                                <span className="text-[8px] font-medium text-gray-400">{new Date(o.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            {activeTab === 'sales' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dailyReport?.orders?.map((o: any) => (
+                        <div key={o._id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all">
+                             <div className="flex justify-between items-start mb-5">
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xl border border-blue-100">{o.customerName?.charAt(0) || 'C'}</div>
+                                     <div className="max-w-[150px]">
+                                         <h4 className="font-bold text-gray-900 text-base truncate" title={o.customerName}>{o.customerName}</h4>
+                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                     </div>
+                                 </div>
+                                 <span className={cn("text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider", o.paidAmount >= o.totalAmount ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
+                                     {o.paidAmount >= o.totalAmount ? 'Paid' : 'Due'}
+                                 </span>
                              </div>
-                             <div className="flex justify-between items-center">
-                                 <h4 className="text-base font-bold text-blue-600">₹{o.totalAmount.toLocaleString()}</h4>
-                                 <span className={cn(
-                                     "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                     o.paidAmount >= o.totalAmount ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                                 )}>{o.paidAmount >= o.totalAmount ? 'Paid' : 'Due'}</span>
+                             <div className="bg-gray-50 rounded-xl p-3 flex justify-between items-center border border-gray-100">
+                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Amount</span>
+                                 <span className="text-xl font-black text-blue-600">₹{o.totalAmount.toLocaleString()}</span>
+                             </div>
+                             <div className="mt-3 text-[10px] text-gray-500 font-bold flex gap-2 overflow-x-auto scrollbar-hide">
+                                 {o.items.map((item: any, i: number) => (
+                                     <span key={i} className="bg-gray-100 px-2 py-1 rounded-md whitespace-nowrap">{item.juiceType?.name} x{item.quantity}</span>
+                                 ))}
                              </div>
                         </div>
                     ))}
-                    {!dailyReport?.orders?.length && <p className="p-6 text-center text-[10px] text-gray-400 font-bold uppercase">No sales</p>}
+                    {!dailyReport?.orders?.length && <div className="col-span-full py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-sm bg-white rounded-xl border border-gray-200 border-dashed">No sales recorded today</div>}
                 </div>
-            </div>
+            )}
 
-            {/* Bottle Log */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                        <Package className="w-3.5 h-3.5 text-amber-600" /> Bottle Activity
-                    </h3>
-                </div>
-                <div className="p-2 space-y-1 max-h-[350px] overflow-y-auto">
-                    {dailyReport?.bottles.map((b: any, i: number) => (
-                        <div key={i} className="p-3 rounded-lg border border-transparent hover:border-amber-100 hover:bg-amber-50/30 transition-all">
-                             <div className="flex justify-between items-center mb-0.5">
-                                <p className="text-[9px] font-bold uppercase text-gray-500">{b.bottleType}</p>
-                                <span className={cn(
-                                     "text-[8px] font-bold px-1.5 py-0.5 rounded",
-                                     b.type === 'IN' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                )}>{b.type}</span>
+            {activeTab === 'bottles' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dailyReport?.bottles?.map((b: any, i: number) => (
+                        <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all">
+                             <div className="flex justify-between items-start mb-5">
+                                 <div className="flex items-center gap-3">
+                                     <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-black text-xl border", b.type === 'IN' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-rose-50 text-rose-600 border-rose-100")}>
+                                         {b.bottleType?.charAt(0) || 'B'}
+                                     </div>
+                                     <div>
+                                         <h4 className="font-bold text-gray-900 text-base">{b.bottleType}</h4>
+                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 truncate max-w-[120px]">{b.description || 'Inventory Update'}</p>
+                                     </div>
+                                 </div>
+                                 <span className={cn("text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider", b.type === 'IN' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                                     {b.type === 'IN' ? 'Purchased' : 'Used'}
+                                 </span>
                              </div>
-                             <div className="flex justify-between items-center">
-                                 <h4 className={cn("text-base font-bold", b.type === 'IN' ? "text-green-600" : "text-red-600")}>
+                             <div className="bg-gray-50 rounded-xl p-3 flex justify-between items-center border border-gray-100">
+                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Quantity</span>
+                                 <span className={cn("text-xl font-black", b.type === 'IN' ? "text-amber-600" : "text-rose-600")}>
                                      {b.type === 'IN' ? '+' : '-'}{b.quantity}
-                                 </h4>
-                                 <p className="text-[8px] font-medium text-gray-400 uppercase truncate max-w-[80px]">{b.description || 'Update'}</p>
+                                 </span>
                              </div>
                         </div>
                     ))}
-                    {!dailyReport?.bottles?.length && <p className="p-6 text-center text-[10px] text-gray-400 font-bold uppercase">No activity</p>}
+                    {!dailyReport?.bottles?.length && <div className="col-span-full py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-sm bg-white rounded-xl border border-gray-200 border-dashed">No bottle flow recorded today</div>}
                 </div>
-            </div>
+            )}
         </div>
 
         {/* Quick Summary Section (Replacing Chart) */}
@@ -278,23 +308,36 @@ const LiveBoard = () => {
   );
 };
 
-const MetricCard = ({ title, value, prefix = '', color, icon }: any) => {
+const MetricCard = ({ title, value, prefix = '', color, icon, breakdown }: any) => {
     const colorClasses: any = {
         blue: 'text-blue-600 bg-blue-50',
+        indigo: 'text-indigo-600 bg-indigo-50',
         emerald: 'text-emerald-600 bg-emerald-50',
         amber: 'text-amber-600 bg-amber-50',
         rose: 'text-rose-600 bg-rose-50'
     };
 
     return (
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all group">
-            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-transform group-hover:scale-110", colorClasses[color])}>
-                {icon}
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-transform group-hover:scale-110", colorClasses[color])}>
+                    {icon}
+                </div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">{title}</p>
+                <h4 className="text-xl font-bold text-gray-900 tabular-nums">
+                    {prefix}{typeof value === 'number' ? value.toLocaleString() : value || '0'}
+                </h4>
             </div>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">{title}</p>
-            <h4 className="text-xl font-bold text-gray-900 tabular-nums">
-                {prefix}{typeof value === 'number' ? value.toLocaleString() : value || '0'}
-            </h4>
+            
+            {breakdown && Object.keys(breakdown).length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-1.5">
+                    {Object.entries(breakdown).map(([name, qty]: any, i) => (
+                        <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200">
+                            {name}: <span className={cn("ml-1", colorClasses[color].split(' ')[0])}>{qty}</span>
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

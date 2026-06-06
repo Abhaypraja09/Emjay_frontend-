@@ -16,7 +16,8 @@ import {
     ChevronDown,
     Database,
     AlertCircle,
-    Search
+    Search,
+    Edit
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -24,7 +25,6 @@ import MonthYearFilter from '@/components/MonthYearFilter';
 
 const Production = () => {
     const [currentTab, setCurrentTab] = useState<'ledger' | 'inventory'>('ledger');
-    const [inventorySubTab, setInventorySubTab] = useState<'Products' | 'Empty Bottles'>('Products');
 
     const [products, setProducts] = useState<any[]>([]);
     const [productions, setProductions] = useState<any[]>([]);
@@ -39,6 +39,7 @@ const Production = () => {
     const [selectedProduct, setSelectedProduct] = useState<string>('');
     const [productSearch, setProductSearch] = useState('');
     const [ledgerLoading, setLedgerLoading] = useState(false);
+    const [editingProductionId, setEditingProductionId] = useState<string | null>(null);
     const [productionForm, setProductionForm] = useState({
         date: new Date().toISOString().split('T')[0],
         juiceType: '',
@@ -113,9 +114,15 @@ const Production = () => {
     const handleProductionSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/production', productionForm);
-            toast.success('Production entry added');
+            if (editingProductionId) {
+                await api.put(`/production/${editingProductionId}`, productionForm);
+                toast.success('Production entry updated');
+            } else {
+                await api.post('/production', productionForm);
+                toast.success('Production entry added');
+            }
             setIsProductionModalOpen(false);
+            setEditingProductionId(null);
             setProductionForm({ date: new Date().toISOString().split('T')[0], juiceType: '', quantityProduced: '', nameOfVerk: '', openingBalance: '0', bottleType: 'New' });
             fetchInitialData();
             if (productionForm.juiceType === selectedProduct) fetchLedger(selectedProduct);
@@ -135,6 +142,53 @@ const Production = () => {
         } catch (error) {
             toast.error('Failed to add product');
         }
+    };
+
+    const deleteProduct = async (id: string) => {
+        if (!confirm('Are you sure? This will remove the product and all its inventory records.')) return;
+        try {
+            await api.delete(`/products/${id}`);
+            toast.success('Product removed');
+            fetchInitialData();
+        } catch (error) {
+            toast.error('Failed to remove product');
+        }
+    };
+
+    const syncStock = async () => {
+        try {
+            const loadingToast = toast.loading('Synchronizing stock...');
+            await api.post('/products/sync');
+            toast.dismiss(loadingToast);
+            toast.success('Stock synchronized');
+            fetchInitialData();
+        } catch (error) {
+            toast.error('Sync failed');
+        }
+    };
+
+    const deleteProductionEntry = async (id: string) => {
+        if (!confirm('Delete this production entry? Bottles will be restored.')) return;
+        try {
+            await api.delete(`/production/${id}`);
+            toast.success('Record deleted');
+            fetchInitialData();
+        } catch (error) {
+            toast.error('Delete failed');
+        }
+    };
+
+    const openEditProduction = (p: any) => {
+        setEditingProductionId(p._id);
+        setProductionForm({
+            date: new Date(p.date).toISOString().split('T')[0],
+            juiceType: typeof p.juiceType === 'object' ? p.juiceType._id : p.juiceType,
+            quantityProduced: p.quantityProduced.toString(),
+            nameOfVerk: p.nameOfVerk || '',
+            openingBalance: (p.openingBalance || 0).toString(),
+            bottleType: p.bottleType || 'New'
+        });
+        setIsProductionModalOpen(true);
     };
 
     if (loading) return <div className="flex h-screen bg-white items-center justify-center font-bold text-gray-400">Loading...</div>;
@@ -166,7 +220,13 @@ const Production = () => {
                                     New Production
                                 </button>
                             ) : (
-                                inventorySubTab === 'Products' && (
+                                <>
+                                    <button
+                                        onClick={syncStock}
+                                        className="bg-emerald-50 text-emerald-600 px-4 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-emerald-100 transition-all text-sm border border-emerald-100"
+                                    >
+                                        Sync Stock
+                                    </button>
                                     <button
                                         onClick={() => setIsProductModalOpen(true)}
                                         className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
@@ -174,7 +234,7 @@ const Production = () => {
                                         <Plus className="w-5 h-5" />
                                         Add Product
                                     </button>
-                                )
+                                </>
                             )}
                         </div>
                     </div>
@@ -205,20 +265,12 @@ const Production = () => {
                 {currentTab === 'ledger' ? (
                     <>
                         <div className="flex flex-col lg:flex-row gap-6 mb-10 items-start">
-                            {/* Last Closing Balance Card */}
-                            <div className="w-full lg:w-48 shrink-0 bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-lg shadow-slate-900/10">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Last Closing Balance</p>
-                                <h3 className="text-xl font-bold text-white leading-none">
-                                    {ledgerData.length > 0 ? ledgerData[ledgerData.length - 1].closingStock : 0}
-                                    <span className="text-[10px] font-normal text-slate-500 ml-1">Units</span>
-                                </h3>
-                            </div>
 
                             {/* Compact Total Production Card */}
                             <div className="w-full lg:w-48 shrink-0 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Total Produced</p>
-                                <h3 className="text-xl font-bold text-gray-900 leading-none">
-                                    {productions.reduce((acc, p) => acc + (p.quantityProduced || 0), 0)}
+                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Stock in Hand</p>
+                                <h3 className={cn("text-xl font-bold leading-none", (products.find(p => p._id === selectedProduct)?.currentStock || 0) < 0 ? "text-red-600" : "text-emerald-600")}>
+                                    {products.find(p => p._id === selectedProduct)?.currentStock || 0}
                                     <span className="text-[10px] font-normal text-gray-400 ml-1">Units</span>
                                 </h3>
                             </div>
@@ -252,7 +304,7 @@ const Production = () => {
                         </div>
 
                         {/* Main Ledger Table */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-10">
                             <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Database className="w-5 h-5" /></div>
@@ -260,15 +312,9 @@ const Production = () => {
                                         <h3 className="font-bold text-gray-900 text-lg">
                                             {products.find(p => p._id === selectedProduct)?.name} Ledger
                                         </h3>
-                                        <p className="text-xs text-gray-400 font-medium">Daily stock flow analysis</p>
+                                        <p className="text-xs text-gray-400 font-medium">Production history & sales impact</p>
                                     </div>
                                 </div>
-                                {ledgerData.length > 0 && (
-                                    <div className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100">
-                                        <p className="text-[10px] font-bold uppercase">Balance</p>
-                                        <p className="text-lg font-bold">{ledgerData[ledgerData.length - 1].closingStock} Units</p>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="overflow-x-auto">
@@ -276,39 +322,117 @@ const Production = () => {
                                     <thead className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wider h-12 border-b border-gray-100">
                                         <tr>
                                             <th className="px-8 py-3">Date</th>
-                                            <th className="px-8 py-3 text-center">Opening</th>
-                                            <th className="px-8 py-3 text-center text-blue-600">Production (+)</th>
-                                            <th className="px-8 py-3 text-center text-red-600">Sales (-)</th>
-                                            <th className="px-8 py-3 text-center">Closing Balance</th>
+                                            <th className="px-8 py-3">Details / Batch</th>
+                                            <th className="px-8 py-3 text-center text-blue-600">IN (+)</th>
+                                            <th className="px-8 py-3 text-center text-red-600">OUT (-)</th>
+                                            <th className="px-8 py-3 text-center text-gray-900">Closing</th>
+                                            <th className="px-8 py-3 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {ledgerLoading ? (
-                                            <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium animate-pulse">Loading Ledger...</td></tr>
-                                        ) : ledgerData.length === 0 ? (
-                                            <tr><td colSpan={5} className="p-16 text-center text-gray-400">No records found.</td></tr>
+                                            <tr><td colSpan={6} className="p-16 text-center text-gray-400 font-medium animate-pulse">Loading Ledger...</td></tr>
                                         ) : (
-                                            ledgerData.map((row, idx) => (
-                                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-8 py-4">
-                                                        <p className="font-semibold text-gray-700 text-sm">
-                                                            {new Date(row.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-8 py-4 text-center text-sm font-medium text-gray-500">{row.openingStock}</td>
-                                                    <td className="px-8 py-4 text-center">
-                                                        <span className="text-blue-600 font-bold text-sm">+{row.production}</span>
-                                                    </td>
-                                                    <td className="px-8 py-4 text-center">
-                                                        <span className="text-red-600 font-bold text-sm">-{row.sales}</span>
-                                                    </td>
-                                                    <td className="px-8 py-4 text-center">
-                                                        <span className="px-3 py-1 bg-gray-900 text-white rounded font-bold text-sm">
-                                                            {row.closingStock}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))
+                                            <>
+                                                {/* Combine Production and Sales into a unified transaction list for the view */}
+                                                {(() => {
+                                                    const combined: any[] = [];
+                                                    let runningStock = 0;
+
+                                                    // We need to calculate running balance from all time to show correct closing
+                                                    // but the report controller already gives us daily aggregated blocks.
+                                                    // To keep it simple and satisfy "Actions" request, we will map 
+                                                    // production entries and daily sales into the ledger rows.
+                                                    
+                                                    ledgerData.forEach((day: any) => {
+                                                        // 1. Show Production Entries for this day
+                                                        const dayProductions = productions.filter(p => {
+                                                            const pDate = new Date(p.date).toISOString().split('T')[0];
+                                                            const lDate = day.date;
+                                                            const pId = typeof p.juiceType === 'object' ? p.juiceType?._id : p.juiceType;
+                                                            return pDate === lDate && pId === selectedProduct;
+                                                        });
+
+                                                        dayProductions.forEach(p => {
+                                                            combined.push({
+                                                                _id: p._id,
+                                                                date: p.date,
+                                                                details: p.nameOfVerk || 'Production Entry',
+                                                                in: p.quantityProduced,
+                                                                out: 0,
+                                                                closing: '...', // Calculated below
+                                                                type: 'production'
+                                                            });
+                                                        });
+
+                                                        // 2. Show Sales for this day (Aggregate)
+                                                        if (day.sales > 0) {
+                                                            combined.push({
+                                                                date: day.date,
+                                                                details: 'Daily Sales',
+                                                                in: 0,
+                                                                out: day.sales,
+                                                                closing: '...',
+                                                                type: 'sales'
+                                                            });
+                                                        }
+                                                    });
+
+                                                    // Re-calculate running balance for the display items based on ledgerData opening
+                                                    // Actually, ledgerData is already sorted.
+                                                    let currentBal = ledgerData.length > 0 ? ledgerData[0].openingStock : 0;
+                                                    
+                                                    return combined.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((item, idx) => {
+                                                        const closing = currentBal + item.in - item.out;
+                                                        const row = (
+                                                            <tr key={idx} className="hover:bg-gray-50 transition-colors group">
+                                                                <td className="px-8 py-4">
+                                                                    <p className="font-semibold text-gray-700 text-sm">
+                                                                        {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                    </p>
+                                                                </td>
+                                                                <td className="px-8 py-4">
+                                                                    <span className={cn(
+                                                                        "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2",
+                                                                        item.type === 'production' ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                                                                    )}>{item.type}</span>
+                                                                    <span className="text-xs text-gray-500 font-medium">{item.details}</span>
+                                                                </td>
+                                                                <td className="px-8 py-4 text-center">
+                                                                    {item.in > 0 ? <span className="text-blue-600 font-bold text-sm">+{item.in}</span> : '-'}
+                                                                </td>
+                                                                <td className="px-8 py-4 text-center">
+                                                                    {item.out > 0 ? <span className="text-red-600 font-bold text-sm">-{item.out}</span> : '-'}
+                                                                </td>
+                                                                <td className="px-8 py-4 text-center font-bold text-gray-900">{closing}</td>
+                                                                <td className="px-8 py-4 text-right">
+                                                                    {item.type === 'production' && (
+                                                                        <div className="flex justify-end gap-2">
+                                                                            <button 
+                                                                                onClick={() => openEditProduction(productions.find(p => p._id === item._id))}
+                                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-blue-500 transition-all"
+                                                                            >
+                                                                                <Edit className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => deleteProductionEntry(item._id)}
+                                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 transition-all"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                        currentBal = closing;
+                                                        return row;
+                                                    });
+                                                })()}
+                                                {ledgerData.length === 0 && (
+                                                    <tr><td colSpan={6} className="p-16 text-center text-gray-400">No records found for this period.</td></tr>
+                                                )}
+                                            </>
                                         )}
                                     </tbody>
                                 </table>
@@ -317,36 +441,29 @@ const Production = () => {
                     </>
                 ) : (
                     <div className="space-y-8">
-                        {/* Inventory Sub-Tabs */}
-                        <div className="flex bg-gray-200/50 p-1 rounded-xl w-fit border border-gray-200">
-                            {['Products', 'Empty Bottles'].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setInventorySubTab(tab as any)}
-                                    className={cn(
-                                        "px-6 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                                        inventorySubTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                    )}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </div>
 
-                        {inventorySubTab === 'Products' ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {products.map(p => (
-                                    <div key={p._id} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                                    <div key={p._id} className="group bg-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all relative">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                                                 <FlaskConical className="w-4 h-4" />
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Stock</p>
-                                                <p className={cn(
-                                                    "text-lg font-bold leading-none",
-                                                    p.currentStock <= p.minStock ? "text-red-500" : "text-gray-900"
-                                                )}>{p.currentStock}</p>
+                                            <div className="text-right flex items-center gap-2">
+                                                <div>
+                                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Stock</p>
+                                                    <p className={cn(
+                                                        "text-lg font-bold leading-none",
+                                                        p.currentStock <= p.minStock ? "text-red-500" : "text-gray-900"
+                                                    )}>{p.currentStock}</p>
+                                                </div>
+                                                <button 
+                                                    onClick={() => deleteProduct(p._id)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all"
+                                                    title="Delete Product"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         </div>
                                         <h3 className="text-sm font-bold text-gray-900 truncate" title={p.name}>{p.name}</h3>
@@ -358,59 +475,7 @@ const Production = () => {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                        ) : (
-                            <div className="space-y-8">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Empty Bottles</p>
-                                        <h3 className="text-xl font-bold text-gray-900 leading-none">{bottleStock?.availableEmptyBottles || 0}</h3>
-                                    </div>
-                                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Stock Value</p>
-                                        <h3 className="text-xl font-bold text-gray-900 leading-none">₹{bottleStock?.totalValue?.toLocaleString() || 0}</h3>
-                                    </div>
-                                </div>
-
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                    <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-                                        <div className="p-2 bg-gray-50 text-gray-400 rounded-lg"><History className="w-5 h-5" /></div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 text-lg">Purchase History</h3>
-                                            <p className="text-xs text-gray-400 font-medium">Tracking bottle acquisitions</p>
-                                        </div>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left text-sm">
-                                            <thead className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wider h-12 border-b border-gray-100">
-                                                <tr>
-                                                    <th className="px-8 py-3">Date</th>
-                                                    <th className="px-8 py-3">Type</th>
-                                                    <th className="px-8 py-3">Supplier</th>
-                                                    <th className="px-8 py-3 text-center">Quantity</th>
-                                                    <th className="px-8 py-3 text-right">Price</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100">
-                                                {bottleStock?.history?.map((h: any, i: number) => (
-                                                    <tr key={i} className="hover:bg-gray-50 transition-colors">
-                                                        <td className="px-8 py-4 text-gray-500 font-medium">
-                                                            {new Date(h.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                        </td>
-                                                        <td className="px-8 py-4 font-bold text-gray-800 text-xs">{h.bottleType || 'N/A'}</td>
-                                                        <td className="px-8 py-4 text-gray-600 text-xs font-medium uppercase tracking-tight">{h.supplier || 'Internal'}</td>
-                                                        <td className="px-8 py-4 text-center">
-                                                            <span className="text-blue-600 font-bold">+{h.quantity}</span>
-                                                        </td>
-                                                        <td className="px-8 py-4 text-right font-bold text-gray-900">₹{h.costPerUnit}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
                 )}
 
@@ -421,8 +486,8 @@ const Production = () => {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsProductionModalOpen(false)} />
                             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
                                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                                    <h2 className="text-xl font-bold text-gray-900">New Production Entry</h2>
-                                    <button onClick={() => setIsProductionModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
+                                    <h2 className="text-xl font-bold text-gray-900">{editingProductionId ? 'Edit Production' : 'New Production Entry'}</h2>
+                                    <button onClick={() => { setIsProductionModalOpen(false); setEditingProductionId(null); }} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
                                 </div>
 
                                 <form onSubmit={handleProductionSubmit} className="p-6 space-y-4">

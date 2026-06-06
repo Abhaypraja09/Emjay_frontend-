@@ -18,7 +18,11 @@ export default function LoginPage() {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('user', JSON.stringify(data));
       toast.success('Successfully logged in!');
-      router.push('/dashboard');
+      if (data.role === 'Staff' || data.role === 'staff') {
+        router.push('/staff-portal');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials');
     } finally {
@@ -47,18 +51,18 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 ml-1 uppercase tracking-widest italic">Registered Email</label>
+              <label className="text-[10px] font-black text-slate-500 ml-1 uppercase tracking-widest italic">Email / Username / Mobile</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field pl-12 h-14 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm font-bold focus:bg-white transition-all"
-                  placeholder="admin@emjay.com"
+                  placeholder="admin@emjay.com or username"
                 />
               </div>
             </div>
