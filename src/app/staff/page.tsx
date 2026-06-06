@@ -303,8 +303,8 @@ const StaffDirectoryTab = ({ month, year, getInitials }: any) => {
             </td>
             <td className="px-6 py-4 text-right">
               <div className="flex justify-end gap-2">
-                <button onClick={() => toast.info('Lock Account feature coming soon')} className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"><Lock className="w-4 h-4" /></button>
-                <button onClick={() => toast.info('Edit Staff feature coming soon')} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => toast('Lock Account feature coming soon')} className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"><Lock className="w-4 h-4" /></button>
+                <button onClick={() => toast('Edit Staff feature coming soon')} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"><Edit2 className="w-4 h-4" /></button>
                 <button onClick={() => deleteStaff(s._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
               </div>
             </td>
@@ -647,7 +647,7 @@ const SalaryProcessingTab = ({ month, year, getInitials, setPayrollStats, setSel
           <button onClick={generateBulkPayroll} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
             <FileText className="w-4 h-4" /> BULK SLIPS
           </button>
-          <button onClick={() => toast.info('Export feature coming soon')} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-blue-700 transition-colors">
+          <button onClick={() => toast('Export feature coming soon')} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-blue-700 transition-colors">
             <Download className="w-4 h-4" /> EXPORT DATA
           </button>
         </div>
