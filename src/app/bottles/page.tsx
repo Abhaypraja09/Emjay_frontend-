@@ -36,6 +36,7 @@ const Bottles = () => {
   const [ledgerData, setLedgerData] = useState<any[]>([]);
   const [bottleTypeFilter, setBottleTypeFilter] = useState('Bottles');
   const [ledgerLoading, setLedgerLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [items, setItems] = useState<{bottleType: string, quantity: string, pricePerUnit: string, totalCost: number, billFile: File | null}[]>([{
     bottleType: 'New',
@@ -117,6 +118,8 @@ const Bottles = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('items', JSON.stringify(items.map(item => ({
@@ -147,6 +150,8 @@ const Bottles = () => {
       if (activeTab === 'ledger') fetchLedger();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to record purchase');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -518,7 +523,9 @@ const Bottles = () => {
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Gross Commitment</p>
                                     <p className="text-2xl font-black text-indigo-600 italic tracking-tighter">₹{items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.pricePerUnit)), 0).toLocaleString()}</p>
                                 </div>
-                                <button type="submit" className="bg-blue-600 text-white py-3 px-8 rounded-lg font-bold shadow-lg shadow-indigo-600/20">Authorize Purchase</button>
+                                <button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white py-3 px-8 rounded-lg font-bold shadow-lg shadow-indigo-600/20 disabled:opacity-50">
+                                    {isSubmitting ? 'Authorizing...' : 'Authorize Purchase'}
+                                </button>
                             </div>
                         </form>
                     </motion.div>
