@@ -5,7 +5,7 @@ const getBaseUrl = () => {
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     return 'http://localhost:5001/api';
   }
-  return 'https://emjay.yatreedestination.com/api';
+  return '/api';
 };
 
 const API_URL = getBaseUrl();
