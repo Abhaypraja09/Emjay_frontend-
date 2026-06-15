@@ -18,9 +18,10 @@ import {
   PlusCircle,
   MinusCircle,
   Zap,
-  Box,
   Search,
-  Phone
+  Phone,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
