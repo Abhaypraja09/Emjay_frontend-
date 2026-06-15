@@ -21,6 +21,7 @@ import {
   Box,
   Search,
   Phone
+} from 'lucide-react';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -208,32 +209,32 @@ const LiveBoard = () => {
             {activeTab === 'production' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {dailyReport?.productions?.filter((p:any) => p.juiceType?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.nameOfVerk?.toLowerCase().includes(searchQuery.toLowerCase())).map((p: any) => (
-                        <div key={p._id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all flex flex-col gap-5 relative overflow-hidden">
-                             <div className="flex justify-between items-start">
-                                 <div className="flex items-center gap-4">
-                                     <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-black text-2xl shadow-inner shadow-emerald-700/50">{p.juiceType?.name?.charAt(0) || 'P'}</div>
-                                     <div>
-                                         <h4 className="font-bold text-gray-900 text-lg tracking-tight">{p.juiceType?.name || 'Unknown Product'}</h4>
-                                         <p className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-1">
-                                             <Phone className="w-3 h-3" /> {p.nameOfVerk || 'System'}
-                                         </p>
-                                     </div>
-                                 </div>
-                                 <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-sm">Produced</span>
-                             </div>
+                        <div key={p._id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between relative overflow-hidden group">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-bl-full -z-10 transition-transform group-hover:scale-110" />
                              
-                             <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between border border-gray-100 ml-16 relative overflow-hidden">
-                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-2xl" />
-                                 <div className="flex items-center gap-3">
-                                     <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-emerald-600"><FlaskConical className="w-4 h-4" /></div>
-                                     <div>
-                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity Made</p>
-                                         <p className="text-base font-black text-gray-900">+{p.quantityProduced} units</p>
+                             <div className="flex justify-between items-start mb-6">
+                                 <div>
+                                     <h4 className="font-black text-gray-900 text-xl tracking-tight">{p.juiceType?.name || 'Unknown Product'}</h4>
+                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5">
+                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {p.nameOfVerk || 'System'}
+                                     </p>
+                                 </div>
+                                 <div className="bg-emerald-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                     <FlaskConical className="w-6 h-6" />
+                                 </div>
+                             </div>
+
+                             <div className="flex items-end justify-between border-t border-gray-100 pt-5 mt-auto">
+                                 <div>
+                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Batch Yield</p>
+                                     <div className="flex items-baseline gap-1">
+                                         <span className="text-3xl font-black text-emerald-600 tracking-tighter">+{p.quantityProduced}</span>
+                                         <span className="text-xs font-bold text-gray-500 uppercase">units</span>
                                      </div>
                                  </div>
                                  <div className="text-right">
-                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</p>
-                                     <p className="text-sm font-bold text-gray-700 italic">{new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                     <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest block mb-2 w-max ml-auto">Produced</span>
+                                     <p className="text-[11px] font-bold text-gray-400">{new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                  </div>
                              </div>
                         </div>
@@ -245,42 +246,37 @@ const LiveBoard = () => {
             {activeTab === 'sales' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {dailyReport?.orders?.filter((o:any) => o.customerName?.toLowerCase().includes(searchQuery.toLowerCase())).map((o: any) => (
-                        <div key={o._id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all flex flex-col gap-5 relative overflow-hidden">
-                             <div className="flex justify-between items-start">
-                                 <div className="flex items-center gap-4">
-                                     <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center text-white font-black text-2xl shadow-inner shadow-blue-700/50">{o.customerName?.charAt(0) || 'C'}</div>
-                                     <div className="max-w-[150px]">
-                                         <h4 className="font-bold text-gray-900 text-lg tracking-tight truncate" title={o.customerName}>{o.customerName}</h4>
-                                         <p className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-1">
-                                             <Phone className="w-3 h-3" /> Retail Customer
-                                         </p>
+                        <div key={o._id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all flex flex-col">
+                             <div className="flex items-center justify-between mb-4">
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black border border-blue-100">
+                                         {o.customerName?.charAt(0) || 'C'}
+                                     </div>
+                                     <div>
+                                         <h4 className="font-bold text-gray-900 text-sm truncate max-w-[140px]" title={o.customerName}>{o.customerName}</h4>
+                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                      </div>
                                  </div>
-                                 <span className={cn("border text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-sm", o.paidAmount >= o.totalAmount ? "bg-green-50 text-green-600 border-green-100" : "bg-amber-50 text-amber-600 border-amber-100")}>
-                                     {o.paidAmount >= o.totalAmount ? 'PAID' : 'DUE'}
-                                 </span>
+                                 <div className="text-right">
+                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</p>
+                                     <p className="text-lg font-black text-blue-600">₹{o.totalAmount.toLocaleString()}</p>
+                                 </div>
                              </div>
 
-                             <div className="bg-slate-50 rounded-2xl p-4 flex flex-col gap-3 border border-gray-100 ml-16 relative overflow-hidden">
-                                 <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl", o.paidAmount >= o.totalAmount ? "bg-green-400" : "bg-amber-400")} />
-                                 <div className="flex items-center justify-between">
-                                     <div className="flex items-center gap-3">
-                                         <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-blue-600"><ShoppingCart className="w-4 h-4" /></div>
-                                         <div>
-                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sale Amount</p>
-                                             <p className="text-base font-black text-gray-900">₹{o.totalAmount.toLocaleString()}</p>
-                                         </div>
-                                     </div>
-                                     <div className="text-right">
-                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</p>
-                                         <p className="text-sm font-bold text-gray-700 italic">{new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                     </div>
-                                 </div>
-                                 <div className="flex gap-2 overflow-x-auto scrollbar-hide text-[10px] font-bold text-gray-600 pt-2 border-t border-gray-200/60">
+                             <div className="flex-1 border-t border-dashed border-gray-200 pt-4 mb-4">
+                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Order Items</p>
+                                 <div className="flex flex-col gap-1.5 max-h-[80px] overflow-y-auto scrollbar-hide">
                                      {o.items.map((item: any, i: number) => (
-                                         <span key={i} className="bg-white px-2 py-1 rounded-md shadow-sm border border-gray-100 whitespace-nowrap">{item.juiceType?.name} x{item.quantity}</span>
+                                         <div key={i} className="flex justify-between items-center text-xs font-bold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                                             <span className="truncate pr-2">{item.juiceType?.name}</span>
+                                             <span className="text-gray-400">x{item.quantity}</span>
+                                         </div>
                                      ))}
                                  </div>
+                             </div>
+
+                             <div className={cn("w-full py-2.5 rounded-xl text-center text-[10px] font-black uppercase tracking-widest border", o.paidAmount >= o.totalAmount ? "bg-green-50 text-green-600 border-green-200" : "bg-amber-50 text-amber-600 border-amber-200")}>
+                                 {o.paidAmount >= o.totalAmount ? '✓ Payment Received' : '⚠ Payment Pending'}
                              </div>
                         </div>
                     ))}
@@ -291,37 +287,24 @@ const LiveBoard = () => {
             {activeTab === 'bottles' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {dailyReport?.bottles?.filter((b:any) => b.bottleType?.toLowerCase().includes(searchQuery.toLowerCase()) || b.description?.toLowerCase().includes(searchQuery.toLowerCase())).map((b: any, i: number) => (
-                        <div key={i} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all flex flex-col gap-5 relative overflow-hidden">
-                             <div className="flex justify-between items-start">
-                                 <div className="flex items-center gap-4">
-                                     <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner", b.type === 'IN' ? "bg-amber-500 shadow-amber-700/50" : "bg-rose-500 shadow-rose-700/50")}>
-                                         {b.bottleType?.charAt(0) || 'B'}
-                                     </div>
-                                     <div>
-                                         <h4 className="font-bold text-gray-900 text-lg tracking-tight">{b.bottleType}</h4>
-                                         <p className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-1 truncate max-w-[150px]" title={b.description}>
-                                             <Box className="w-3 h-3" /> {b.description || 'Inventory Update'}
-                                         </p>
-                                     </div>
-                                 </div>
-                                 <span className={cn("border text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-sm", b.type === 'IN' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100")}>
-                                     {b.type === 'IN' ? 'PURCHASED' : 'USED'}
-                                 </span>
+                        <div key={i} className={cn("bg-white rounded-3xl border p-5 shadow-sm hover:shadow-lg transition-all flex items-center gap-4 relative overflow-hidden", b.type === 'IN' ? "border-emerald-200" : "border-rose-200")}>
+                             <div className={cn("absolute left-0 top-0 bottom-0 w-2", b.type === 'IN' ? "bg-emerald-400" : "bg-rose-400")} />
+                             
+                             <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", b.type === 'IN' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
+                                 {b.type === 'IN' ? <ArrowDownRight className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
                              </div>
-
-                             <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between border border-gray-100 ml-16 relative overflow-hidden">
-                                 <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl", b.type === 'IN' ? "bg-emerald-400" : "bg-rose-400")} />
-                                 <div className="flex items-center gap-3">
-                                     <div className={cn("w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm", b.type === 'IN' ? "text-amber-600" : "text-rose-600")}><Package className="w-4 h-4" /></div>
-                                     <div>
-                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity</p>
-                                         <p className="text-base font-black text-gray-900">{b.type === 'IN' ? '+' : '-'}{b.quantity} units</p>
-                                     </div>
-                                 </div>
-                                 <div className="text-right">
-                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</p>
-                                     <p className="text-sm font-bold text-gray-700 italic">{new Date(b.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                 </div>
+                             
+                             <div className="flex-1 min-w-0">
+                                 <h4 className="font-bold text-gray-900 text-sm truncate">{b.bottleType}</h4>
+                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 truncate">{b.description || 'Inventory Update'}</p>
+                                 <p className="text-[9px] text-gray-400 mt-1">{new Date(b.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                             </div>
+                             
+                             <div className="text-right shrink-0">
+                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{b.type === 'IN' ? 'Restocked' : 'Consumed'}</p>
+                                 <p className={cn("text-2xl font-black tracking-tighter", b.type === 'IN' ? "text-emerald-600" : "text-rose-600")}>
+                                     {b.type === 'IN' ? '+' : '-'}{b.quantity}
+                                 </p>
                              </div>
                         </div>
                     ))}
@@ -330,37 +313,7 @@ const LiveBoard = () => {
             )}
         </div>
 
-        {/* Quick Summary Section (Replacing Chart) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-                 <h3 className="font-bold text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-                     <Activity className="w-4 h-4 text-blue-600" /> Daily Efficiency
-                 </h3>
-                 <div className="space-y-6">
-                     <div className="flex justify-between items-center">
-                         <p className="text-xs font-bold text-gray-400 uppercase">Sales Conversion</p>
-                         <p className="text-sm font-black text-gray-900">{(dailyReport?.summary.totalProduced > 0 ? (dailyReport?.summary.totalSales / dailyReport?.summary.totalProduced * 100).toFixed(1) : 0)}%</p>
-                     </div>
-                     <div className="h-px bg-gray-50 w-full" />
-                     <div className="flex justify-between items-center">
-                         <p className="text-xs font-bold text-gray-400 uppercase">Bottle Utilization</p>
-                         <p className="text-sm font-black text-emerald-600">Optimal</p>
-                     </div>
-                 </div>
-            </div>
-
-            <div className="bg-slate-900 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-                 <div className="relative z-10">
-                    <h3 className="font-bold text-slate-400 uppercase text-xs tracking-widest mb-6">Business Health</h3>
-                    <div className="flex items-end gap-4">
-                        <h2 className="text-5xl font-black text-white italic tracking-tighter">Live</h2>
-                        <div className="mb-2 w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
-                    </div>
-                    <p className="text-slate-500 text-xs mt-4 font-bold uppercase tracking-widest">Feed auto-updates every 60s</p>
-                 </div>
-                 <Activity className="absolute -right-8 -bottom-8 w-48 h-48 text-white/5 rotate-12 group-hover:rotate-0 transition-all duration-700" />
-            </div>
-        </div>
+        {/* Daily Efficiency and Business Health removed as requested */}
 
       </main>
     </div>
