@@ -14,8 +14,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
-  Waves,
-  Calendar
+  Users,
+  Wallet,
+  ClipboardList,
+  Truck,
+  Droplets,
+  Coins
 } from 'lucide-react';
 import {
   XAxis,
@@ -73,12 +77,21 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <SimpleStatCard title="Total Sales" value={stats?.totalSales} icon={<IndianRupee />} color="emerald" prefix="₹" />
-          <SimpleStatCard title="Empty Bottles" value={stats?.availableEmptyStock} icon={<Package />} color="blue" />
-          <SimpleStatCard title="Filled Bottles" value={stats?.totalFilledStock} icon={<FlaskConical />} color="blue" />
-          <SimpleStatCard title="Total Profit" value={stats?.profit} icon={<TrendingUp />} color="emerald" prefix="₹" />
+        {/* 12-Box Stats Grid - Light Theme adapted from the reference */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+          <StatBox title="Total Sales" value={stats?.totalSales} prefix="₹" icon={<IndianRupee />} color="text-emerald-600" bgColor="bg-emerald-50" />
+          <StatBox title="Total Profit" value={stats?.profit} prefix="₹" icon={<TrendingUp />} color="text-emerald-600" bgColor="bg-emerald-50" />
+          <StatBox title="Total Production" value={stats?.totalFilledStock || 0} icon={<FlaskConical />} color="text-blue-600" bgColor="bg-blue-50" />
+          <StatBox title="Filled Bottles" value={stats?.totalFilledStock || 0} icon={<Package />} color="text-indigo-600" bgColor="bg-indigo-50" />
+          <StatBox title="Empty Bottles" value={stats?.availableEmptyStock || 0} icon={<Droplets />} color="text-sky-600" bgColor="bg-sky-50" />
+          <StatBox title="Caps Inventory" value={0} icon={<ShoppingCart />} color="text-orange-600" bgColor="bg-orange-50" />
+          
+          <StatBox title="Staff Payroll" value={0} prefix="₹" icon={<Users />} color="text-rose-600" bgColor="bg-rose-50" />
+          <StatBox title="General Purchases" value={0} prefix="₹" icon={<Truck />} color="text-amber-600" bgColor="bg-amber-50" />
+          <StatBox title="Cash Balance" value={0} prefix="₹" icon={<Wallet />} color="text-teal-600" bgColor="bg-teal-50" />
+          <StatBox title="Pending Payments" value={stats?.pendingPayments || 0} prefix="₹" icon={<AlertTriangle />} color="text-rose-600" bgColor="bg-rose-50" />
+          <StatBox title="Low Stock Items" value={stats?.lowStockProducts?.length || 0} icon={<ClipboardList />} color="text-red-600" bgColor="bg-red-50" />
+          <StatBox title="Total Orders" value={0} icon={<Coins />} color="text-purple-600" bgColor="bg-purple-50" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -127,15 +140,15 @@ const Dashboard = () => {
   );
 };
 
-const SimpleStatCard = ({ title, value, icon, color, prefix = '' }: any) => {
+const StatBox = ({ title, value, icon, color, bgColor, prefix = '' }: any) => {
   return (
-    <div className="card flex items-center gap-5">
-      <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-        {icon}
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col justify-between hover:shadow-lg transition-all shadow-sm">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${bgColor} ${color}`}>
+        {React.cloneElement(icon as React.ReactElement, { className: 'w-5 h-5' })}
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-500">{title}</p>
-        <h4 className="text-xl font-bold text-gray-900">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 line-clamp-1" title={title}>{title}</p>
+        <h4 className="text-xl font-black text-gray-900 tracking-tighter">
           {prefix}{typeof value === 'number' ? value.toLocaleString() : value || 0}
         </h4>
       </div>
