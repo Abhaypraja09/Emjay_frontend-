@@ -9,12 +9,27 @@ interface MonthYearFilterProps {
   onFilterChange: (month: number, year: number) => void;
 }
 
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+const monthOptions = [
+  { label: 'Full Year', value: 0 },
+  { label: 'April', value: 4 },
+  { label: 'May', value: 5 },
+  { label: 'June', value: 6 },
+  { label: 'July', value: 7 },
+  { label: 'August', value: 8 },
+  { label: 'September', value: 9 },
+  { label: 'October', value: 10 },
+  { label: 'November', value: 11 },
+  { label: 'December', value: 12 },
+  { label: 'January', value: 1 },
+  { label: 'February', value: 2 },
+  { label: 'March', value: 3 },
 ];
 
-const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i);
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
+// If current month is Jan-Mar, the FY started last year.
+const baseFyYear = currentMonth <= 3 ? currentYear - 1 : currentYear;
+const years = Array.from({ length: 5 }, (_, i) => baseFyYear - 2 + i);
 
 const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, selectedYear, onFilterChange }) => {
   return (
@@ -30,8 +45,8 @@ const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, select
           onChange={(e) => onFilterChange(parseInt(e.target.value), selectedYear)}
           className="bg-gray-50 border-none text-sm font-bold text-gray-700 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
         >
-          {months.map((m, i) => (
-            <option key={m} value={i + 1}>{m}</option>
+          {monthOptions.map((m) => (
+            <option key={m.value} value={m.value}>{m.label}</option>
           ))}
         </select>
 
@@ -41,7 +56,7 @@ const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, select
           className="bg-gray-50 border-none text-sm font-bold text-gray-700 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
         >
           {years.map(y => (
-            <option key={y} value={y}>{y}</option>
+            <option key={y} value={y}>FY {y}-{y + 1}</option>
           ))}
         </select>
       </div>

@@ -19,7 +19,8 @@ import {
   ClipboardList,
   Truck,
   Droplets,
-  Coins
+  Coins,
+  ChevronDown
 } from 'lucide-react';
 import {
   XAxis,
@@ -36,14 +37,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Dashboard = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState('Full Year');
+  const [selectedFY, setSelectedFY] = useState('2026-2027');
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedMonth, selectedFY]);
 
   const fetchData = async () => {
     try {
-      const statsRes = await api.get('/dashboard/stats');
+      setLoading(true);
+      const statsRes = await api.get(`/dashboard/stats?month=${selectedMonth}&fy=${selectedFY}`);
       setStats(statsRes.data);
     } catch (error: any) {
       toast.error('Could not load dashboard data');
@@ -70,7 +74,46 @@ const Dashboard = () => {
             <p className="text-sm text-gray-500 mt-1">Overview of sales and inventory for Emjay Brewery</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+            {/* Calendar / FY Selectors */}
+            <div className="relative group">
+               <select 
+                   value={selectedMonth} 
+                   onChange={(e) => setSelectedMonth(e.target.value)} 
+                   className="appearance-none bg-white text-gray-900 font-bold text-sm rounded-xl px-5 py-2.5 pr-10 outline-none cursor-pointer border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+               >
+                   <option>Full Year</option>
+                   <option>April</option>
+                   <option>May</option>
+                   <option>June</option>
+                   <option>July</option>
+                   <option>August</option>
+                   <option>September</option>
+                   <option>October</option>
+                   <option>November</option>
+                   <option>December</option>
+                   <option>January</option>
+                   <option>February</option>
+                   <option>March</option>
+               </select>
+               <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+            
+            <div className="relative group">
+               <select 
+                   value={selectedFY} 
+                   onChange={(e) => setSelectedFY(e.target.value)} 
+                   className="appearance-none bg-white text-gray-900 font-bold text-sm rounded-xl pl-10 pr-10 py-2.5 outline-none cursor-pointer border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+               >
+                   <option>2023-2024</option>
+                   <option>2024-2025</option>
+                   <option>2025-2026</option>
+                   <option>2026-2027</option>
+               </select>
+               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px] pointer-events-none">FY</span>
+               <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 ml-2">
               <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
               <span className="text-xs font-black text-gray-600 uppercase tracking-widest">System Live</span>
             </div>
@@ -94,47 +137,7 @@ const Dashboard = () => {
           <StatBox title="Total Orders" value={0} icon={<Coins />} color="text-purple-600" bgColor="bg-purple-50" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Low Stock */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-rose-50 text-rose-600 rounded-lg"><AlertTriangle className="w-5 h-5" /></div>
-                <h3 className="font-bold text-gray-900 uppercase text-sm tracking-widest">Low Stock Alerts</h3>
-              </div>
-              <div className="space-y-4">
-                {stats?.lowStockProducts?.length > 0 ? (
-                  stats.lowStockProducts.map((p: any) => (
-                    <div key={p._id} className="flex items-center justify-between p-4 rounded-xl bg-rose-50/50 border border-rose-100/50 transition-all hover:bg-rose-50">
-                      <div>
-                        <p className="font-bold text-sm text-gray-900">{p.name}</p>
-                        <p className="text-xs font-bold text-rose-600 uppercase mt-1">Critical: {p.currentStock} Units Left</p>
-                      </div>
-                      <div className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-12 text-center border-2 border-dashed border-gray-100 rounded-2xl">
-                    <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Inventory Levels Healthy</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Summary */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><BarChart3 className="w-5 h-5" /></div>
-                <h3 className="font-bold text-gray-900 uppercase text-sm tracking-widest">Finance Summary</h3>
-              </div>
-              <div className="space-y-6">
-                <MetadataRow label="Bottles Purchased" value={stats?.totalBottlesPurchased} />
-                <div className="h-px bg-gray-50 w-full" />
-                <MetadataRow label="Pending Payments" value={`₹${stats?.pendingPayments?.toLocaleString()}`} color="text-rose-600" />
-                <div className="h-px bg-gray-50 w-full" />
-                <MetadataRow label="Calculated ROI" value="12.5%" color="text-emerald-600" />
-              </div>
-            </div>
-        </div>
+        {/* Low Stock Alerts and Finance Summary removed as requested */}
       </main>
     </div>
   );

@@ -11,9 +11,11 @@ import {
   Calendar,
   XCircle,
   History,
-  Trash2,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Download,
+  Printer,
+  Trash2
 } from 'lucide-react';
 import MonthYearFilter from '@/components/MonthYearFilter';
 import { cn } from '@/utils/cn';
@@ -75,6 +77,28 @@ const CashBook = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['Date', 'Description', 'Category', 'Mode', 'Type', 'Amount (Rs)'];
+    const rows = data.logs.map((log: any) => [
+        new Date(log.date).toLocaleDateString(),
+        `"${log.description || ''}"`,
+        log.category,
+        log.paymentMode,
+        log.type,
+        log.amount
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `CashBook_${selectedMonth}_${selectedYear}.csv`;
+    link.click();
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) return <div className="flex h-screen bg-gray-50 items-center justify-center font-bold text-gray-400">Loading Cash Book...</div>;
 
   return (
@@ -96,10 +120,16 @@ const CashBook = () => {
             />
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm hide-on-print"
             >
               <Plus className="w-5 h-5" />
               New Entry
+            </button>
+            <button onClick={handleExportCSV} className="bg-emerald-600 text-white px-4 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all text-sm hide-on-print">
+               <Download className="w-4 h-4" /> Excel / CSV
+            </button>
+            <button onClick={handlePrint} className="bg-slate-800 text-white px-4 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-slate-900 transition-all text-sm hide-on-print">
+               <Printer className="w-4 h-4" /> PDF / Print
             </button>
           </div>
         </div>
@@ -110,7 +140,7 @@ const CashBook = () => {
             <div>
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Income (In)</p>
               <h3 className="text-2xl font-black text-emerald-600">
-                <span className="text-sm opacity-50">+</span> ₹{data.stats.totalIn.toLocaleString()}
+                <span className="text-sm opacity-50">+</span> ₹{(data?.stats?.totalIn || 0).toLocaleString()}
               </h3>
             </div>
             <div className="flex justify-end mt-4">
@@ -121,7 +151,7 @@ const CashBook = () => {
             <div>
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Expense (Out)</p>
               <h3 className="text-2xl font-black text-rose-600">
-                <span className="text-sm opacity-50">-</span> ₹{data.stats.totalOut.toLocaleString()}
+                <span className="text-sm opacity-50">-</span> ₹{(data?.stats?.totalOut || 0).toLocaleString()}
               </h3>
             </div>
             <div className="flex justify-end mt-4">
@@ -130,11 +160,11 @@ const CashBook = () => {
           </div>
           <div className={cn(
             "p-6 rounded-2xl border flex flex-col justify-between shadow-xl transition-all",
-            data.stats.balance >= 0 ? "bg-slate-900 border-slate-800" : "bg-red-900 border-red-800"
+            (data?.stats?.balance || 0) >= 0 ? "bg-slate-900 border-slate-800" : "bg-red-900 border-red-800"
           )}>
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Balance</p>
-              <h3 className="text-2xl font-black text-white italic tracking-tighter">₹{data.stats.balance.toLocaleString()}</h3>
+              <h3 className="text-2xl font-black text-white italic tracking-tighter">₹{(data?.stats?.balance || 0).toLocaleString()}</h3>
             </div>
             <div className="flex justify-end mt-4">
               <div className="p-2 bg-white/10 text-white rounded-lg"><Wallet className="w-5 h-5" /></div>
@@ -187,10 +217,10 @@ const CashBook = () => {
                       {log.paymentMode}
                     </td>
                     <td className="px-8 py-5 font-bold text-emerald-600">
-                      {log.type === 'IN' ? `₹${log.amount.toLocaleString()}` : '-'}
+                      {log.type === 'IN' ? `₹${(log.amount || 0).toLocaleString()}` : '-'}
                     </td>
                     <td className="px-8 py-5 font-bold text-rose-600">
-                      {log.type === 'OUT' ? `₹${log.amount.toLocaleString()}` : '-'}
+                      {log.type === 'OUT' ? `₹${(log.amount || 0).toLocaleString()}` : '-'}
                     </td>
                     <td className="px-8 py-5 text-right">
                       {!log.isAutoGenerated ? (

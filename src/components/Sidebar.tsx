@@ -20,7 +20,8 @@ import {
   CreditCard,
   Wallet,
   ShieldCheck,
-  ClipboardList
+  ClipboardList,
+  Landmark
 } from 'lucide-react';
 
 import { cn } from '@/utils/cn';
@@ -45,8 +46,10 @@ const Sidebar = () => {
     { name: 'Bottles', path: '/bottles', icon: Wine },
     { name: 'Production', path: '/production', icon: FlaskConical },
     { name: 'Purchases', path: '/purchases', icon: ShoppingBag },
+    { name: 'Branch Stock', path: '/branch-stock', icon: Package },
     { name: 'Sales', path: '/sales', icon: ShoppingCart },
     { name: 'Cash Book', path: '/cash-book', icon: Wallet },
+    { name: 'Bank Book', path: '/bank-book', icon: Landmark },
     { name: 'Party Ledgers', path: '/party-ledgers', icon: CreditCard },
     { name: 'Staff', path: '/staff', icon: ShieldCheck },
     { name: 'Reports', path: '/reports', icon: FileText },

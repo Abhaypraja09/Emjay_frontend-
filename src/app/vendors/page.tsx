@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/utils/cn';
-import { ArrowLeft, Trash2, Edit, XCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit, XCircle, Eye, Image as ImageIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import MonthYearFilter from '@/components/MonthYearFilter';
 
@@ -20,6 +20,7 @@ function VendorDetailContent() {
   const [txFilterMonth, setTxFilterMonth] = useState(new Date().getMonth() + 1);
   const [txFilterYear, setTxFilterYear] = useState(new Date().getFullYear());
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [selectedBillImage, setSelectedBillImage] = useState<string | null>(null);
   const [editingTx, setEditingTx] = useState<any>(null);
   const [txForm, setTxForm] = useState({
     amount: '',
@@ -87,6 +88,8 @@ function VendorDetailContent() {
     return monthMatch && yearMatch;
   });
 
+  const displayTransactions = filtered.filter(t => !t.description?.includes('Payment for Purchase'));
+
   if (loading)
     return (
       <div className="flex h-screen bg-gray-50 items-center justify-center">
@@ -98,7 +101,7 @@ function VendorDetailContent() {
     return (
       <div className="flex h-screen items-center justify-center flex-col gap-4 bg-gray-50">
         <p className="text-gray-500 font-medium">Vendor not found.</p>
-        <button onClick={() => router.push('/purchases')} className="btn-primary">
+        <button onClick={() => router.push('/purchases?tab=vendors')} className="btn-primary">
           ← Back to Purchases
         </button>
       </div>
@@ -112,7 +115,7 @@ function VendorDetailContent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/purchases')}
+              onClick={() => router.push('/purchases?tab=vendors')}
               className="p-2.5 bg-white rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -203,7 +206,7 @@ function VendorDetailContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filtered.map((t) => (
+                {displayTransactions.map((t) => (
                   <tr key={t._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-xs font-medium text-gray-600">{new Date(t.date).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-xs text-gray-500">{t.description || '-'}</td>
@@ -211,8 +214,21 @@ function VendorDetailContent() {
                     <td className="px-6 py-4 font-bold text-red-600">{t.type === 'debit' ? `₹${t.amount.toLocaleString()}` : '₹0'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        {t.purchaseId?.billImage && (
+                          <button
+                            onClick={() => setSelectedBillImage(t.purchaseId.billImage)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                            title="View Bill"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => {
+                            if (t.purchaseId) {
+                                router.push(`/purchases?editPurchase=${t.purchaseId._id || t.purchaseId}&returnToVendor=${vendor._id}`);
+                                return;
+                            }
                             setEditingTx(t);
                             setTxForm({
                               amount: t.amount.toString(),
@@ -223,15 +239,19 @@ function VendorDetailContent() {
                             setIsTxModalOpen(true);
                           }}
                           className="p-1.5 text-gray-400 hover:text-blue-600"
+                          title={t.purchaseId ? "Edit Full Purchase" : "Edit Transaction"}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => deleteTx(t._id)}
-                          className="p-1.5 text-gray-400 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!t.purchaseId && (
+                          <button
+                            onClick={() => deleteTx(t._id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600"
+                            title="Delete Transaction"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -322,6 +342,31 @@ function VendorDetailContent() {
             </div>
           )}
         </AnimatePresence>
+
+      {/* Bill Image Viewer Modal */}
+      {selectedBillImage && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedBillImage(null)}></div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-[151] max-w-4xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+            style={{ maxHeight: '90vh' }}
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-indigo-600" /> Uploaded Bill
+              </h3>
+              <button onClick={() => setSelectedBillImage(null)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto flex justify-center bg-gray-50 flex-1">
+              <img src={selectedBillImage} alt="Bill" className="max-w-full h-auto object-contain rounded-lg shadow-sm border border-gray-200" />
+            </div>
+          </motion.div>
+        </div>
+      )}
       </main>
     </div>
   );

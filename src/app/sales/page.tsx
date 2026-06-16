@@ -26,6 +26,7 @@ const Sales = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [globalLedger, setGlobalLedger] = useState<any[]>([]);
+  const [parties, setParties] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('All');
   const [activeMainTab, setActiveMainTab] = useState('ledger');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,6 +43,7 @@ const Sales = () => {
 
   const [form, setForm] = useState({
     customerName: '',
+    partyId: '',
     type: 'B2B',
     paidAmount: '',
     gst: '',
@@ -85,16 +87,18 @@ const Sales = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [orderRes, productRes, prodRes, ledgerRes] = await Promise.all([
+      const [orderRes, productRes, prodRes, ledgerRes, partiesRes] = await Promise.all([
         api.get('/orders', { params: { month: selectedMonth, year: selectedYear } }),
         api.get('/products'),
         api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
-        api.get('/reports/global-stock', { params: { month: selectedMonth, year: selectedYear } })
+        api.get('/reports/global-stock', { params: { month: selectedMonth, year: selectedYear } }),
+        api.get('/parties')
       ]);
       setOrders(orderRes.data);
       setProducts(productRes.data);
       setProductions(prodRes.data);
       setGlobalLedger(ledgerRes.data);
+      setParties(partiesRes.data.filter((p: any) => p.type?.toLowerCase() === 'customer'));
     } catch (error) {
       toast.error('Data loading failed');
     } finally {
@@ -115,7 +119,8 @@ const Sales = () => {
       totalAmount: subtotal,
       gst: Number(form.gst) || 0,
       discount: Number(form.discount) || 0,
-      paidAmount: Number(form.paidAmount) || 0
+      paidAmount: Number(form.paidAmount) || 0,
+      dueAmount: (subtotal + (Number(form.gst) || 0) - (Number(form.discount) || 0)) - (Number(form.paidAmount) || 0)
     };
 
     try {
@@ -143,6 +148,7 @@ const Sales = () => {
     })));
     setForm({
       customerName: order.customerName,
+      partyId: order.partyId?._id || order.partyId || '',
       type: order.type,
       paidAmount: (order.paidAmount || 0).toString(),
       gst: (order.gst || 0).toString(),
@@ -158,6 +164,7 @@ const Sales = () => {
     setOrderItems([{ juiceType: '', quantity: '', pricePerUnit: '' }]);
     setForm({ 
         customerName: '', 
+        partyId: '',
         type: 'B2B', 
         paidAmount: '', 
         gst: '', 
@@ -380,15 +387,36 @@ const Sales = () => {
                         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Party / Customer Name</label>
-                                    <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter name" />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
+                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => {
+                                        setForm({...form, type: e.target.value, partyId: '', customerName: ''});
+                                    }}>
+                                        <option value="B2B">B2B (Wholesale)</option>
+                                        <option value="Customer">Customer (Retail)</option>
+                                        <option value="Branch Transfer">Branch Transfer (IN)</option>
+                                        <option value="Distributor">Distributor</option>
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
-                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                                        <option value="B2B">Wholesale (Dukan)</option>
-                                        <option value="B2C">Retail (Direct)</option>
-                                    </select>
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Party / Customer Name</label>
+                                    {form.type === 'Branch Transfer' ? (
+                                        <select 
+                                            required 
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
+                                            value={form.partyId} 
+                                            onChange={e => {
+                                                const p = parties.find(party => party._id === e.target.value);
+                                                setForm({...form, partyId: e.target.value, customerName: p ? p.name : ''});
+                                            }}
+                                        >
+                                            <option value="">-- Select Party --</option>
+                                            {parties.map(p => (
+                                                <option key={p._id} value={p._id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter name" />
+                                    )}
                                 </div>
                             </div>
 
@@ -398,8 +426,7 @@ const Sales = () => {
                                     <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
                                         <option value="Cash">Cash</option>
                                         <option value="UPI">UPI</option>
-                                        <option value="Bank Transfer">Bank Transfer</option>
-                                        <option value="Credit">Credit (Udhaar)</option>
+                                        <option value="Due">Due</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">

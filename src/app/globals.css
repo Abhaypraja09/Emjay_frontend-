@@ -51,3 +51,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+@media print {
+  .hide-on-print {
+    display: none !important;
+  }
+}

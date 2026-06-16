@@ -27,7 +27,8 @@ const PartyLedger = () => {
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [partyForm, setPartyForm] = useState({ name: '', type: 'customer', phone: '', address: '' });
+  const [activeTab, setActiveTab] = useState<'supplier' | 'customer'>('supplier');
+  const [partyForm, setPartyForm] = useState({ name: '', type: 'supplier', phone: '', address: '', gstRegistered: false, gstNumber: '' });
   const [txForm, setTxForm] = useState({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
 
   const fetchData = async () => {
@@ -62,7 +63,7 @@ const PartyLedger = () => {
       await api.post('/parties', partyForm);
       toast.success('Party added successfully');
       setIsPartyModalOpen(false);
-      setPartyForm({ name: '', type: 'customer', phone: '', address: '' });
+      setPartyForm({ name: '', type: activeTab, phone: '', address: '', gstRegistered: false, gstNumber: '' });
       fetchData();
     } catch (error) {
       toast.error('Failed to add party');
@@ -131,8 +132,22 @@ const PartyLedger = () => {
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input type="text" placeholder="Search parties..." className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none shadow-sm" />
              </div>
-             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                {parties.map(p => (
+             <div className="flex bg-slate-200/50 p-1 rounded-xl mb-6">
+                <button 
+                  onClick={() => setActiveTab('supplier')} 
+                  className={cn("flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'supplier' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700')}
+                >
+                  Suppliers / Vendors
+                </button>
+                <button 
+                  onClick={() => setActiveTab('customer')} 
+                  className={cn("flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all", activeTab === 'customer' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700')}
+                >
+                  Customers (Sales)
+                </button>
+             </div>
+             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {parties.filter(p => p.type === activeTab).map(p => (
                   <div 
                     key={p._id} 
                     onClick={() => fetchTransactions(p)}
@@ -174,6 +189,7 @@ const PartyLedger = () => {
                         <div>
                             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">{selectedParty.name}</h2>
                             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">Party UID: {selectedParty._id.slice(-8)}</p>
+                            {selectedParty.gstRegistered && <p className="text-indigo-600 font-bold uppercase tracking-widest text-[10px] mt-1 bg-indigo-50 inline-block px-2 py-0.5 rounded">GST: {selectedParty.gstNumber}</p>}
                         </div>
                         <div className="text-right">
                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Net Outstanding</p>
@@ -283,6 +299,21 @@ const PartyLedger = () => {
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Location Matrix</label>
                             <textarea className="input-field min-h-[80px]" placeholder="Address details..." value={partyForm.address} onChange={e => setPartyForm({...partyForm, address: e.target.value})} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">GST Registered?</label>
+                                <select className="input-field" value={partyForm.gstRegistered ? 'yes' : 'no'} onChange={e => setPartyForm({...partyForm, gstRegistered: e.target.value === 'yes'})}>
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                            {partyForm.gstRegistered && (
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">GST Number</label>
+                                    <input type="text" className="input-field uppercase" placeholder="22AAAAA0000A1Z5" value={partyForm.gstNumber} onChange={e => setPartyForm({...partyForm, gstNumber: e.target.value.toUpperCase()})} />
+                                </div>
+                            )}
                         </div>
                         <button type="submit" className="w-full btn-primary py-4 font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3">
                             Define Account Protocol <ArrowRight className="w-4 h-4" />
