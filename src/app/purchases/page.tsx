@@ -160,7 +160,7 @@ const PurchasesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let payload = { ...form };
+      let payload: any = { ...form };
       if (payload.status === 'Split') {
         payload.dueAmount = payload.totalCost - (Number(payload.paidCash) || 0) - (Number(payload.paidOnline) || 0);
         if (payload.dueAmount < 0) payload.dueAmount = 0;

@@ -15,7 +15,8 @@ import {
   TrendingDown,
   ChevronLeft,
   ChevronRight,
-  CalendarDays
+  CalendarDays,
+  XCircle
 } from 'lucide-react';
 import MonthYearFilter from '@/components/MonthYearFilter';
 import { cn } from '@/utils/cn';
