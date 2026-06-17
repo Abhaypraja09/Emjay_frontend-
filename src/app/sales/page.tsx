@@ -27,6 +27,7 @@ const Sales = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [globalLedger, setGlobalLedger] = useState<any[]>([]);
   const [parties, setParties] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('All');
   const [activeMainTab, setActiveMainTab] = useState('ledger');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,6 +47,9 @@ const Sales = () => {
     partyId: '',
     type: 'B2B',
     paidAmount: '',
+    paidCash: '',
+    paidOnline: '',
+    sourceBranchId: '',
     gst: '',
     discount: '',
     paymentMode: 'Cash',
@@ -98,7 +102,9 @@ const Sales = () => {
       setProducts(productRes.data);
       setProductions(prodRes.data);
       setGlobalLedger(ledgerRes.data);
-      setParties(partiesRes.data.filter((p: any) => p.type?.toLowerCase() === 'customer'));
+      const allCustomers = partiesRes.data.filter((p: any) => p.type?.toLowerCase() === 'customer');
+      setParties(allCustomers);
+      setBranches(allCustomers.filter((p: any) => p.isBranch || p.name.toLowerCase().includes('branch')));
     } catch (error) {
       toast.error('Data loading failed');
     } finally {
@@ -109,8 +115,12 @@ const Sales = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const subtotal = calculateSubtotal();
+    const grandTotal = subtotal + (Number(form.gst) || 0) - (Number(form.discount) || 0);
+    const totalPaid = form.paymentMode === 'Split' ? (Number(form.paidCash) || 0) + (Number(form.paidOnline) || 0) : (Number(form.paidAmount) || 0);
+    
     const orderData = {
       ...form,
+      partyId: form.partyId || null,
       items: orderItems.map(item => ({
           juiceType: item.juiceType,
           quantity: Number(item.quantity),
@@ -119,8 +129,11 @@ const Sales = () => {
       totalAmount: subtotal,
       gst: Number(form.gst) || 0,
       discount: Number(form.discount) || 0,
-      paidAmount: Number(form.paidAmount) || 0,
-      dueAmount: (subtotal + (Number(form.gst) || 0) - (Number(form.discount) || 0)) - (Number(form.paidAmount) || 0)
+      paidAmount: totalPaid,
+      paidCash: Number(form.paidCash) || 0,
+      paidOnline: Number(form.paidOnline) || 0,
+      sourceBranchId: form.sourceBranchId || null,
+      dueAmount: grandTotal - totalPaid
     };
 
     try {
@@ -167,6 +180,9 @@ const Sales = () => {
         partyId: '',
         type: 'B2B', 
         paidAmount: '', 
+        paidCash: '',
+        paidOnline: '',
+        sourceBranchId: '',
         gst: '', 
         discount: '', 
         paymentMode: 'Cash', 
@@ -389,45 +405,36 @@ const Sales = () => {
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
                                     <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => {
-                                        setForm({...form, type: e.target.value, partyId: '', customerName: ''});
+                                        setForm({...form, type: e.target.value});
                                     }}>
-                                        <option value="B2B">B2B (Wholesale)</option>
-                                        <option value="Customer">Customer (Retail)</option>
-                                        <option value="Branch Transfer">Branch Transfer (IN)</option>
+                                        <option value="Customer">Retail (Customer)</option>
+                                        <option value="B2B">Wholesale (B2B)</option>
                                         <option value="Distributor">Distributor</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Party / Customer Name</label>
-                                    {form.type === 'Branch Transfer' ? (
-                                        <select 
-                                            required 
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
-                                            value={form.partyId} 
-                                            onChange={e => {
-                                                const p = parties.find(party => party._id === e.target.value);
-                                                setForm({...form, partyId: e.target.value, customerName: p ? p.name : ''});
-                                            }}
-                                        >
-                                            <option value="">-- Select Party --</option>
-                                            {parties.map(p => (
-                                                <option key={p._id} value={p._id}>{p.name}</option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter name" />
-                                    )}
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Customer Name</label>
+                                    <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter customer name" />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Payment Mode</label>
-                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
-                                        <option value="Cash">Cash</option>
-                                        <option value="UPI">UPI</option>
-                                        <option value="Due">Due</option>
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Select Party / Ledger (Stock Source)</label>
+                                    <select 
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
+                                        value={form.sourceBranchId} 
+                                        onChange={e => {
+                                            const newMode = (e.target.value && form.paymentMode === 'Due') ? 'Cash' : form.paymentMode;
+                                            setForm({...form, sourceBranchId: e.target.value, partyId: e.target.value, paymentMode: newMode});
+                                        }}
+                                    >
+                                        <option value="">-- Main Production (Direct) --</option>
+                                        {parties.map(p => (
+                                            <option key={p._id} value={p._id}>{p.name}</option>
+                                        ))}
                                     </select>
+                                    <p className="text-[10px] text-gray-400 mt-1">If selected, stock will be deducted from this branch.</p>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Date</label>
@@ -473,22 +480,60 @@ const Sales = () => {
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                            <div className="text-right font-black text-slate-800 text-lg mt-6 mb-6">
+                                Total Bill: ₹{calculateSubtotal().toLocaleString()}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase">GST (₹)</label>
-                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold" value={form.gst} onChange={e => setForm({...form, gst: e.target.value})} />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">GST (₹)</label>
+                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.gst} onChange={e => setForm({...form, gst: e.target.value})} placeholder="0" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (₹)</label>
-                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold" value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase">Cash Received</label>
-                                    <input type="number" className="w-full bg-green-50 border border-green-100 rounded-lg px-4 py-2 text-sm font-bold text-green-700" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: e.target.value})} />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Discount (₹)</label>
+                                    <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} placeholder="0" />
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between bg-blue-50 p-6 rounded-2xl">
+                            <div className="mt-6 mb-2">
+                                <div className="space-y-1 w-1/2">
+                                    <label className="text-xs font-bold text-gray-600">Payment Status</label>
+                                    <select className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
+                                        <option value="Cash">Cash Only</option>
+                                        <option value="UPI">UPI / Online Only</option>
+                                        <option value="Split">Split (Cash + UPI)</option>
+                                        {!form.sourceBranchId && <option value="Due">Due / Unpaid</option>}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {form.paymentMode === 'Split' && (
+                                <div className="grid grid-cols-3 gap-4 border border-indigo-100 bg-indigo-50/50 p-4 rounded-xl mt-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600">Cash Received</label>
+                                        <input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" placeholder="₹0" value={form.paidCash} onChange={e => setForm({...form, paidCash: e.target.value})} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600">UPI / Online</label>
+                                        <input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" placeholder="₹0" value={form.paidOnline} onChange={e => setForm({...form, paidOnline: e.target.value})} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600">Due Amount</label>
+                                        <div className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-500 flex items-center">
+                                            ₹{Math.max(0, calculateGrandTotal() - (Number(form.paidCash) || 0) - (Number(form.paidOnline) || 0)).toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {form.paymentMode !== 'Split' && form.paymentMode !== 'Due' && (
+                                <div className="space-y-1 mt-4">
+                                    <label className="text-xs font-bold text-gray-600">Received Amount</label>
+                                    <input type="number" required className="w-1/2 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm font-bold text-green-800 outline-none focus:border-green-500" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: e.target.value})} placeholder="0" />
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between bg-blue-50 p-6 rounded-2xl mt-6">
                                 <div>
                                     <p className="text-[10px] font-black text-blue-400 uppercase">Grand Total</p>
                                     <p className="text-3xl font-black text-blue-600 tracking-tight">₹{calculateGrandTotal().toLocaleString()}</p>
