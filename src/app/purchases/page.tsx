@@ -726,18 +726,9 @@ const PurchasesPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">GST Registration</label>
-                    <div className="relative">
-                      <select 
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm appearance-none" 
-                        value={vendorForm.hasGST} 
-                        onChange={e => setVendorForm({ ...vendorForm, hasGST: e.target.value })}
-                      >
-                        <option value="Yes">Yes, Registered</option>
-                        <option value="No">No, Unregistered</option>
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                      </div>
+                    <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner gap-1">
+                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'Yes'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${vendorForm.hasGST === 'Yes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Yes</button>
+                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'No'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${vendorForm.hasGST === 'No' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>No</button>
                     </div>
                   </div>
                 </div>
