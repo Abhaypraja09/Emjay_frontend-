@@ -726,9 +726,18 @@ const PurchasesPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">GST Registration</label>
-                    <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner">
-                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'No'})} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${vendorForm.hasGST === 'No' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>No</button>
-                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'Yes'})} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${vendorForm.hasGST === 'Yes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Yes</button>
+                    <div className="relative">
+                      <select 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm appearance-none" 
+                        value={vendorForm.hasGST} 
+                        onChange={e => setVendorForm({ ...vendorForm, hasGST: e.target.value })}
+                      >
+                        <option value="Yes">Yes, Registered</option>
+                        <option value="No">No, Unregistered</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -805,13 +814,6 @@ const PurchasesPage = () => {
                 <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Address</p>
                   <p className="text-sm font-medium text-slate-600 leading-relaxed">{selectedProfileVendor.address || 'No address provided'}</p>
-                </div>
-                <div className={cn("mt-4 p-4 rounded-2xl border flex items-center justify-between", (selectedProfileVendor.balance || 0) >= 0 ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100")}>
-                  <div>
-                    <p className={cn("text-[10px] font-black uppercase tracking-widest", (selectedProfileVendor.balance || 0) >= 0 ? "text-emerald-600" : "text-rose-600")}>Net Balance</p>
-                    <p className="text-xs font-medium text-slate-500">Current Outstanding</p>
-                  </div>
-                  <h3 className={cn("text-2xl font-black tabular-nums tracking-tighter", (selectedProfileVendor.balance || 0) >= 0 ? "text-emerald-600" : "text-rose-600")}>₹{Math.abs(selectedProfileVendor.balance || 0).toLocaleString()}</h3>
                 </div>
                 <button 
                   onClick={() => router.push(`/vendors?id=${selectedProfileVendor._id}`)}
