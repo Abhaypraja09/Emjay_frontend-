@@ -341,68 +341,59 @@ const PurchasesPage = () => {
           <>
 
             <div className="flex flex-wrap gap-4 mb-8">
-              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
-                <div className="w-10 h-10 rounded-xl bg-[#232c3f] flex items-center justify-center">
-                  <IndianRupee className="w-5 h-5 text-yellow-500" />
+              <div className="bg-white border border-gray-200 rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px] shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <IndianRupee className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Spend (Filtered)</p>
-                  <h4 className="text-xl font-bold text-white tracking-tight">₹{filteredTotalSpend.toLocaleString()}</h4>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Total Spend (Filtered)</p>
+                  <h4 className="text-xl font-bold text-gray-900 tracking-tight">₹{filteredTotalSpend.toLocaleString()}</h4>
                 </div>
               </div>
 
-              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
-                <div className="w-10 h-10 rounded-xl bg-[#2a233f] flex items-center justify-center">
-                  <Package className="w-5 h-5 text-purple-400" />
-                </div>
+              <div className="bg-white border border-gray-200 rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px] shadow-sm">
                 <div className="flex-1">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Item Filter</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Item Filter</p>
                   <select 
                     value={selectedItem}
                     onChange={(e) => setSelectedItem(e.target.value)}
-                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 font-medium text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    <option value="All" className="text-slate-900">All Items</option>
+                    <option value="All">All Items</option>
                     {uniqueItems.map(item => (
-                      <option key={item} value={item} className="text-slate-900">{item}</option>
+                      <option key={item} value={item}>{item}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
-                <div className="w-10 h-10 rounded-xl bg-[#3f3b23] flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-yellow-400" />
-                </div>
+              <div className="bg-white border border-gray-200 rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px] shadow-sm">
                 <div className="flex-1">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Category Filter</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Category Filter</p>
                   <select 
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 font-medium text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    <option value="All" className="text-slate-900">All Categories</option>
+                    <option value="All">All Categories</option>
                     {uniqueCategories.map(cat => (
-                      <option key={cat} value={cat} className="text-slate-900">{cat}</option>
+                      <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
-                <div className="w-10 h-10 rounded-xl bg-[#23353f] flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-blue-400" />
-                </div>
+              <div className="bg-white border border-gray-200 rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px] shadow-sm">
                 <div className="flex-1">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Supplier Filter</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Supplier Filter</p>
                   <select 
                     value={selectedSupplier}
                     onChange={(e) => setSelectedSupplier(e.target.value)}
-                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 font-medium text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    <option value="All" className="text-slate-900">All Suppliers</option>
+                    <option value="All">All Suppliers</option>
                     {uniqueSuppliers.map(sup => (
-                      <option key={sup} value={sup} className="text-slate-900">{sup}</option>
+                      <option key={sup} value={sup}>{sup}</option>
                     ))}
                   </select>
                 </div>
