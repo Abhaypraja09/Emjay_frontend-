@@ -36,6 +36,8 @@ const PurchasesPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedItem, setSelectedItem] = useState('All');
+  const [selectedSupplier, setSelectedSupplier] = useState('All');
   const [activeTab, setActiveTab] = useState<'list' | 'vendors'>('list');
   const [vendors, setVendors] = useState<any[]>([]);
   const [searchVendor, setSearchVendor] = useState('');
@@ -51,7 +53,42 @@ const PurchasesPage = () => {
     }
   }, []);
   
-  const filteredPurchases = purchases.filter(p => selectedCategory === 'All' || p.category === selectedCategory);
+  const flatPurchases = purchases.flatMap(p => {
+      const supplierName = p.partyId ? vendors.find(v => v._id === p.partyId)?.name || 'Unknown' : p.supplier || '-';
+      if (p.items && p.items.length > 0) {
+        return p.items.map((item: any, idx: number) => ({
+          ...p,
+          _rowId: `${p._id}_${idx}`,
+          displayItem: item.name,
+          displayCategory: item.category,
+          displayCost: item.amount,
+          isGrouped: p.items.length > 1,
+          displaySupplier: supplierName
+        }));
+      }
+      return [{
+        ...p,
+        _rowId: p._id,
+        displayItem: p.item,
+        displayCategory: p.category,
+        displayCost: p.totalCost || p.cost || 0,
+        isGrouped: false,
+        displaySupplier: supplierName
+      }];
+  });
+
+  const uniqueItems = Array.from(new Set(flatPurchases.map(p => p.displayItem).filter(Boolean))).sort();
+  const uniqueCategories = Array.from(new Set(flatPurchases.map(p => p.displayCategory).filter(Boolean))).sort();
+  const uniqueSuppliers = Array.from(new Set(flatPurchases.map(p => p.displaySupplier).filter(Boolean))).sort();
+
+  const activeFilteredPurchases = flatPurchases.filter(p => {
+      const matchCat = selectedCategory === 'All' || p.displayCategory === selectedCategory;
+      const matchItem = selectedItem === 'All' || p.displayItem === selectedItem;
+      const matchSup = selectedSupplier === 'All' || p.displaySupplier === selectedSupplier;
+      return matchCat && matchItem && matchSup;
+  });
+
+  const filteredTotalSpend = activeFilteredPurchases.reduce((acc, p) => acc + (p.displayCost || 0), 0);
 
   const [form, setForm] = useState({
     items: [{ name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', rate: 0, amount: 0 }],
@@ -303,36 +340,72 @@ const PurchasesPage = () => {
         {activeTab === 'list' ? (
           <>
 
-            <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
-              <div className="card bg-slate-900 border border-slate-800 p-8 flex items-center justify-between group hover:shadow-xl transition-all cursor-default w-full md:w-80 shadow-lg shadow-slate-900/10">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Purchase Cost</p>
-                  <h4 className="text-3xl font-black text-white italic tracking-tighter">₹{purchases.reduce((acc, p) => acc + (p.totalCost || p.cost || 0), 0).toLocaleString()}</h4>
+            <div className="flex flex-wrap gap-4 mb-8">
+              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
+                <div className="w-10 h-10 rounded-xl bg-[#232c3f] flex items-center justify-center">
+                  <IndianRupee className="w-5 h-5 text-yellow-500" />
                 </div>
-                <div className="p-4 bg-white/10 text-white rounded-2xl shadow-sm group-hover:bg-blue-600 transition-colors">
-                  <IndianRupee className="w-6 h-6" />
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Spend (Filtered)</p>
+                  <h4 className="text-xl font-bold text-white tracking-tight">₹{filteredTotalSpend.toLocaleString()}</h4>
                 </div>
               </div>
 
-              <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-                <Package className="w-4 h-4 text-blue-600" />
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-transparent text-xs font-black uppercase outline-none cursor-pointer text-gray-700"
-                >
-                  {['All', 'Raw Materials', 'Bottles', 'Packaging', 'Machinery', 'Other'].map(cat => {
-                    const count = cat === 'All' ? 0 : purchases.reduce((acc, p) => {
-                      if (p.items && p.items.length > 0) return acc + p.items.filter((i: any) => i.category === cat).length;
-                      return acc + (p.category === cat ? 1 : 0);
-                    }, 0);
-                    return (
-                      <option key={cat} value={cat}>
-                        {cat} {cat !== 'All' ? `(${count})` : ''}
-                      </option>
-                    );
-                  })}
-                </select>
+              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
+                <div className="w-10 h-10 rounded-xl bg-[#2a233f] flex items-center justify-center">
+                  <Package className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Item Filter</p>
+                  <select 
+                    value={selectedItem}
+                    onChange={(e) => setSelectedItem(e.target.value)}
+                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="All" className="text-slate-900">All Items</option>
+                    {uniqueItems.map(item => (
+                      <option key={item} value={item} className="text-slate-900">{item}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
+                <div className="w-10 h-10 rounded-xl bg-[#3f3b23] flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Category Filter</p>
+                  <select 
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="All" className="text-slate-900">All Categories</option>
+                    {uniqueCategories.map(cat => (
+                      <option key={cat} value={cat} className="text-slate-900">{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-[#1a2130] rounded-2xl flex items-center p-4 gap-4 flex-1 min-w-[220px]">
+                <div className="w-10 h-10 rounded-xl bg-[#23353f] flex items-center justify-center">
+                  <Truck className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Supplier Filter</p>
+                  <select 
+                    value={selectedSupplier}
+                    onChange={(e) => setSelectedSupplier(e.target.value)}
+                    className="w-full bg-transparent text-white font-bold text-sm outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="All" className="text-slate-900">All Suppliers</option>
+                    {uniqueSuppliers.map(sup => (
+                      <option key={sup} value={sup} className="text-slate-900">{sup}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -358,26 +431,7 @@ const PurchasesPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredPurchases.flatMap(p => {
-                      if (p.items && p.items.length > 0) {
-                        return p.items.map((item: any, idx: number) => ({
-                          ...p,
-                          _rowId: `${p._id}_${idx}`,
-                          displayItem: item.name,
-                          displayCategory: item.category,
-                          displayCost: item.amount,
-                          isGrouped: p.items.length > 1
-                        }));
-                      }
-                      return [{
-                        ...p,
-                        _rowId: p._id,
-                        displayItem: p.item,
-                        displayCategory: p.category,
-                        displayCost: p.totalCost || p.cost || 0,
-                        isGrouped: false
-                      }];
-                    }).map(p => (
+                    {activeFilteredPurchases.map(p => (
                       <tr key={p._rowId} className={cn("hover:bg-gray-50 transition-colors", p.isGrouped ? "border-l-4 border-l-indigo-200" : "")}>
                         <td className="px-6 py-4 text-sm font-medium text-gray-600">{new Date(p.date).toLocaleDateString()}</td>
                         <td className="px-6 py-4 font-bold text-gray-900">
@@ -389,7 +443,7 @@ const PurchasesPage = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-gray-600 font-medium">
-                          {p.partyId ? vendors.find(v => v._id === p.partyId)?.name || 'Unknown' : p.supplier || '-'}
+                          {p.displaySupplier}
                         </td>
                         <td className="px-6 py-4 text-gray-600 font-medium">₹{(p.displayCost || 0).toLocaleString()}</td>
                         <td className="px-6 py-4">
