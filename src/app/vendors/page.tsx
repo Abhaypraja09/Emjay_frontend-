@@ -201,8 +201,8 @@ function VendorDetailContent() {
                 <tr className="bg-gray-50 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase">
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Narration</th>
-                  <th className="px-6 py-4 text-green-600">Credit (+)</th>
-                  <th className="px-6 py-4 text-red-600">Debit (-)</th>
+                  <th className="px-6 py-4 text-green-600">Paid Amount (Dr)</th>
+                  <th className="px-6 py-4 text-red-600">Bill Amount (Cr)</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>

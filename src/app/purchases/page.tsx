@@ -363,7 +363,7 @@ const PurchasesPage = () => {
                         return p.items.map((item: any, idx: number) => ({
                           ...p,
                           _rowId: `${p._id}_${idx}`,
-                          displayItem: item.quantity && Number(item.quantity) > 0 ? `${item.name} (${item.quantity} ${item.unit || ''})`.trim() : item.name,
+                          displayItem: item.name,
                           displayCategory: item.category,
                           displayCost: item.amount,
                           isGrouped: p.items.length > 1
