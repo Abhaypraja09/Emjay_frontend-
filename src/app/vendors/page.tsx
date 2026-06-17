@@ -140,7 +140,8 @@ function VendorDetailContent() {
             <button
               onClick={() => {
                 setEditingTx(null);
-                setTxForm({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
+                const dueAmt = vendor.balance && vendor.balance < 0 ? Math.abs(vendor.balance).toString() : '';
+                setTxForm({ amount: dueAmt, type: 'credit', description: 'Payment towards due balance', date: new Date().toISOString().split('T')[0] });
                 setIsTxModalOpen(true);
               }}
               className="btn-primary whitespace-nowrap"
@@ -305,14 +306,9 @@ function VendorDetailContent() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Type</label>
-                      <select
-                        className="input-field"
-                        value={txForm.type}
-                        onChange={(e) => setTxForm({ ...txForm, type: e.target.value })}
-                      >
-                        <option value="credit">Credit (Paid)</option>
-                        <option value="debit">Debit (Bill)</option>
-                      </select>
+                      <div className="w-full bg-green-50 text-green-700 border border-green-200 rounded-lg p-2.5 text-sm font-bold shadow-inner">
+                        Payment Sent (Credit)
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-1">

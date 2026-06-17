@@ -363,7 +363,7 @@ const PurchasesPage = () => {
                         return p.items.map((item: any, idx: number) => ({
                           ...p,
                           _rowId: `${p._id}_${idx}`,
-                          displayItem: `${item.name} (${item.quantity})`,
+                          displayItem: item.quantity && Number(item.quantity) > 0 ? `${item.name} (${item.quantity} ${item.unit || ''})`.trim() : item.name,
                           displayCategory: item.category,
                           displayCost: item.amount,
                           isGrouped: p.items.length > 1
@@ -595,14 +595,14 @@ const PurchasesPage = () => {
                         <button type="button" onClick={addItem} className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg font-bold hover:bg-indigo-200 transition-colors">+ Add Item</button>
                     </div>
                     {form.items.map((item, index) => (
-                        <div key={index} className="grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-lg border border-slate-100 shadow-sm relative">
+                        <div key={index} className="grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative transition-all hover:border-blue-200">
                             <div className="col-span-3">
-                                <label className="text-[10px] font-bold text-slate-500">Item Name</label>
-                                <input type="text" required className="w-full text-xs p-2 border rounded" value={item.name} onChange={e => updateItem(index, 'name', e.target.value)} />
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Item Name</label>
+                                <input type="text" required className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={item.name} onChange={e => updateItem(index, 'name', e.target.value)} placeholder="e.g. Malt" />
                             </div>
                             <div className="col-span-2">
-                                <label className="text-[10px] font-bold text-slate-500">Category</label>
-                                <select className="w-full text-xs p-2 border rounded" value={item.category} onChange={e => updateItem(index, 'category', e.target.value)}>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Category</label>
+                                <select className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" value={item.category} onChange={e => updateItem(index, 'category', e.target.value)}>
                                     <option>Raw Materials</option>
                                     <option>Bottles</option>
                                     <option>Packaging</option>
@@ -610,23 +610,38 @@ const PurchasesPage = () => {
                                     <option>Other</option>
                                 </select>
                             </div>
-                            <div className="col-span-2">
-                                <label className="text-[10px] font-bold text-slate-500">Qty</label>
-                                <input type="number" required className="w-full text-xs p-2 border rounded" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} />
+                            <div className="col-span-3">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Qty & Unit</label>
+                                <div className="flex gap-1.5">
+                                    <input type="number" required className="w-1/2 text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} placeholder="0" />
+                                    <select className="w-1/2 text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" value={item.unit || 'Units'} onChange={e => updateItem(index, 'unit', e.target.value)}>
+                                        <option>Units</option>
+                                        <option>KG</option>
+                                        <option>GM</option>
+                                        <option>Ltr</option>
+                                        <option>ML</option>
+                                        <option>Boxes</option>
+                                        <option>Bags</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="col-span-2">
-                                <label className="text-[10px] font-bold text-slate-500">Rate (₹)</label>
-                                <input type="number" required className="w-full text-xs p-2 border rounded" value={item.rate} onChange={e => updateItem(index, 'rate', e.target.value)} />
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Rate (₹)</label>
+                                <input type="number" required className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={item.rate} onChange={e => updateItem(index, 'rate', e.target.value)} placeholder="0" />
                             </div>
-                            <div className="col-span-2">
-                                <label className="text-[10px] font-bold text-slate-500">Amount</label>
-                                <div className="w-full text-xs p-2 bg-slate-50 border rounded font-bold text-slate-700">₹{item.amount}</div>
+                            <div className="col-span-1">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Total</label>
+                                <div className="w-full text-xs py-2.5 px-1 bg-slate-50 border border-slate-100 rounded-lg font-black text-slate-700 text-center">₹{item.amount}</div>
                             </div>
-                            {form.items.length > 1 && (
-                                <button type="button" onClick={() => removeItem(index)} className="col-span-1 p-2 text-rose-500 hover:bg-rose-50 rounded">
-                                    <Trash2 className="w-4 h-4 mx-auto" />
-                                </button>
-                            )}
+                            <div className="col-span-1 flex items-end justify-center pb-2">
+                                {form.items.length > 1 ? (
+                                    <button type="button" onClick={() => removeItem(index)} className="p-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-colors border border-transparent hover:border-rose-100" title="Remove Item">
+                                        <Trash2 className="w-4 h-4 mx-auto" />
+                                    </button>
+                                ) : (
+                                    <div className="w-8 h-8"></div>
+                                )}
+                            </div>
                         </div>
                     ))}
                     <div className="text-right font-black text-slate-800 text-lg mt-4">
@@ -711,10 +726,10 @@ const PurchasesPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">GST Registration</label>
-                    <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm cursor-pointer" value={vendorForm.hasGST} onChange={e => setVendorForm({...vendorForm, hasGST: e.target.value})}>
-                      <option value="No">Unregistered (No)</option>
-                      <option value="Yes">Registered (Yes)</option>
-                    </select>
+                    <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner">
+                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'No'})} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${vendorForm.hasGST === 'No' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>No</button>
+                        <button type="button" onClick={() => setVendorForm({...vendorForm, hasGST: 'Yes'})} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${vendorForm.hasGST === 'Yes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Yes</button>
+                    </div>
                   </div>
                 </div>
                 {vendorForm.hasGST === 'Yes' && (
