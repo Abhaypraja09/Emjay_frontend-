@@ -43,15 +43,16 @@ const LiveBoardClient = () => {
   useEffect(() => {
     fetchData();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    const dataTimer = setInterval(fetchData, 60000); // 1 min update
-    return () => {
-      clearInterval(timer);
-      clearInterval(dataTimer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
      fetchDailyReport();
+     const dataTimer = setInterval(() => {
+       fetchData();
+       fetchDailyReport();
+     }, 10000); // 10 seconds update for real "live" feel
+     return () => clearInterval(dataTimer);
   }, [selectedDate]);
 
   const fetchData = async () => {

@@ -192,7 +192,11 @@ const CashBook = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {data.logs.map((log: any) => (
+                {[...data.logs].sort((a,b) => {
+                    const d1 = new Date(b.date).getTime() - new Date(a.date).getTime();
+                    if (d1 === 0 && b.createdAt && a.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    return d1;
+                }).map((log: any) => (
                   <tr key={log._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-8 py-5 text-xs font-bold text-gray-500">
                       {new Date(log.date).toLocaleDateString()}

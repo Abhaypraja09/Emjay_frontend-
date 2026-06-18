@@ -86,14 +86,19 @@ const PurchasesPage = () => {
       const matchItem = selectedItem === 'All' || p.displayItem === selectedItem;
       const matchSup = selectedSupplier === 'All' || p.displaySupplier === selectedSupplier;
       return matchCat && matchItem && matchSup;
+  }).sort((a, b) => {
+      const d1 = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (d1 === 0 && b.createdAt && a.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return d1;
   });
 
   const filteredTotalSpend = activeFilteredPurchases.reduce((acc, p) => acc + (p.displayCost || 0), 0);
 
   const [form, setForm] = useState({
-    items: [{ name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', rate: 0, amount: 0 }],
+    items: [{ name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', numberOfPieces: '', rate: 0, amount: 0 }],
     totalCost: 0,
     partyId: '',
+    invoiceNumber: '',
     status: 'Cash',
     paidCash: '' as string | number,
     paidOnline: '' as string | number,
@@ -113,7 +118,7 @@ const PurchasesPage = () => {
   };
   
   const addItem = () => {
-    setForm({ ...form, items: [...form.items, { name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', rate: 0, amount: 0 }] });
+    setForm({ ...form, items: [...form.items, { name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', numberOfPieces: '', rate: 0, amount: 0 }] });
   };
   
   const removeItem = (index: number) => {
@@ -136,11 +141,17 @@ const PurchasesPage = () => {
   const handleVendorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...vendorForm,
+        gstRegistered: vendorForm.hasGST === 'Yes',
+        gstNumber: vendorForm.gstNo
+      };
+      
       if (vendorForm._id) {
-        await api.put(`/parties/${vendorForm._id}`, vendorForm);
+        await api.put(`/parties/${vendorForm._id}`, payload);
         toast.success('Vendor Updated');
       } else {
-        await api.post('/parties', vendorForm);
+        await api.post('/parties', payload);
         toast.success('Vendor Created');
       }
       setIsVendorModalOpen(false);
@@ -250,9 +261,10 @@ const PurchasesPage = () => {
   const startEdit = (item: any) => {
     setEditingItem(item);
     setForm({
-      items: item.items && item.items.length ? item.items : [{ name: item.item || '', category: item.category || 'Raw Materials', quantity: Number(item.quantity) || 1, unit: item.unit || 'Units', rate: item.cost || 0, amount: item.cost || 0 }],
+      items: item.items && item.items.length ? item.items.map((i: any) => ({...i, numberOfPieces: i.numberOfPieces || ''})) : [{ name: item.item || '', category: item.category || 'Raw Materials', quantity: Number(item.quantity) || 1, unit: item.unit || 'Units', numberOfPieces: item.numberOfPieces || '', rate: item.cost || 0, amount: item.cost || 0 }],
       totalCost: item.totalCost || item.cost || 0,
       partyId: item.partyId || '',
+      invoiceNumber: item.invoiceNumber || '',
       status: item.status || 'Cash',
       paidCash: item.paidCash || '',
       paidOnline: item.paidOnline || '',
@@ -265,9 +277,9 @@ const PurchasesPage = () => {
 
   const resetForm = () => {
     setForm({
-      items: [{ name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', rate: 0, amount: 0 }],
+      items: [{ name: '', category: 'Raw Materials', quantity: 1, unit: 'Units', numberOfPieces: '', rate: 0, amount: 0 }],
       totalCost: 0,
-      partyId: '', status: 'Cash', paidCash: '', paidOnline: '', date: new Date().toISOString().split('T')[0], description: '', billImage: ''
+      partyId: '', invoiceNumber: '', status: 'Cash', paidCash: '', paidOnline: '', date: new Date().toISOString().split('T')[0], description: '', billImage: ''
     });
     setEditingItem(null);
   };
@@ -545,9 +557,16 @@ const PurchasesPage = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-8 py-5 space-y-2">
                           <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-600 shadow-sm">
                             {v.phone || 'No Contact Info'}
+                          </div>
+                          <div>
+                            {v.gstRegistered ? (
+                                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase tracking-wider border border-blue-100">GST: {v.gstNumber}</span>
+                            ) : (
+                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded font-bold uppercase tracking-wider">Unregistered</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-8 py-5 text-right">
@@ -613,7 +632,7 @@ const PurchasesPage = () => {
                 <button onClick={closeModal}><XCircle className="w-6 h-6 text-gray-400" /></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-600">Supplier / Vendor (Required)</label>
                     <select
@@ -627,6 +646,23 @@ const PurchasesPage = () => {
                         <option key={v._id} value={v._id}>{v.name}</option>
                       ))}
                     </select>
+                    {form.partyId && (
+                      <div className="mt-1.5 flex items-center">
+                        {vendors.find(v => v._id === form.partyId)?.gstRegistered ? (
+                          <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 font-bold uppercase tracking-wider shadow-sm">
+                            GST: {vendors.find(v => v._id === form.partyId)?.gstNumber}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded border border-gray-200 font-bold uppercase tracking-wider shadow-sm">
+                            GST Unregistered
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-600">Invoice Number</label>
+                    <input type="text" className="input-field" placeholder="Optional" value={form.invoiceNumber} onChange={e => setForm({ ...form, invoiceNumber: e.target.value })} />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-600">Purchase Date</label>
@@ -661,6 +697,8 @@ const PurchasesPage = () => {
                                     <input type="number" required className="w-1/2 text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} placeholder="0" />
                                     <select className="w-1/2 text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" value={item.unit || 'Units'} onChange={e => updateItem(index, 'unit', e.target.value)}>
                                         <option>Units</option>
+                                        <option>Pieces</option>
+                                        <option>Pcs</option>
                                         <option>KG</option>
                                         <option>GM</option>
                                         <option>Ltr</option>

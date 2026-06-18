@@ -45,7 +45,7 @@ const Sales = () => {
   const [form, setForm] = useState({
     customerName: '',
     partyId: '',
-    type: 'B2B',
+    type: '',
     paidAmount: '',
     paidCash: '',
     paidOnline: '',
@@ -132,7 +132,7 @@ const Sales = () => {
       paidAmount: totalPaid,
       paidCash: Number(form.paidCash) || 0,
       paidOnline: Number(form.paidOnline) || 0,
-      sourceBranchId: form.sourceBranchId || null,
+      sourceBranchId: form.sourceBranchId === 'production' ? null : (form.sourceBranchId || null),
       dueAmount: grandTotal - totalPaid
     };
 
@@ -178,7 +178,7 @@ const Sales = () => {
     setForm({ 
         customerName: '', 
         partyId: '',
-        type: 'B2B', 
+        type: '', 
         paidAmount: '', 
         paidCash: '',
         paidOnline: '',
@@ -193,7 +193,11 @@ const Sales = () => {
   const filteredOrders = orders.filter(o => {
     if (activeTab === 'All') return true;
     if (activeTab === 'Wholesale') return o.type === 'B2B';
-    return o.type === 'B2C';
+    return o.type === 'B2C' || o.type === 'Customer';
+  }).sort((a, b) => {
+      const d1 = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (d1 === 0 && b.createdAt && a.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return d1;
   });
 
   if (loading) return <div className="flex h-screen bg-white items-center justify-center font-bold text-gray-400">Loading...</div>;
@@ -362,7 +366,7 @@ const Sales = () => {
                           </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 italic-none">
-                          {globalLedger.map((row, idx) => (
+                          {[...globalLedger].reverse().map((row, idx) => (
                               <tr key={idx} className="hover:bg-blue-50/30 transition-all font-medium border-l-4 border-l-transparent hover:border-l-blue-600">
                                   <td className="px-8 py-6 text-sm font-black text-gray-900 italic">{new Date(row.date).toLocaleDateString()}</td>
                                   <td className="px-8 py-6 text-center text-gray-500 font-bold">{row.openingStock}</td>
@@ -404,37 +408,42 @@ const Sales = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
-                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => {
+                                    <select required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => {
                                         setForm({...form, type: e.target.value});
                                     }}>
-                                        <option value="Customer">Retail (Customer)</option>
-                                        <option value="B2B">Wholesale (B2B)</option>
-                                        <option value="Distributor">Distributor</option>
+                                        <option value="">-- Select Sale Type --</option>
+                                        <option value="Customer">Retail</option>
+                                        <option value="B2B">Wholesaler</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Customer Name</label>
-                                    <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} placeholder="Enter customer name" />
+                                    <input 
+                                        type="text"
+                                        required
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
+                                        value={form.customerName} 
+                                        onChange={e => setForm({...form, customerName: e.target.value, partyId: ''})}
+                                        placeholder="Walk-in Customer"
+                                    />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Select Party / Ledger (Stock Source)</label>
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Stock Location (Source)</label>
                                     <select 
+                                        required
                                         className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
                                         value={form.sourceBranchId} 
-                                        onChange={e => {
-                                            const newMode = (e.target.value && form.paymentMode === 'Due') ? 'Cash' : form.paymentMode;
-                                            setForm({...form, sourceBranchId: e.target.value, partyId: e.target.value, paymentMode: newMode});
-                                        }}
+                                        onChange={e => setForm({...form, sourceBranchId: e.target.value})}
                                     >
-                                        <option value="">-- Main Production (Direct) --</option>
-                                        {parties.map(p => (
-                                            <option key={p._id} value={p._id}>{p.name}</option>
+                                        <option value="" disabled>-- Select Source --</option>
+                                        <option value="production">Main Production</option>
+                                        {parties.filter(p => p.isBranch || (p.type?.toLowerCase() === 'customer' && p.name.toLowerCase().includes('branch'))).map(b => (
+                                            <option key={b._id} value={b._id}>{b.name} Stock</option>
                                         ))}
                                     </select>
-                                    <p className="text-[10px] text-gray-400 mt-1">If selected, stock will be deducted from this branch.</p>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Date</label>
@@ -502,7 +511,7 @@ const Sales = () => {
                                         <option value="Cash">Cash Only</option>
                                         <option value="UPI">UPI / Online Only</option>
                                         <option value="Split">Split (Cash + UPI)</option>
-                                        {!form.sourceBranchId && <option value="Due">Due / Unpaid</option>}
+                                        <option value="Due">Due / Unpaid</option>
                                     </select>
                                 </div>
                             </div>

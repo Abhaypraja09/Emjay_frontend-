@@ -86,6 +86,12 @@ function VendorDetailContent() {
     const monthMatch = d.getMonth() + 1 === txFilterMonth;
     const yearMatch = d.getFullYear() === txFilterYear;
     return monthMatch && yearMatch;
+  }).sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateDiff === 0 && a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return dateDiff;
   });
 
   const displayTransactions = filtered.filter(t => !t.description?.includes('Payment for Purchase'));

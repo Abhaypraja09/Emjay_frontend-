@@ -59,6 +59,16 @@ const Production = () => {
         minStock: '10'
     });
 
+    // Transfer to Branch State
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [branches, setBranches] = useState<any[]>([]);
+    const [transferForm, setTransferForm] = useState({
+        partyId: '',
+        juiceType: '',
+        quantity: '',
+        date: new Date().toISOString().split('T')[0]
+    });
+
     useEffect(() => {
         fetchInitialData();
     }, []);
@@ -66,14 +76,16 @@ const Production = () => {
     const fetchInitialData = async () => {
         try {
             setLoading(true);
-            const [itemRes, bottleRes, prodRes] = await Promise.all([
+            const [itemRes, bottleRes, prodRes, partyRes] = await Promise.all([
                 api.get('/products'),
                 api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
-                api.get('/production', { params: { month: selectedMonth, year: selectedYear } })
+                api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
+                api.get('/parties')
             ]);
             setProducts(itemRes.data);
             setBottleStock(bottleRes.data);
             setProductions(prodRes.data);
+            setBranches(partyRes.data.filter((p: any) => p.isBranch === true || (p.type?.toLowerCase() === 'customer' && p.name.toLowerCase().includes('branch'))));
 
             if (itemRes.data.length > 0 && !selectedProduct) {
                 setSelectedProduct(itemRes.data[0]._id);
@@ -178,6 +190,28 @@ const Production = () => {
         }
     };
 
+    const handleTransfer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const targetBranchId = branches.length > 0 ? branches[0]._id : transferForm.partyId;
+            
+            await api.post('/branch-stock/transfer-in', {
+                partyId: targetBranchId,
+                juiceType: transferForm.juiceType,
+                quantity: Number(transferForm.quantity),
+                rate: 0,
+                date: transferForm.date,
+                description: 'Transfer from Production'
+            });
+            toast.success('Stock transferred to branch successfully!');
+            setIsTransferModalOpen(false);
+            setTransferForm({ partyId: '', juiceType: '', quantity: '', date: new Date().toISOString().split('T')[0] });
+            fetchInitialData();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Transfer failed');
+        }
+    };
+
     const openEditProduction = (p: any) => {
         setEditingProductionId(p._id);
         setProductionForm({
@@ -212,13 +246,26 @@ const Production = () => {
                         />
                         <div className="flex gap-3">
                             {currentTab === 'ledger' ? (
-                                <button
-                                    onClick={() => setIsProductionModalOpen(true)}
-                                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                    New Production
-                                </button>
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setTransferForm(prev => ({...prev, juiceType: selectedProduct}));
+                                            setIsTransferModalOpen(true);
+                                        }}
+                                        className="bg-purple-50 text-purple-600 border border-purple-100 px-4 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-purple-100 transition-all text-sm"
+                                    >
+                                        <ArrowUpRight className="w-5 h-5" />
+                                        Transfer to Branch
+                                    </button>
+                                    <button
+                                        onClick={() => setIsProductionModalOpen(true)}
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95 text-sm"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        New Production
+                                    </button>
+                                </>
                             ) : (
                                 <>
                                     <button
@@ -357,6 +404,7 @@ const Production = () => {
                                                             combined.push({
                                                                 _id: p._id,
                                                                 date: p.date,
+                                                                createdAt: p.createdAt || p.date,
                                                                 details: p.nameOfVerk || 'Production Entry',
                                                                 in: p.quantityProduced,
                                                                 out: 0,
@@ -369,11 +417,24 @@ const Production = () => {
                                                         if (day.sales > 0) {
                                                             combined.push({
                                                                 date: day.date,
+                                                                createdAt: day.date,
                                                                 details: 'Daily Sales',
                                                                 in: 0,
                                                                 out: day.sales,
                                                                 closing: '...',
                                                                 type: 'sales'
+                                                            });
+                                                        }
+                                                        // 3. Show Transfers for this day (Aggregate)
+                                                        if (day.transfers > 0) {
+                                                            combined.push({
+                                                                date: day.date,
+                                                                createdAt: day.date,
+                                                                details: 'Branch Transfer',
+                                                                in: 0,
+                                                                out: day.transfers,
+                                                                closing: '...',
+                                                                type: 'transfer'
                                                             });
                                                         }
                                                     });
@@ -382,8 +443,21 @@ const Production = () => {
                                                     // Actually, ledgerData is already sorted.
                                                     let currentBal = ledgerData.length > 0 ? ledgerData[0].openingStock : 0;
                                                     
-                                                    return combined.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((item, idx) => {
-                                                        const closing = currentBal + item.in - item.out;
+                                                    // Calculate closing balances forward first by exact time
+                                                    const combinedSortedForward = combined.sort((a,b) => {
+                                                        const d1 = new Date(a.date).getTime() - new Date(b.date).getTime();
+                                                        if (d1 === 0 && a.createdAt && b.createdAt) {
+                                                            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                                                        }
+                                                        return d1;
+                                                    });
+                                                    const rowsWithClosing = combinedSortedForward.map(item => {
+                                                        currentBal = currentBal + item.in - item.out;
+                                                        return { ...item, closing: currentBal };
+                                                    });
+
+                                                    // Then return descending for UI display (newest first)
+                                                    return rowsWithClosing.reverse().map((item, idx) => {
                                                         const row = (
                                                             <tr key={idx} className="hover:bg-gray-50 transition-colors group">
                                                                 <td className="px-8 py-4">
@@ -394,7 +468,8 @@ const Production = () => {
                                                                 <td className="px-8 py-4">
                                                                     <span className={cn(
                                                                         "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2",
-                                                                        item.type === 'production' ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                                                                        item.type === 'production' ? "bg-blue-50 text-blue-600" : 
+                                                                        item.type === 'transfer' ? "bg-purple-50 text-purple-600" : "bg-gray-100 text-gray-500"
                                                                     )}>{item.type}</span>
                                                                     <span className="text-xs text-gray-500 font-medium">{item.details}</span>
                                                                 </td>
@@ -404,7 +479,9 @@ const Production = () => {
                                                                 <td className="px-8 py-4 text-center">
                                                                     {item.out > 0 ? <span className="text-red-600 font-bold text-sm">-{item.out}</span> : '-'}
                                                                 </td>
-                                                                <td className="px-8 py-4 text-center font-bold text-gray-900">{closing}</td>
+                                                                <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">
+                                                                    {item.closing}
+                                                                </td>
                                                                 <td className="px-8 py-4 text-right">
                                                                     {item.type === 'production' && (
                                                                         <div className="flex justify-end gap-2">
@@ -425,7 +502,6 @@ const Production = () => {
                                                                 </td>
                                                             </tr>
                                                         );
-                                                        currentBal = closing;
                                                         return row;
                                                     });
                                                 })()}
@@ -549,7 +625,7 @@ const Production = () => {
                             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
                                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                                     <h2 className="text-xl font-bold text-gray-900">Add New Product</h2>
-                                    <button onClick={() => setIsProductModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
+                                    <button type="button" onClick={() => setIsProductModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
                                 </div>
 
                                 <form onSubmit={handleProductSubmit} className="p-6 space-y-4">
@@ -583,6 +659,68 @@ const Production = () => {
                         </div>
                     )}
                 </AnimatePresence>
+
+            {/* Transfer to Branch Modal */}
+            {isTransferModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsTransferModalOpen(false)} />
+                    <div className="bg-white rounded-2xl w-full max-w-md z-50 relative shadow-xl overflow-hidden">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <ArrowUpRight className="w-5 h-5 text-purple-600" />
+                                Transfer to Branch
+                            </h2>
+                            <button onClick={() => setIsTransferModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleTransfer} className="p-6 space-y-5">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 uppercase">Product</label>
+                                <select 
+                                    className="input-field w-full border border-gray-300 rounded-lg p-2.5" 
+                                    required 
+                                    value={transferForm.juiceType} 
+                                    onChange={e => setTransferForm({...transferForm, juiceType: e.target.value})}
+                                >
+                                    <option value="" disabled>Select Product</option>
+                                    {products.map(p => (
+                                        <option key={p._id} value={p._id}>{p.name} (Available: {p.currentStock})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 uppercase">Quantity (Units)</label>
+                                <input 
+                                    type="number" 
+                                    required 
+                                    min="1"
+                                    className="input-field w-full border border-gray-300 rounded-lg p-2.5" 
+                                    value={transferForm.quantity} 
+                                    onChange={e => setTransferForm({...transferForm, quantity: e.target.value})} 
+                                    placeholder="Enter quantity to transfer"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 uppercase">Transfer Date</label>
+                                <input 
+                                    type="date" 
+                                    required 
+                                    className="input-field w-full border border-gray-300 rounded-lg p-2.5" 
+                                    value={transferForm.date} 
+                                    onChange={e => setTransferForm({...transferForm, date: e.target.value})} 
+                                />
+                            </div>
+                            <div className="pt-2">
+                                <button type="submit" className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition-all active:scale-[0.98]">
+                                    Confirm Transfer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             </main>
         </div>
