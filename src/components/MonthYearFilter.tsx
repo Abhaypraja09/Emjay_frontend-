@@ -36,7 +36,9 @@ const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, select
     <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
       <div className="flex items-center gap-2 px-3 py-2 border-r border-gray-100">
         <Calendar className="w-4 h-4 text-blue-600" />
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter Period</span>
+        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight text-left">
+          Filter<br/>Period
+        </span>
       </div>
       
       <div className="flex gap-2 p-1">

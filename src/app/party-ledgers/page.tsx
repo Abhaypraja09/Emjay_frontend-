@@ -28,7 +28,7 @@ const PartyLedger = () => {
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<'supplier' | 'customer'>('supplier');
-  const [partyForm, setPartyForm] = useState({ name: '', type: 'supplier', phone: '', address: '', gstRegistered: false, gstNumber: '' });
+  const [partyForm, setPartyForm] = useState({ name: '', type: 'supplier', phone: '', address: '', gstRegistered: false, gstNumber: '', openingBalanceAmount: '', openingBalanceType: 'receivable' });
   const [txForm, setTxForm] = useState({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
 
   const fetchData = async () => {
@@ -60,10 +60,13 @@ const PartyLedger = () => {
   const handleAddParty = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/parties', partyForm);
+      const amt = Number(partyForm.openingBalanceAmount) || 0;
+      const openingBalance = partyForm.openingBalanceType === 'payable' ? -amt : amt;
+      const payload = { ...partyForm, openingBalance };
+      await api.post('/parties', payload);
       toast.success('Party added successfully');
       setIsPartyModalOpen(false);
-      setPartyForm({ name: '', type: activeTab, phone: '', address: '', gstRegistered: false, gstNumber: '' });
+      setPartyForm({ name: '', type: activeTab, phone: '', address: '', gstRegistered: false, gstNumber: '', openingBalanceAmount: '', openingBalanceType: 'receivable' });
       fetchData();
     } catch (error) {
       toast.error('Failed to add party');
@@ -314,6 +317,19 @@ const PartyLedger = () => {
                                     <input type="text" className="input-field uppercase" placeholder="22AAAAA0000A1Z5" value={partyForm.gstNumber} onChange={e => setPartyForm({...partyForm, gstNumber: e.target.value.toUpperCase()})} />
                                 </div>
                             )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Opening Balance</label>
+                                <input type="number" className="input-field" placeholder="₹ 0" value={partyForm.openingBalanceAmount} onChange={e => setPartyForm({...partyForm, openingBalanceAmount: e.target.value})} />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Balance Type</label>
+                                <select className="input-field" value={partyForm.openingBalanceType} onChange={e => setPartyForm({...partyForm, openingBalanceType: e.target.value})}>
+                                    <option value="receivable">They Owe Us (+)</option>
+                                    <option value="payable">We Owe Them (-)</option>
+                                </select>
+                            </div>
                         </div>
                         <button type="submit" className="w-full btn-primary py-4 font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3">
                             Define Account Protocol <ArrowRight className="w-4 h-4" />

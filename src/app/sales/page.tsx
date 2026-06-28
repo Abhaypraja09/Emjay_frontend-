@@ -57,7 +57,7 @@ const Sales = () => {
   });
 
   const addItem = () => {
-    setOrderItems([...orderItems, { juiceType: '', quantity: '', pricePerUnit: '' }]);
+    setOrderItems([{ juiceType: '', quantity: '', pricePerUnit: '' }, ...orderItems]);
   };
 
   const removeItem = (index: number) => {
@@ -164,6 +164,9 @@ const Sales = () => {
       partyId: order.partyId?._id || order.partyId || '',
       type: order.type,
       paidAmount: (order.paidAmount || 0).toString(),
+      paidCash: (order.paidCash || 0).toString(),
+      paidOnline: (order.paidOnline || 0).toString(),
+      sourceBranchId: order.sourceBranchId || '',
       gst: (order.gst || 0).toString(),
       discount: (order.discount || 0).toString(),
       paymentMode: order.paymentMode || 'Cash',
@@ -417,15 +420,39 @@ const Sales = () => {
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase">Customer Name</label>
-                                    <input 
-                                        type="text"
-                                        required
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
-                                        value={form.customerName} 
-                                        onChange={e => setForm({...form, customerName: e.target.value, partyId: ''})}
-                                        placeholder="Walk-in Customer"
-                                    />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase">{form.type === 'B2B' ? 'Select Wholesaler (Registered)' : 'Customer Name'}</label>
+                                    {form.type === 'B2B' ? (
+                                        <select 
+                                            required={!editingOrder || (editingOrder && !!editingOrder.partyId)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
+                                            value={form.partyId || (editingOrder && !editingOrder.partyId ? 'unregistered' : '')}
+                                            onChange={e => {
+                                                if (e.target.value === 'unregistered') {
+                                                    setForm({...form, partyId: '', customerName: editingOrder?.customerName || ''});
+                                                    return;
+                                                }
+                                                const party = parties.find(p => p._id === e.target.value);
+                                                setForm({...form, partyId: e.target.value, customerName: party ? party.name : ''});
+                                            }}
+                                        >
+                                            <option value="" disabled={!editingOrder || !!editingOrder.partyId}>-- Select Wholesaler --</option>
+                                            {editingOrder && !editingOrder.partyId && form.type === 'B2B' && (
+                                                <option value="unregistered">{form.customerName} (Unregistered Old Bill)</option>
+                                            )}
+                                            {parties.filter(p => p.type?.toLowerCase() === 'customer' && !p.isBranch).map(p => (
+                                                <option key={p._id} value={p._id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input 
+                                            type="text"
+                                            required
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
+                                            value={form.customerName} 
+                                            onChange={e => setForm({...form, customerName: e.target.value, partyId: ''})}
+                                            placeholder="Walk-in Customer"
+                                        />
+                                    )}
                                 </div>
                             </div>
 

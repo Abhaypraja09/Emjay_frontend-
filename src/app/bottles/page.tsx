@@ -38,6 +38,12 @@ const Bottles = () => {
   const [ledgerLoading, setLedgerLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const formatDate = (dateString: string) => {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear().toString().slice(-2)}`;
+  };
+
   const [items, setItems] = useState<{bottleType: string, quantity: string, pricePerUnit: string, totalCost: number, billFile: File | null}[]>([{
     bottleType: 'New',
     quantity: '',
@@ -97,7 +103,7 @@ const Bottles = () => {
           const res = await api.get('/reports/bottle-stock', {
               params: { bottleType: bottleTypeFilter, month: selectedMonth, year: selectedYear }
           });
-          const sorted = res.data.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          const sorted = res.data.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setLedgerData(sorted);
       } catch (error) {
           toast.error('Failed to load bottle ledger');
@@ -328,10 +334,10 @@ const Bottles = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {data?.history?.map((h: any, i: number) => (
+                            {[...(data?.history || [])].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((h: any, i: number) => (
                                 <tr key={i} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-5 text-xs text-gray-600 font-bold">
-                                        {new Date(h.date).toLocaleDateString()}
+                                        {formatDate(h.date)}
                                     </td>
                                     <td className="px-6 py-5">
                                         <span className={cn(
@@ -409,7 +415,7 @@ const Bottles = () => {
                                     ledgerData.map((row, idx) => (
                                         <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
                                             <td className="px-8 py-5">
-                                                <p className="font-black text-gray-800 text-xs italic">{row.date}</p>
+                                                <p className="font-black text-gray-800 text-xs italic">{formatDate(row.date)}</p>
                                             </td>
                                             <td className="px-8 py-5 text-center font-bold text-gray-400 text-xs">{row.openingStock}</td>
                                             <td className="px-8 py-5 text-center">

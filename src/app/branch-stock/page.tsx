@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
-import { Package, Plus, Send, Activity, User, ArrowUpRight, XCircle, Settings, Trash2, PencilLine, Store, FlaskConical, ArrowRight } from 'lucide-react';
+import { Package, Plus, Send, Activity, User, ArrowUpRight, XCircle, Settings, Trash2, PencilLine, Store, FlaskConical, ArrowRight, ArrowDown, ArrowUp, MapPin, ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import MonthYearFilter from '@/components/MonthYearFilter';
 
@@ -164,8 +164,8 @@ const BranchStock = () => {
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Branch Stock</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage Godowns & Consignments</p>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Branch Stock</h1>
+              <p className="text-sm font-medium text-slate-500 mt-1">Track branch inventory</p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <MonthYearFilter 
@@ -173,96 +173,168 @@ const BranchStock = () => {
                 selectedYear={selectedYear} 
                 onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
               />
-              <button onClick={() => setIsManageWholesalersOpen(true)} className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium hover:bg-gray-50 text-sm">
-                <Settings className="w-4 h-4" /> Manage Branches
-              </button>
+              <div className="relative">
+                 <select className="appearance-none bg-white border border-slate-200 text-slate-700 pl-10 pr-10 py-2 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 cursor-pointer shadow-sm flex items-center h-[42px]"
+                 value={selectedBranch}
+                 onChange={(e) => setSelectedBranch(e.target.value)}>
+                    <option value="" disabled>Select Branch...</option>
+                    {parties.map(p => (
+                       <option key={p._id} value={p._id}>{p.name}</option>
+                    ))}
+                 </select>
+                 <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
+          <div className="space-y-6">
+              {(() => {
+                  const selectedBranchTransfers = transfers.filter(t => t.partyId?._id === selectedBranch).sort((a,b) => {
+                      const d1 = new Date(b.date).getTime() - new Date(a.date).getTime();
+                      if (d1 === 0 && b.createdAt && a.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                      return d1;
+                  });
+                  const stockReceived = selectedBranchTransfers.filter(t => t.type === 'IN').reduce((sum, t) => sum + t.quantity, 0);
+                  const stockSold = selectedBranchTransfers.filter(t => t.type === 'OUT').reduce((sum, t) => sum + t.quantity, 0);
+                  const currentTotalStock = products.reduce((sum, p) => sum + getStockForProduct(p._id), 0);
 
-              <div className="space-y-6">
-                  {/* Products Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {products.map(p => {
-                          const stock = getStockForProduct(p._id);
-                          return (
-                          <div key={p._id} className="bg-white p-4 rounded-lg border border-gray-200 relative flex flex-col justify-between">
-                              <div className="flex justify-between items-start mb-2">
-                                  <div className="text-left">
-                                      <p className="text-sm font-semibold text-gray-800 line-clamp-1">{p.name}</p>
-                                  </div>
-                              </div>
-                              
-                              <div className="mt-2">
-                                  <div className="flex items-baseline gap-2">
-                                      <h3 className={cn("text-2xl font-bold", stock < 0 ? "text-red-600" : "text-gray-900")}>
-                                          {stock}
-                                      </h3>
-                                      <span className="text-xs text-gray-500">in branch</span>
-                                  </div>
-                              </div>
+                  return (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-center md:justify-start gap-6 text-center md:text-left">
+                                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center shrink-0 relative">
+                                    <Package className="w-8 h-8 text-blue-500" />
+                                    <div className="absolute top-2 left-1/2 -translate-x-1/2"><ArrowDown className="w-4 h-4 text-blue-500" strokeWidth={3} /></div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Stock Received</p>
+                                    <div className="flex items-baseline justify-center md:justify-start gap-2">
+                                        <h3 className="text-5xl font-black text-blue-600 tracking-tighter">{stockReceived}</h3>
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-500">Bottles</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-center md:justify-start gap-6 text-center md:text-left">
+                                <div className="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center shrink-0 relative">
+                                    <Package className="w-8 h-8 text-rose-500" />
+                                    <div className="absolute top-2 left-1/2 -translate-x-1/2"><ArrowUp className="w-4 h-4 text-rose-500" strokeWidth={3} /></div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Stock Sold</p>
+                                    <div className="flex items-baseline justify-center md:justify-start gap-2">
+                                        <h3 className="text-5xl font-black text-rose-600 tracking-tighter">{stockSold}</h3>
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-500">Bottles</span>
+                                </div>
+                            </div>
 
+                            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-center md:justify-start gap-6 text-center md:text-left">
+                                <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 relative">
+                                    <Package className="w-10 h-10 text-emerald-500" />
+                                    <div className="absolute bottom-2 right-2"><ArrowRight className="w-4 h-4 text-emerald-500" strokeWidth={3} /></div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Current Stock</p>
+                                    <div className="flex items-baseline justify-center md:justify-start gap-2">
+                                        <h3 className="text-5xl font-black text-emerald-600 tracking-tighter">{currentTotalStock}</h3>
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-500">Bottles</span>
+                                </div>
+                            </div>
+                        </div>
 
-                          </div>
-                      )})}
-                  </div>
+                        {/* Products Grid */}
+                        <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
+                            {products.map(p => {
+                                const stock = getStockForProduct(p._id);
+                                return (
+                                    <div key={p._id} className="min-w-[200px] bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-4 snap-start shrink-0">
+                                        <div className="w-12 h-20 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
+                                            <FlaskConical className="w-6 h-6 text-amber-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{p.name}</h4>
+                                            <p className="text-3xl font-black text-slate-900 tracking-tighter mt-1">{stock}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Bottles</p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
 
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mt-6">
-                      <div className="p-4 border-b border-gray-200 bg-gray-50">
-                         <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <Activity className="w-4 h-4" /> Recent Transfers
-                         </h2>
-                      </div>
-                      <div className="overflow-x-auto">
-                          <table className="w-full text-left text-sm">
-                              <thead className="bg-gray-50 border-b border-gray-200">
-                                  <tr>
-                                      <th className="px-4 py-3 font-semibold text-gray-600">Date</th>
-                                      <th className="px-4 py-3 font-semibold text-gray-600">Type</th>
-                                      <th className="px-4 py-3 font-semibold text-gray-600">Product</th>
-                                      <th className="px-4 py-3 font-semibold text-green-600 text-center">IN (+)</th>
-                                      <th className="px-4 py-3 font-semibold text-red-600 text-center">OUT (-)</th>
-                                  </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-200">
-                                  {transfers.filter(t => t.partyId?._id === selectedBranch).length > 0 ? 
-                                     transfers.filter(t => t.partyId?._id === selectedBranch).sort((a,b) => {
-                                        const d1 = new Date(b.date).getTime() - new Date(a.date).getTime();
-                                        if (d1 === 0 && b.createdAt && a.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                                        return d1;
-                                     }).map((t, i) => (
-                                      <tr key={i} className="hover:bg-gray-50">
-                                          <td className="px-4 py-3 text-gray-600">
-                                              {new Date(t.date).toLocaleDateString()}
-                                          </td>
-                                          <td className="px-4 py-3">
-                                              <span className={cn(
-                                                  "text-xs px-2 py-1 rounded border",
-                                                  t.type === 'IN' ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
-                                              )}>
-                                                  {t.type === 'IN' ? 'RECEIVED' : 'SALES'}
-                                              </span>
-                                          </td>
-                                          <td className="px-4 py-3 text-gray-900 font-medium">
-                                              {t.juiceType?.name}
-                                          </td>
-                                          <td className="px-4 py-3 text-center font-medium text-green-600">
-                                              {t.type === 'IN' ? `+${t.quantity}` : '-'}
-                                          </td>
-                                          <td className="px-4 py-3 text-center font-medium text-red-600">
-                                              {t.type === 'OUT' ? `-${t.quantity}` : '-'}
-                                          </td>
-                                      </tr>
-                                  )) : (
-                                      <tr><td colSpan={5} className="p-8 text-center text-gray-500">No recent activity for this branch</td></tr>
-                                  )}
-                              </tbody>
-                          </table>
-                      </div>
-                  </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Recent Transactions */}
+                            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+                                <div className="p-6 border-b border-slate-50">
+                                    <h2 className="text-lg font-black text-slate-900 tracking-tight">Recent Transactions</h2>
+                                </div>
+                                <div className="overflow-x-auto flex-1">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white border-b border-slate-100">
+                                            <tr>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Date</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Product</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase text-emerald-600 tracking-widest text-center">IN (+)</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase text-rose-600 tracking-widest text-center">OUT (-)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {selectedBranchTransfers.slice(0,5).map((t, i) => (
+                                                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 text-xs font-bold text-slate-500">{new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</td>
+                                                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{t.juiceType?.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-black text-emerald-600 text-center">{t.type === 'IN' ? t.quantity : '-'}</td>
+                                                    <td className="px-6 py-4 text-sm font-black text-rose-600 text-center">{t.type === 'OUT' ? t.quantity : '-'}</td>
+                                                </tr>
+                                            ))}
+                                            {selectedBranchTransfers.length === 0 && (
+                                                <tr><td colSpan={4} className="p-12 text-center text-slate-400 italic font-bold uppercase tracking-widest text-xs">No transactions found</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="p-6 border-t border-slate-50">
+                                    <button className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700">View All Transactions <ArrowRight className="w-4 h-4" /></button>
+                                </div>
+                            </div>
 
-                  </div>
-              </div>
+                            {/* Low Stock */}
+                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+                                <div className="p-6 pb-2">
+                                    <h2 className="text-lg font-black text-rose-600 tracking-tight">Low Stock</h2>
+                                </div>
+                                <div className="p-6 space-y-4 flex-1">
+                                    {products.filter(p => getStockForProduct(p._id) <= 10).map(p => {
+                                        const stock = getStockForProduct(p._id);
+                                        return (
+                                            <div key={p._id} className="flex items-center gap-4 bg-white border border-slate-50 p-4 rounded-xl shadow-sm">
+                                                <div className="w-10 h-16 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
+                                                    <FlaskConical className="w-5 h-5 text-rose-400" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{p.name}</h4>
+                                                    <p className="text-xl font-black text-rose-600 tracking-tighter mt-1">{stock}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bottles Left</p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                    {products.filter(p => getStockForProduct(p._id) <= 10).length === 0 && (
+                                        <div className="text-center text-slate-400 italic font-bold uppercase tracking-widest text-xs py-8">All items adequately stocked</div>
+                                    )}
+                                </div>
+                                <div className="p-6 border-t border-slate-50">
+                                    <button className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700">View All Low Stock <ArrowRight className="w-4 h-4" /></button>
+                                </div>
+                            </div>
+                        </div>
+                      </>
+                  );
+              })()}
+          </div>
+        </div>
 
         {/* Manage Branches Modal */}
         {isManageWholesalersOpen && (

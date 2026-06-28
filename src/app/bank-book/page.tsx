@@ -122,7 +122,8 @@ const BankBook = () => {
                   onClick={() => {
                     const d = new Date(selectedDate);
                     d.setDate(d.getDate() - 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
+                    const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const date = String(d.getDate()).padStart(2,'0');
+                    setSelectedDate(`${y}-${m}-${date}`);
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
                 >
@@ -141,7 +142,8 @@ const BankBook = () => {
                   onClick={() => {
                     const d = new Date(selectedDate);
                     d.setDate(d.getDate() + 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
+                    const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const date = String(d.getDate()).padStart(2,'0');
+                    setSelectedDate(`${y}-${m}-${date}`);
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
                 >
@@ -293,9 +295,9 @@ const BankBook = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Type</label>
-                      <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                        <option value="IN">Income (Payment In)</option>
-                        <option value="OUT">Expense (Payment Out)</option>
+                      <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={form.type} onChange={e => setForm({...form, type: e.target.value, category: e.target.value === 'IN' ? 'Sale' : 'Salary'})}>
+                        <option value="IN">Income</option>
+                        <option value="OUT">Expense</option>
                       </select>
                     </div>
                     <div className="space-y-1">
@@ -308,14 +310,30 @@ const BankBook = () => {
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Category</label>
                       <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                        <option>Sale</option>
-                        <option>Purchase</option>
-                        <option>Salary</option>
-                        <option>Rent</option>
-                        <option>Electricity</option>
-                        <option>Fuel</option>
-                        <option>Maintenance</option>
-                        <option>Other</option>
+                        {form.type === 'IN' ? (
+                          <>
+                            <option>Sale</option>
+                            <option>Capital Introduced</option>
+                            <option>Other Income</option>
+                            <option>Loan Received</option>
+                            <option>Refund Received</option>
+                            <option>Miscellaneous Income</option>
+                          </>
+                        ) : (
+                          <>
+                            <option>Salary</option>
+                            <option>Rent</option>
+                            <option>Electricity</option>
+                            <option>Fuel</option>
+                            <option>Maintenance</option>
+                            <option>Marketing</option>
+                            <option>Internet</option>
+                            <option>Courier</option>
+                            <option>Travel</option>
+                            <option>Office Expense</option>
+                            <option>Miscellaneous</option>
+                          </>
+                        )}
                       </select>
                     </div>
                     <div className="space-y-2">
