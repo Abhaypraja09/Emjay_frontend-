@@ -58,7 +58,7 @@ export default function LiveBoard() {
                 <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Live Board</h1>
                 <p className="text-gray-500 text-sm mt-1 flex items-center gap-2 font-medium">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    Real-time overview of today's business activity
+                    Real-time overview of today&apos;s business activity
                 </p>
             </div>
 
@@ -90,7 +90,7 @@ export default function LiveBoard() {
                         <ShoppingCart className="w-6 h-6" />
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY'S SALES</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY&apos;S SALES</p>
                         <h3 className="text-2xl font-black text-blue-600 tracking-tight">₹{(dailyReport?.summary?.totalSales || 0).toLocaleString()}</h3>
                     </div>
                 </div>
@@ -107,7 +107,7 @@ export default function LiveBoard() {
                         <FlaskConical className="w-6 h-6" />
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY'S PRODUCTION</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY&apos;S PRODUCTION</p>
                         <h3 className="text-2xl font-black text-emerald-600 tracking-tight">{(dailyReport?.summary?.totalProduced || 0).toLocaleString()} <span className="text-sm">Bottles</span></h3>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ export default function LiveBoard() {
                         <ArrowRightLeft className="w-6 h-6" />
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY'S BRANCH TRANSFER</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY&apos;S BRANCH TRANSFER</p>
                         <h3 className="text-2xl font-black text-orange-500 tracking-tight">{(dailyReport?.summary?.totalBranchTransferBottles || 0).toLocaleString()} <span className="text-sm">Bottles</span></h3>
                     </div>
                 </div>
@@ -141,7 +141,7 @@ export default function LiveBoard() {
                         <ShoppingBag className="w-6 h-6" />
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY'S PURCHASE</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">TODAY&apos;S PURCHASE</p>
                         <h3 className="text-2xl font-black text-purple-600 tracking-tight">₹{(dailyReport?.summary?.totalPurchases || 0).toLocaleString()}</h3>
                     </div>
                 </div>
