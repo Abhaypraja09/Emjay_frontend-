@@ -107,8 +107,8 @@ function CustomerDetailContent() {
     return (
       <div className="flex h-screen items-center justify-center flex-col gap-4 bg-gray-50">
         <p className="text-gray-500 font-medium">Customer not found.</p>
-        <button onClick={() => router.push('/purchases?tab=customers')} className="btn-primary">
-          ← Back to Purchases
+        <button onClick={() => router.push('/sales?tab=customers')} className="btn-primary">
+            Back to Sales
         </button>
       </div>
     );
@@ -121,7 +121,7 @@ function CustomerDetailContent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/purchases?tab=customers')}
+              onClick={() => router.push('/sales?tab=customers')}
               className="p-2.5 bg-white rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, MapPin, Search, Clock, UserPlus, Info } from 'lucide-react';
+import { X, MapPin, Search, Clock, UserPlus, Info, Calendar, CheckCircle, DollarSign } from 'lucide-react';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
+import { cn } from '@/utils/cn';
 import dynamic from 'next/dynamic';
 
 const DynamicMap = dynamic(() => import('./MapComponent'), { ssr: false, loading: () => <div className="w-full h-full bg-gray-100 rounded-xl animate-pulse"></div> });
@@ -9,7 +10,7 @@ const DynamicMap = dynamic(() => import('./MapComponent'), { ssr: false, loading
 export default function AddStaffModal({ onClose }: any) {
   const [form, setForm] = useState({ 
     name: '', mobile: '', designation: '', 
-    salary: '', joiningDate: '', employmentType: 'REGULAR (WITH LEAVE ALLOWANCE)', monthlyLeaveQuota: 4,
+    salary: '', joiningDate: '', employmentType: 'REGULAR (WITH LEAVE ALLOWANCE)', monthlyLeaveQuota: 0,
     username: '', password: '', 
     geofence: { lat: 28.6129, lng: 77.2295, radius: 200 },
     shift: { startTime: '09:00', endTime: '18:00' }
@@ -114,47 +115,96 @@ export default function AddStaffModal({ onClose }: any) {
             <div className="space-y-8">
               
               {/* Payroll & Leave Policy */}
-              <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
+              {/* Payroll & Leave Policy */}
+              <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full"></div>
+                <div className="flex items-center gap-2 mb-6 relative z-10">
                   <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
                   <h3 className="text-sm font-black text-gray-800 tracking-widest uppercase">Payroll & Leave Policy</h3>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-5 mb-5">
-                  <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Monthly Salary</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 font-black">₹</span>
-                      <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm font-black text-blue-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="0" value={form.salary} onChange={e=>setForm({...form,salary:e.target.value})} />
+                <div className="relative z-10">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-4">Employment Type</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    {/* Regular Card */}
+                    <div 
+                      onClick={() => setForm({...form, employmentType: 'REGULAR (WITH LEAVE ALLOWANCE)', monthlyLeaveQuota: 0})}
+                      className={cn(
+                        "cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center gap-2",
+                        form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' ? "border-blue-500 bg-blue-50/50 shadow-[0_0_15px_rgba(59,130,246,0.15)] scale-[1.02]" : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
+                      )}
+                    >
+                      <div className={cn("p-2.5 rounded-xl transition-all duration-300", form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' ? "bg-blue-500 text-white shadow-md" : "bg-gray-100 text-gray-400")}>
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className={cn("font-black text-xs tracking-tight mb-1", form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' ? "text-blue-900" : "text-gray-700")}>Regular</p>
+                        <p className="text-[9px] font-bold text-gray-400 leading-snug">Track leaves & deductions</p>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Joining Date</label>
-                    <input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" value={form.joiningDate} onChange={e=>setForm({...form,joiningDate:e.target.value})} />
+
+                    {/* Fixed Card */}
+                    <div 
+                      onClick={() => setForm({...form, employmentType: 'FIXED (30 DAYS / NO LEAVE TRACKING)', monthlyLeaveQuota: 0})}
+                      className={cn(
+                        "cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center gap-2",
+                        form.employmentType === 'FIXED (30 DAYS / NO LEAVE TRACKING)' ? "border-purple-500 bg-purple-50/50 shadow-[0_0_15px_rgba(168,85,247,0.15)] scale-[1.02]" : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
+                      )}
+                    >
+                      <div className={cn("p-2.5 rounded-xl transition-all duration-300", form.employmentType === 'FIXED (30 DAYS / NO LEAVE TRACKING)' ? "bg-purple-500 text-white shadow-md" : "bg-gray-100 text-gray-400")}>
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className={cn("font-black text-xs tracking-tight mb-1", form.employmentType === 'FIXED (30 DAYS / NO LEAVE TRACKING)' ? "text-purple-900" : "text-gray-700")}>Fixed 30 Days</p>
+                        <p className="text-[9px] font-bold text-gray-400 leading-snug">Fixed pay, no leave tracking</p>
+                      </div>
+                    </div>
+
+                    {/* Daily Wage Card */}
+                    <div 
+                      onClick={() => setForm({...form, employmentType: 'DAILY WAGE', monthlyLeaveQuota: 0})}
+                      className={cn(
+                        "cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center gap-2",
+                        form.employmentType === 'DAILY WAGE' ? "border-green-500 bg-green-50/50 shadow-[0_0_15px_rgba(34,197,94,0.15)] scale-[1.02]" : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
+                      )}
+                    >
+                      <div className={cn("p-2.5 rounded-xl transition-all duration-300", form.employmentType === 'DAILY WAGE' ? "bg-green-500 text-white shadow-md" : "bg-gray-100 text-gray-400")}>
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className={cn("font-black text-xs tracking-tight mb-1", form.employmentType === 'DAILY WAGE' ? "text-green-900" : "text-gray-700")}>Daily Wage</p>
+                        <p className="text-[9px] font-bold text-gray-400 leading-snug">Paid per present day only</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-5 mb-5">
+                <div className="grid grid-cols-2 gap-5 mb-5 relative z-10">
                   <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Employment Type</label>
-                    <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none" value={form.employmentType} onChange={e=> {
-                      const val = e.target.value;
-                      setForm({...form, employmentType: val, monthlyLeaveQuota: val === 'FIXED (30 DAYS / NO LEAVE TRACKING)' ? 0 : 4});
-                    }}>
-                      <option>REGULAR (WITH LEAVE ALLOWANCE)</option>
-                      <option>FIXED (30 DAYS / NO LEAVE TRACKING)</option>
-                    </select>
-                  </div>
-                  {form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' && (
-                    <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Monthly Leave Quota</label>
-                      <input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" value={form.monthlyLeaveQuota} onChange={e=>setForm({...form,monthlyLeaveQuota:Number(e.target.value)})} />
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">{form.employmentType === 'DAILY WAGE' ? 'Daily Wage (Per Day)' : 'Monthly Salary'}</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 font-black">₹</span>
+                      <input type="number" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm font-black text-blue-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner focus:bg-white" placeholder="0" value={form.salary} onChange={e=>setForm({...form,salary:e.target.value})} />
                     </div>
-                  )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 text-right">Joining Date</label>
+                    <input type="date" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner focus:bg-white text-right" value={form.joiningDate} onChange={e=>setForm({...form,joiningDate:e.target.value})} />
+                  </div>
                 </div>
 
                 {form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' && (
-                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
+                  <div className="mb-5 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-4 relative z-10 group hover:border-blue-200 transition-colors">
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1 group-hover:text-blue-500 transition-colors">Monthly Leave Quota</label>
+                      <p className="text-[9px] font-medium text-gray-400">Total paid leaves allowed per month</p>
+                    </div>
+                    <input type="number" required className="w-24 bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-center text-blue-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-inner" value={form.monthlyLeaveQuota} onChange={e=>setForm({...form,monthlyLeaveQuota:Number(e.target.value)})} />
+                  </div>
+                )}
+
+                {form.employmentType === 'REGULAR (WITH LEAVE ALLOWANCE)' && (
+                  <div className="bg-blue-50/80 border border-blue-100 p-4 rounded-2xl flex gap-3 relative z-10 backdrop-blur-sm">
                     <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                     <p className="text-[10px] font-medium text-blue-800 leading-relaxed"><strong className="text-blue-700">POLICY:</strong> Unused leaves from the quota will automatically carry forward to the next month for this personnel.</p>
                   </div>

@@ -689,8 +689,8 @@ const SalaryProcessingTab = ({ month, year, getInitials, setPayrollStats, setSel
                 <p className="text-[10px] text-gray-400 font-black tracking-widest uppercase">Monthly Advance</p>
               </td>
               <td className="px-6 py-4">
-                <p className="font-black text-gray-900 text-lg">₹{p.amount?.toLocaleString() || 0}</p>
-                <p className="text-[10px] text-yellow-600 font-black tracking-widest uppercase">Earned So Far</p>
+                <p className="font-black text-gray-900 text-lg">₹{((p.earnedSalary || 0) + (p.allowances || 0) - (p.advances || 0)).toLocaleString()}</p>
+                <p className="text-[10px] text-yellow-600 font-black tracking-widest uppercase">Net Payable</p>
               </td>
               <td className="px-6 py-4">
                 <span className={cn("px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase",

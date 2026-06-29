@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
@@ -15,7 +16,8 @@ import {
   Wallet,
   ArrowRight,
   ChevronDown,
-  ArrowUpDown
+  ArrowUpDown,
+  Search
 } from 'lucide-react';
 import MonthYearFilter from '@/components/MonthYearFilter';
 
@@ -35,6 +37,50 @@ const Sales = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  
+  const router = useRouter();
+  const [searchCustomer, setSearchCustomer] = useState('');
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedProfileCustomer, setSelectedProfileCustomer] = useState<any>(null);
+  const [customerForm, setCustomerForm] = useState({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer' });
+
+  const handleCustomerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...customerForm,
+        gstRegistered: customerForm.hasGST === 'Yes',
+        gstNumber: customerForm.gstNo
+      };
+      
+      if (customerForm._id) {
+        await api.put(`/parties/${customerForm._id}`, payload);
+        // toast.success('Customer updated successfully');
+      } else {
+        const postPayload = { ...payload };
+        delete postPayload._id;
+        await api.post('/parties', postPayload);
+        // toast.success('Customer added successfully');
+      }
+      setIsCustomerModalOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save customer');
+    }
+  };
+
+  const deleteCustomer = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this customer?')) {
+      try {
+        await api.delete(`/parties/${id}`);
+        // toast.success('Customer deleted successfully');
+        fetchData();
+      } catch (error) {
+        toast.error('Failed to delete customer');
+      }
+    }
+  };
 
   const [orderItems, setOrderItems] = useState([{
     juiceType: '',
@@ -82,6 +128,15 @@ const Sales = () => {
     const subtotal = calculateSubtotal();
     return subtotal + Number(form.gst || 0) - Number(form.discount || 0);
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'customers') {
+        setActiveMainTab('customers');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -258,12 +313,12 @@ const Sales = () => {
                 )}
             >Sales Ledger</button>
             <button 
-                onClick={() => setActiveMainTab('stock')}
+                onClick={() => setActiveMainTab('customers')}
                 className={cn(
                     "px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                    activeMainTab === 'stock' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
+                    activeMainTab === 'customers' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
                 )}
-            >Daily Stock Entry</button>
+            >Customers / Buyers</button>
         </div>
 
         {activeMainTab === 'ledger' ? (
@@ -350,44 +405,128 @@ const Sales = () => {
             </div>
           </>
         ) : (
+          
           <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700">
-              <div className="p-8 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-xl font-black text-gray-900 italic uppercase tracking-tight">Daily Stock Flow Ledger</h3>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Real-time inventory calculation (Opening + Prod - Sales = Closing)</p>
-                  </div>
+            <div className="p-8 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="w-full md:w-96 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search customers..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500/20"
+                  value={searchCustomer}
+                  onChange={e => setSearchCustomer(e.target.value)}
+                />
               </div>
+              <button 
+                onClick={() => {
+                  setCustomerForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer' });
+                  setIsCustomerModalOpen(true);
+                }} 
+                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 w-full md:w-auto"
+              >
+                <div className="bg-white/20 rounded-lg p-1">
+                  <Plus className="w-4 h-4" />
+                </div>
+                Enlist New Customer
+              </button>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-hidden">
               <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                      <thead className="bg-[#1e293b] text-white text-[10px] uppercase font-black tracking-[0.2em] h-14">
-                          <tr>
-                              <th className="px-8 py-4 border-r border-slate-700/50">Date</th>
-                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Opening Stock</th>
-                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Production (+)</th>
-                              <th className="px-8 py-4 border-r border-slate-700/50 text-center">Sales (-)</th>
-                              <th className="px-8 py-4 text-center">Closing Stock</th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 italic-none">
-                          {[...globalLedger].reverse().map((row, idx) => (
-                              <tr key={idx} className="hover:bg-blue-50/30 transition-all font-medium border-l-4 border-l-transparent hover:border-l-blue-600">
-                                  <td className="px-8 py-6 text-sm font-black text-gray-900 italic">{new Date(row.date).toLocaleDateString()}</td>
-                                  <td className="px-8 py-6 text-center text-gray-500 font-bold">{row.openingStock}</td>
-                                  <td className="px-8 py-6 text-center text-emerald-600 font-black italic bg-emerald-50/30">+{row.production}</td>
-                                  <td className="px-8 py-6 text-center text-rose-600 font-black italic bg-rose-50/30">-{row.sales}</td>
-                                  <td className="px-8 py-6 text-center">
-                                      <span className="px-4 py-2 bg-slate-900 text-white rounded-lg font-black italic shadow-lg shadow-slate-900/10">
-                                          {row.closingStock}
-                                      </span>
-                                  </td>
-                              </tr>
-                          ))}
-                          {globalLedger.length === 0 && (
-                              <tr><td colSpan={5} className="p-12 text-center text-gray-400 font-bold">No flow records for this period</td></tr>
-                          )}
-                      </tbody>
-                  </table>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-slate-50 to-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100">
+                      <th className="px-8 py-5">Customer Details</th>
+                      <th className="px-8 py-5">Contact</th>
+                      <th className="px-8 py-5 text-right">Net Balance</th>
+                      <th className="px-8 py-5 text-center">Status</th>
+                      <th className="px-8 py-5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {parties.filter(p => p.name.toLowerCase().includes(searchCustomer.toLowerCase())).map(p => (
+                      <tr 
+                        key={p._id} 
+                        onClick={() => router.push(`/customers?id=${p._id}`)}
+                        className="group hover:bg-blue-50/50 transition-all duration-300 cursor-pointer"
+                      >
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProfileCustomer(p);
+                              }}
+                              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100/50 hover:scale-110 hover:rotate-3 hover:shadow-blue-200 transition-all duration-300 cursor-pointer"
+                              title="View Customer Profile"
+                            >
+                              <User className="w-5 h-5" />
+                            </button>
+                            <div>
+                              <h4 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-blue-700 transition-colors">
+                                {p.name}
+                              </h4>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">Buyer / Customer</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 space-y-2">
+                          <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-600 shadow-sm">
+                            {p.phone || 'No Contact Info'}
+                          </div>
+                          <div>
+                            {p.gstRegistered ? (
+                                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase tracking-wider border border-blue-100">GST: {p.gstNumber}</span>
+                            ) : (
+                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded font-bold uppercase tracking-wider">Unregistered</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 text-right">
+                          <p className={cn(
+                              "text-xl font-black tracking-tighter",
+                              (p.balance || 0) >= 0 ? "text-emerald-500" : "text-rose-500"
+                          )}>₹{Math.abs(p.balance || 0).toLocaleString()}</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            {(p.balance || 0) >= 0 ? ((p.balance || 0) === 0 ? 'Settled' : 'To Receive') : 'Advance Paid'}
+                          </p>
+                        </td>
+                        <td className="px-8 py-5 text-center">
+                          <span className={cn(
+                            "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm border transition-all",
+                            (p.balance || 0) >= 0 
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-100/20" 
+                                : "bg-rose-50 text-rose-600 border-rose-100 shadow-rose-100/20"
+                          )}>
+                            <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse", (p.balance || 0) >= 0 ? "bg-emerald-500" : "bg-rose-500")} />
+                            {(p.balance || 0) >= 0 ? 'Account Clear' : 'Action Required'}
+                          </span>
+                        </td>
+                        <td className="px-8 py-5 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); deleteCustomer(p._id); }}
+                              className="p-2 text-rose-400 hover:text-rose-600 bg-white hover:bg-rose-50 rounded-lg shadow-sm border border-slate-100 transition-colors"
+                              title="Delete Customer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {!parties.length && <tr><td colSpan={5} className="p-16 text-center">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 mb-6 shadow-inner">
+                        <User className="w-8 h-8 text-slate-300" />
+                      </div>
+                      <h3 className="font-black text-slate-900 text-lg">No Customers Found</h3>
+                      <p className="text-slate-500 text-sm mt-2 font-medium">Add a party to automatically track customers.</p>
+                    </td></tr>}
+                  </tbody>
+                </table>
               </div>
+            </div>
           </div>
         )}
 
@@ -583,6 +722,125 @@ const Sales = () => {
                 </div>
             )}
         </AnimatePresence>
+
+        {/* Customer Modals */}
+        {selectedProfileCustomer && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedProfileCustomer(null)}></div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-white rounded-3xl w-full max-w-sm z-[121] relative shadow-2xl overflow-hidden"
+            >
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 flex flex-col items-center justify-center relative border-b border-indigo-100/50">
+                <button onClick={() => setSelectedProfileCustomer(null)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-white/50 rounded-full hover:bg-white transition-all shadow-sm">
+                  <XCircle className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => {
+                    setCustomerForm({ 
+                      _id: selectedProfileCustomer._id, 
+                      name: selectedProfileCustomer.name || '', 
+                      phone: selectedProfileCustomer.phone || '', 
+                      email: selectedProfileCustomer.email || '', 
+                      address: selectedProfileCustomer.address || '', 
+                      hasGST: selectedProfileCustomer.gstRegistered ? 'Yes' : 'No', 
+                      gstNo: selectedProfileCustomer.gstNumber || '', 
+                      type: 'customer' 
+                    });
+                    setSelectedProfileCustomer(null);
+                    setIsCustomerModalOpen(true);
+                  }}
+                  className="absolute top-4 left-4 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-white/50 rounded-xl hover:bg-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5"
+                >
+                  <PencilLine className="w-3.5 h-3.5" />
+                  Edit
+                </button>
+                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-xl shadow-indigo-600/30 mb-4 rotate-3">
+                  <User className="w-8 h-8 -rotate-3" />
+                </div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight text-center">{selectedProfileCustomer.name}</h2>
+                <span className="mt-1 px-3 py-1 bg-white border border-slate-200 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm">Buyer / Customer</span>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Phone</p>
+                    <p className="text-sm font-bold text-slate-700">{selectedProfileCustomer.phone || 'N/A'}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">GST NO.</p>
+                    <p className="text-sm font-bold text-slate-700">{selectedProfileCustomer.gstNumber || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Address</p>
+                  <p className="text-sm font-medium text-slate-600 leading-relaxed">{selectedProfileCustomer.address || 'No address provided'}</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isCustomerModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsCustomerModalOpen(false)}></div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-white rounded-3xl w-full max-w-md z-[101] relative shadow-2xl overflow-hidden border border-white/20"
+            >
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <div className="flex justify-between items-start relative z-10">
+                  <div>
+                    <h2 className="text-xl font-black tracking-tight">{customerForm._id ? 'Edit Customer' : 'Enlist New Customer'}</h2>
+                    <p className="text-blue-100 text-xs font-medium mt-1 opacity-90">Add buyer details for sales tracking</p>
+                  </div>
+                  <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-sm transition-all text-white">
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <form onSubmit={handleCustomerSubmit} className="p-6 space-y-5 bg-slate-50/50">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Customer Name</label>
+                  <input type="text" required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="e.g. Acme Inc." value={customerForm.name} onChange={e => setCustomerForm({ ...customerForm, name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Contact No.</label>
+                    <input type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="+91..." value={customerForm.phone} onChange={e => setCustomerForm({ ...customerForm, phone: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">GST Registration</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner gap-1">
+                        <button type="button" onClick={() => setCustomerForm({...customerForm, hasGST: 'Yes'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${customerForm.hasGST === 'Yes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Yes</button>
+                        <button type="button" onClick={() => setCustomerForm({...customerForm, hasGST: 'No'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${customerForm.hasGST === 'No' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>No</button>
+                    </div>
+                  </div>
+                </div>
+                {customerForm.hasGST === 'Yes' && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-blue-600">GST / TAX ID Number</label>
+                    <input type="text" required className="w-full bg-blue-50/50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-900 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all shadow-inner uppercase" placeholder="22AAAAA0000A1Z5" value={customerForm.gstNo} onChange={e => setCustomerForm({ ...customerForm, gstNo: e.target.value })} />
+                  </motion.div>
+                )}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Address (Optional)</label>
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="Full address" value={customerForm.address} onChange={e => setCustomerForm({ ...customerForm, address: e.target.value })} />
+                </div>
+                <div className="pt-2">
+                  <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/25 active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
+                    <User className="w-4 h-4" />
+                    Save Customer
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
       </main>
     </div>
   );

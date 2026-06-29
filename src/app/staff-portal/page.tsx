@@ -182,7 +182,7 @@ const FaceScannerOverlay = ({ onClose }: any) => {
 
       // Punch Flow
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
         try {
           if (status?.status === 'Not Punched In') {
             await api.post('/staff-portal/punch-in', { 
