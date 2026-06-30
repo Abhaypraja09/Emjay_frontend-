@@ -59,7 +59,7 @@ const Sales = () => {
         // toast.success('Customer updated successfully');
       } else {
         const postPayload = { ...payload };
-        delete postPayload._id;
+        delete (postPayload as any)._id;
         await api.post('/parties', postPayload);
         // toast.success('Customer added successfully');
       }
