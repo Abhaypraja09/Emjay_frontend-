@@ -3,25 +3,19 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import SalarySlipModal from './components/SalarySlipModal';
 import AddStaffModalLight from './components/AddStaffModalLight';
-import EditStaffModalLight from './components/EditStaffModalLight';
-import StaffDetailView from './components/StaffDetailView';
-import PhotoViewerModal from './components/PhotoViewerModal';
-import EditAdvanceModal from './components/EditAdvanceModal';
-import { generateBulkSalarySlipsPDF } from '@/utils/pdfGenerator';
-import { exportAttendanceToExcel, exportPayrollToExcel } from '@/utils/excelGenerator';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { 
-  Users, UserPlus, User, Calendar, Clock, DollarSign,
+  Users, UserPlus, Calendar, Clock, DollarSign,
   CheckCircle, XCircle, FileText, Search, ChevronLeft, ChevronRight,
-  Camera, MapPin, Download, Edit2, Trash2, Lock, ArrowUpRight, ArrowDownRight
+  Camera, MapPin, Download, Edit2, Trash2, Lock
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 const StaffManagement = () => {
   const [activeTab, setActiveTab] = useState('directory');
   const [stats, setStats] = useState({ totalPersonnel: 0, todayAttendance: 0 });
-  const [payrollStats, setPayrollStats] = useState({ totalBaseSalary: 0, salaryPaid: 0, pendingSalary: 0, totalAdvances: 0 });
+  const [payrollStats, setPayrollStats] = useState({ totalBaseSalary: 0, salaryPaid: 0, pendingSalary: 0 });
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -33,21 +27,6 @@ const StaffManagement = () => {
   const [isManualDutyOpen, setIsManualDutyOpen] = useState(false);
   const [isRecordAdvanceOpen, setIsRecordAdvanceOpen] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
-  const [settlePayrollData, setSettlePayrollData] = useState<any>(null);
-
-  const [refreshKey, setRefreshKey] = useState(0);
-  const triggerRefresh = () => setRefreshKey(prev => prev + 1);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const searchVal = params.get('search') || params.get('name') || params.get('staff');
-      if (searchVal) {
-        setSearchQuery(searchVal);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -57,7 +36,7 @@ const StaffManagement = () => {
       } catch (err) {}
     };
     fetchStats();
-  }, [refreshKey]);
+  }, []);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -97,8 +76,7 @@ const StaffManagement = () => {
         </div>
 
         {/* Dynamic Stats Cards */}
-        {/* Dynamic Stats Cards */}
-        <div className={cn("grid gap-6 mb-6", activeTab === 'salary' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2")}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {activeTab !== 'salary' ? (
             <>
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
@@ -125,7 +103,7 @@ const StaffManagement = () => {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Base Salary</p>
-                  <p className="text-4xl font-black text-gray-900">₹{Math.round(payrollStats.totalBaseSalary).toLocaleString()}</p>
+                  <p className="text-4xl font-black text-gray-900">₹{payrollStats.totalBaseSalary.toLocaleString()}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
                   <DollarSign className="w-8 h-8 text-gray-400" />
@@ -133,26 +111,8 @@ const StaffManagement = () => {
               </div>
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div>
-                  <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Total Advances</p>
-                  <p className="text-4xl font-black text-red-600">₹{Math.round(payrollStats.totalAdvances || 0).toLocaleString()}</p>
-                </div>
-                <div className="bg-red-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <ArrowDownRight className="w-8 h-8 text-red-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div>
-                  <p className="text-xs font-bold text-green-500 uppercase tracking-widest mb-2">Salary Paid</p>
-                  <p className="text-4xl font-black text-green-600">₹{Math.round(payrollStats.salaryPaid).toLocaleString()}</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <CheckCircle className="w-8 h-8 text-green-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div>
-                  <p className="text-xs font-bold text-yellow-500 uppercase tracking-widest mb-2">Pending Salary</p>
-                  <p className="text-4xl font-black text-yellow-600">₹{Math.round(payrollStats.pendingSalary).toLocaleString()}</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pending Salary</p>
+                  <p className="text-4xl font-black text-yellow-600">₹{payrollStats.pendingSalary.toLocaleString()}</p>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
                   <Clock className="w-8 h-8 text-yellow-500" />
@@ -163,8 +123,8 @@ const StaffManagement = () => {
         </div>
 
         {/* Tab Navigation & Filters */}
-        <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-200 flex flex-col xl:flex-row justify-between items-stretch xl:items-center mb-6 gap-4">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 xl:pb-0">
+        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-200 flex justify-between items-center mb-6">
+          <div className="flex gap-2 flex-wrap">
             {[
               { id: 'directory', label: 'Personnel', icon: <Users className="w-4 h-4" /> },
               { id: 'attendance', label: 'Attendance', icon: <Clock className="w-4 h-4" /> },
@@ -176,7 +136,7 @@ const StaffManagement = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0",
+                  "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all",
                   activeTab === tab.id 
                     ? "bg-blue-600 text-white shadow-md" 
                     : "text-gray-600 hover:bg-gray-100"
@@ -188,10 +148,10 @@ const StaffManagement = () => {
             ))}
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center px-2">
-            <div className="relative flex-1 sm:flex-initial">
+          <div className="flex gap-4 items-center px-4">
+            <div className="relative">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input type="text" placeholder="Search Personnel..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" placeholder="Search Personnel..." className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium w-48 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             
             {activeTab === 'attendance' ? (
@@ -234,18 +194,17 @@ const StaffManagement = () => {
 
         {/* Main Content Area */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px]">
-          {activeTab === 'directory' && <StaffDirectoryTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} getInitials={getInitials} searchQuery={searchQuery} />}
-          {activeTab === 'attendance' && <AttendanceTrackerTab refreshKey={refreshKey} selectedDate={selectedDate} getInitials={getInitials} searchQuery={searchQuery} />}
-          {activeTab === 'leaves' && <LeaveRequestsTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} month={month} year={year} getInitials={getInitials} searchQuery={searchQuery} />}
-          {activeTab === 'advances' && <AdvancesTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} triggerRefresh={triggerRefresh} searchQuery={searchQuery} />}
-          {activeTab === 'salary' && <SalaryProcessingTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} setSettlePayrollData={setSettlePayrollData} searchQuery={searchQuery} />}
+          {activeTab === 'directory' && <StaffDirectoryTab month={month} year={year} getInitials={getInitials} />}
+          {activeTab === 'attendance' && <AttendanceTrackerTab selectedDate={selectedDate} getInitials={getInitials} />}
+          {activeTab === 'leaves' && <LeaveRequestsTab month={month} year={year} getInitials={getInitials} />}
+          {activeTab === 'advances' && <AdvancesTab month={month} year={year} getInitials={getInitials} />}
+          {activeTab === 'salary' && <SalaryProcessingTab month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} />}
         </div>
 
         {/* Modals */}
-        {isAddStaffOpen && <AddStaffModalLight onClose={() => setIsAddStaffOpen(false)} onSuccess={triggerRefresh} />}
-        {isManualDutyOpen && <ManualDutyModal onClose={() => setIsManualDutyOpen(false)} onSuccess={triggerRefresh} />}
-        {isRecordAdvanceOpen && <RecordAdvanceModal onClose={() => setIsRecordAdvanceOpen(false)} onSuccess={triggerRefresh} />}
-        {settlePayrollData && <SettlePaymentModalLight payroll={settlePayrollData} onClose={() => setSettlePayrollData(null)} onSuccess={() => { setSettlePayrollData(null); triggerRefresh(); }} />}
+        {isAddStaffOpen && <AddStaffModalLight onClose={() => setIsAddStaffOpen(false)} />}
+        {isManualDutyOpen && <ManualDutyModal onClose={() => setIsManualDutyOpen(false)} />}
+        {isRecordAdvanceOpen && <RecordAdvanceModal onClose={() => setIsRecordAdvanceOpen(false)} />}
         {selectedPayroll && (
           <SalarySlipModal
             payroll={selectedPayroll}
@@ -255,7 +214,9 @@ const StaffManagement = () => {
                 await api.post('/admin/staff/salary/process', { staffId, month, year });
                 toast.success('Salary Processed & Generated!');
                 setSelectedPayroll(null);
-                triggerRefresh();
+                // Need to fetchPayroll here, but we don't have access to it directly in StaffManagement.
+                // The easiest way is to let the tab auto-refresh when it mounts, or we just reload the page for now
+                window.location.reload();
               } catch (err) {
                 toast.error('Failed to process salary');
               }
@@ -270,11 +231,9 @@ const StaffManagement = () => {
 // -----------------------------------------------------------------------------
 // 1. Staff Directory Tab
 // -----------------------------------------------------------------------------
-const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuery }: any) => {
+const StaffDirectoryTab = ({ month, year, getInitials }: any) => {
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editStaffData, setEditStaffData] = useState<any>(null);
-  const [detailStaffData, setDetailStaffData] = useState<any>(null);
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -285,7 +244,7 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
       } catch (err) {} finally { setLoading(false); }
     };
     fetchStaff();
-  }, [refreshKey]);
+  }, [month, year]);
 
   const deleteStaff = async (id: string) => {
     if (!window.confirm('Delete this staff member permanently?')) return;
@@ -301,7 +260,6 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
   if (loading) return <div className="p-12 text-center text-gray-500 font-bold">Loading Personnel...</div>;
 
   return (
-    <>
     <table className="w-full text-left text-sm whitespace-nowrap">
       <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
         <tr>
@@ -314,7 +272,7 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-50">
-        {staff.filter((s: any) => s.name?.toLowerCase().includes((searchQuery || '').toLowerCase()) || s.username?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((s: any) => (
+        {staff.map((s: any) => (
           <tr key={s._id} className="hover:bg-gray-50/50 transition-colors">
             <td className="px-6 py-4">
               <div className="flex items-center gap-4">
@@ -345,45 +303,36 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
             </td>
             <td className="px-6 py-4 text-right">
               <div className="flex justify-end gap-2">
-                <button onClick={() => setDetailStaffData(s)} className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="View Details"><User className="w-4 h-4" /></button>
-                <button onClick={() => setEditStaffData(s)} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => deleteStaff(s._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                <button onClick={() => toast('Lock Account feature coming soon')} className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"><Lock className="w-4 h-4" /></button>
+                <button onClick={() => toast('Edit Staff feature coming soon')} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => deleteStaff(s._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
               </div>
             </td>
           </tr>
         ))}
-          {staff.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-gray-400 font-medium">No personnel found.</td></tr>}
-        </tbody>
-      </table>
-        {editStaffData && <EditStaffModalLight staff={editStaffData} onClose={() => setEditStaffData(null)} onSuccess={triggerRefresh} />}
-        {detailStaffData && <StaffDetailView staff={detailStaffData} onClose={() => setDetailStaffData(null)} onRefresh={triggerRefresh} />}
-      </>
-    );
+        {staff.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-gray-400 font-medium">No personnel found.</td></tr>}
+      </tbody>
+    </table>
+  );
 };
 
 // -----------------------------------------------------------------------------
 // 2. Attendance Tracker Tab
 // -----------------------------------------------------------------------------
-const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQuery }: any) => {
+const AttendanceTrackerTab = ({ selectedDate, getInitials }: any) => {
   const [attendance, setAttendance] = useState<any[]>([]);
-  const [staffList, setStaffList] = useState<any[]>([]);
-  const [photoViewerUrl, setPhotoViewerUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAttendance = async () => {
       try {
         if (!selectedDate) return;
         const [y, m] = selectedDate.split('-');
-        const [attRes, staffRes] = await Promise.all([
-          api.get(`/admin/staff/attendance?month=${parseInt(m, 10)}&year=${y}`),
-          api.get('/admin/staff')
-        ]);
-        setAttendance(attRes.data);
-        setStaffList(staffRes.data);
+        const res = await api.get(`/admin/staff/attendance?month=${parseInt(m, 10)}&year=${y}`);
+        setAttendance(res.data);
       } catch (err) {}
     };
-    fetchData();
-  }, [selectedDate, refreshKey]);
+    fetchAttendance();
+  }, [selectedDate]);
 
   const deleteAttendance = async (id: string) => {
     try {
@@ -395,40 +344,10 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
     }
   };
 
-  const markOut = async (id: string) => {
-    try {
-      const res = await api.put(`/admin/staff/attendance/${id}/mark-out`);
-      toast.success('Staff marked out successfully');
-      setAttendance(attendance.map(a => a._id === id ? res.data : a));
-    } catch (err) {
-      toast.error('Failed to mark out');
-    }
-  };
-
-  const filteredAttendance = attendance.filter(a => {
-    if (!a.date) return false;
-    const dateStr = new Date(a.date).toISOString().split('T')[0];
-    return dateStr === selectedDate;
-  });
-
-  const mergedData = staffList.map(staff => {
-    const att = filteredAttendance.find(a => a.staff?._id === staff._id || a.staff === staff._id);
-    return { staff, attendance: att || null };
-  });
-
-  const filteredMerged = mergedData.filter(({ staff }) => staff.name?.toLowerCase().includes((searchQuery || '').toLowerCase()));
+  const filteredAttendance = attendance.filter(a => a.date === selectedDate);
 
   return (
     <div>
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-        <div>
-          <h3 className="font-bold text-gray-900 text-lg tracking-tight">Daily Attendance Tracker</h3>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Date: {new Date(selectedDate).toLocaleDateString('en-GB')}</p>
-        </div>
-        <button onClick={() => exportAttendanceToExcel(filteredMerged, selectedDate)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
-          <Download className="w-4 h-4" /> EXPORT EXCEL
-        </button>
-      </div>
       <table className="w-full text-left text-sm whitespace-nowrap">
         <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
@@ -441,122 +360,85 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {filteredMerged.map(({ staff, attendance: a }) => (
-            <tr key={staff._id} className="hover:bg-gray-50/50 transition-colors">
+          {filteredAttendance.map((a: any) => (
+            <tr key={a._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
-                <p className="font-bold text-gray-900">{new Date(selectedDate).toLocaleDateString('en-GB')}</p>
-                <p className="text-xs text-gray-500 font-medium">{new Date(selectedDate).toLocaleDateString('en-US', {weekday:'long'})}</p>
+                <p className="font-bold text-gray-900">{new Date(a.date).toLocaleDateString('en-GB')}</p>
+                <p className="text-xs text-gray-500 font-medium">{new Date(a.date).toLocaleDateString('en-US', {weekday:'long'})}</p>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-black text-sm">
-                    {getInitials(staff.name || 'S M')}
+                    {getInitials(a.staff?.name || 'S M')}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900">{staff.name}</p>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{staff.designation || 'USER: SYSTEM'}</p>
+                    <p className="font-bold text-gray-900">{a.staff?.name}</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">USER: SYSTEM</p>
                   </div>
                 </div>
               </td>
               <td className="px-6 py-4">
-                {a && (a.status === 'present' || a.status === 'half-day') ? (
-                  <div className="flex flex-col gap-2">
+                {a.status === 'present' || a.status === 'half-day' ? (
+                  <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-md bg-green-50 flex items-center justify-center">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-green-600" />
-                      </div>
-                      <span className="font-bold text-sm text-gray-800">{a.punchIn?.time ? new Date(a.punchIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
+                      <span className="text-green-500 font-black text-xs">↗</span>
+                      <span className="font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs">{a.punchIn?.time ? new Date(a.punchIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-md bg-orange-50 flex items-center justify-center">
-                        <ArrowDownRight className="w-3.5 h-3.5 text-orange-600" />
-                      </div>
-                      <span className="font-bold text-sm text-gray-800">{a.punchOut?.time ? new Date(a.punchOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'ACTIVE SHIFT'}</span>
-                      {!a.punchOut?.time && <button onClick={() => markOut(a._id)} className="text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 px-1.5 py-0.5 rounded ml-1 transition-colors">MARK OUT</button>}
+                      <span className="text-orange-500 font-black text-xs">↘</span>
+                      <span className="font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded text-xs">{a.punchOut?.time ? new Date(a.punchOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'ACTIVE SHIFT'}</span>
                     </div>
                   </div>
                 ) : (
-                  <span className="bg-yellow-50 text-yellow-800 border border-yellow-200 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider">On Leave / Absent</span>
+                  <span className="bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider">On Leave / Absent</span>
                 )}
               </td>
               <td className="px-6 py-4">
-                {a && (a.status === 'present' || a.status === 'half-day') ? (
-                  <div className="flex items-center gap-1.5">
+                {a.status === 'present' || a.status === 'half-day' ? (
+                  <div className="flex items-center gap-3">
                     {/* Punch In Evidence */}
-                    <div className="relative w-10 h-10 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center shadow-sm border border-gray-200 cursor-pointer" title="Punch In Photo" onClick={() => a.punchIn?.evidence && setPhotoViewerUrl(a.punchIn.evidence)}>
+                    <div className="relative w-12 h-12 rounded-xl bg-gray-200 overflow-hidden flex items-center justify-center shadow-sm border border-gray-200" title="Punch In Photo">
                       {a.punchIn?.evidence ? (
-                        <img src={a.punchIn.evidence} alt="In" className="w-full h-full object-cover" />
+                        <img src={a.punchIn.evidence} alt="Punch In Evidence" className="w-full h-full object-cover" />
                       ) : (
                         <Camera className="w-4 h-4 text-gray-400" />
                       )}
-                      <div className="absolute top-0 right-0 bg-green-500 w-2.5 h-2.5 rounded-full border border-white shadow-sm"></div>
+                      <div className="absolute -top-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
                     
                     {/* Punch Out Evidence */}
-                    <div className="relative w-10 h-10 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center shadow-sm border border-gray-200 opacity-90 cursor-pointer" title="Punch Out Photo" onClick={() => a.punchOut?.evidence && setPhotoViewerUrl(a.punchOut.evidence)}>
+                    <div className="relative w-12 h-12 rounded-xl bg-gray-200 overflow-hidden flex items-center justify-center shadow-sm border border-gray-200 opacity-90" title="Punch Out Photo">
                       {a.punchOut?.evidence ? (
-                        <img src={a.punchOut.evidence} alt="Out" className="w-full h-full object-cover" />
+                        <img src={a.punchOut.evidence} alt="Punch Out Evidence" className="w-full h-full object-cover" />
                       ) : (
                         <Camera className="w-4 h-4 text-gray-400" />
                       )}
-                      {a.punchOut?.time && <div className="absolute top-0 right-0 bg-orange-500 w-2.5 h-2.5 rounded-full border border-white shadow-sm"></div>}
+                      {a.punchOut?.time && <div className="absolute -top-1 -right-1 bg-orange-500 w-3 h-3 rounded-full border-2 border-white shadow-sm"></div>}
                     </div>
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 border-dashed flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center">
                     <Camera className="w-4 h-4 text-gray-300" />
                   </div>
                 )}
               </td>
               <td className="px-6 py-4">
-                {a && (a.status === 'present' || a.status === 'half-day') ? (
-                  <div className="flex items-start gap-3 max-w-[200px]">
-                    <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 mt-0.5">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-gray-900 truncate">
-                        {a.punchIn?.location?.lat ? 'Location Tracked' : 'Location unknown'}
-                      </p>
-                      {a.punchIn?.location?.lat && (
-                        <a href={`https://maps.google.com/?q=${a.punchIn.location.lat},${a.punchIn.location.lng}`} target="_blank" className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest mt-0.5 block">
-                          OPEN MAP →
-                        </a>
-                      )}
-                    </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="w-4 h-4 text-yellow-500" />
+                  <div>
+                    <p className="font-bold text-sm">Location Tracked</p>
+                    <p className="text-xs text-gray-400 font-medium w-48 truncate">Geo-coordinates saved</p>
                   </div>
-                ) : (
-                  <div className="flex items-start gap-3 opacity-60">
-                    <div className="p-1.5 rounded-lg bg-gray-50 text-gray-400 mt-0.5">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <p className="font-bold text-sm text-gray-400 mt-1">Location unknown</p>
-                  </div>
-                )}
+                </div>
               </td>
               <td className="px-6 py-4 text-right">
-                {a ? (
-                  <button onClick={() => deleteAttendance(a._id)} className="w-10 h-10 inline-flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded-full transition-colors shadow-sm">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <div className="w-10 h-10 inline-flex items-center justify-center bg-gray-50 border border-gray-100 rounded-full">
-                    <Trash2 className="w-4 h-4 text-gray-300" />
-                  </div>
-                )}
+                <button onClick={() => deleteAttendance(a._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
               </td>
             </tr>
           ))}
-          {mergedData.length === 0 && (
-            <tr>
-              <td colSpan={6} className="p-12 text-center text-gray-500 font-bold text-sm">
-                No active staff members found.
-              </td>
-            </tr>
-          )}
+          {filteredAttendance.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-gray-400 font-medium">No attendance records found for selected period.</td></tr>}
         </tbody>
       </table>
-      {photoViewerUrl && <PhotoViewerModal photoUrl={photoViewerUrl} onClose={() => setPhotoViewerUrl(null)} />}
     </div>
   );
 };
@@ -564,7 +446,7 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
 // -----------------------------------------------------------------------------
 // 3. Leave Requests Tab
 // -----------------------------------------------------------------------------
-const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials, searchQuery }: any) => {
+const LeaveRequestsTab = ({ month, year, getInitials }: any) => {
   const [leaves, setLeaves] = useState<any[]>([]);
 
   useEffect(() => {
@@ -575,7 +457,7 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
       } catch (err) {}
     };
     fetchLeaves();
-  }, [month, year, refreshKey]);
+  }, [month, year]);
 
   return (
     <div className="p-6">
@@ -594,7 +476,7 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {leaves.filter((l: any) => l.staff?.name?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((l: any) => (
+          {leaves.map((l: any) => (
             <tr key={l._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
@@ -620,12 +502,12 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
                     <button onClick={async () => {
                       await api.put(`/admin/staff/leaves/${l._id}`, { status: 'Approved' });
                       toast.success('Approved');
-                      triggerRefresh();
+                      window.location.reload();
                     }} className="px-4 py-1.5 rounded-lg bg-green-50 text-green-700 font-bold text-xs hover:bg-green-100 transition-colors">APPROVE</button>
                     <button onClick={async () => {
                       await api.put(`/admin/staff/leaves/${l._id}`, { status: 'Rejected' });
                       toast.success('Rejected');
-                      triggerRefresh();
+                      window.location.reload();
                     }} className="px-4 py-1.5 rounded-lg bg-red-50 text-red-700 font-bold text-xs hover:bg-red-100 transition-colors">REJECT</button>
                   </div>
                 ) : (
@@ -649,9 +531,8 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
 // -----------------------------------------------------------------------------
 // 4. Advances Tab
 // -----------------------------------------------------------------------------
-const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, searchQuery }: any) => {
+const AdvancesTab = ({ month, year, getInitials }: any) => {
   const [advances, setAdvances] = useState<any[]>([]);
-  const [editAdvanceData, setEditAdvanceData] = useState<any>(null);
   const totalAdvance = advances.reduce((sum, a) => sum + (a.amount || 0), 0);
 
   useEffect(() => {
@@ -662,17 +543,7 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
       } catch (err) {}
     };
     fetchAdvances();
-  }, [month, year, refreshKey]);
-
-  const deleteAdvance = async (id: string) => {
-    try {
-      await api.delete(`/admin/staff/advances/${id}`);
-      setAdvances(advances.filter(a => a._id !== id));
-      toast.success('Advance record deleted');
-    } catch (err) {
-      toast.error('Failed to delete advance');
-    }
-  };
+  }, [month, year]);
 
   return (
     <div>
@@ -703,7 +574,7 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {advances.filter((a: any) => a.staff?.name?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((a: any) => (
+          {advances.map((a: any) => (
             <tr key={a._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
@@ -719,17 +590,13 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
               <td className="px-6 py-4 font-black text-red-600">₹{a.amount.toLocaleString()}</td>
               <td className="px-6 py-4 text-gray-500 font-medium">{a.description || '-'}</td>
               <td className="px-6 py-4 text-right">
-                <div className="flex justify-end gap-2">
-                  <button onClick={() => setEditAdvanceData(a)} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                  <button onClick={() => deleteAdvance(a._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                </div>
+                <button className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
               </td>
             </tr>
           ))}
           {advances.length === 0 && <tr><td colSpan={5} className="p-12 text-center text-gray-400 font-medium">No advances found for this month.</td></tr>}
         </tbody>
       </table>
-      {editAdvanceData && <EditAdvanceModal advance={editAdvanceData} onClose={() => setEditAdvanceData(null)} onRefresh={triggerRefresh} />}
     </div>
   );
 };
@@ -737,20 +604,20 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
 // -----------------------------------------------------------------------------
 // 5. Payroll Tab
 // -----------------------------------------------------------------------------
-const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollStats, setSelectedPayroll, setSettlePayrollData, searchQuery }: any) => {
-  const [payrollData, setPayrollData] = useState<any[]>([]);
+const SalaryProcessingTab = ({ month, year, getInitials, setPayrollStats, setSelectedPayroll }: any) => {
+  const [payroll, setPayroll] = useState<any[]>([]);
 
   const fetchPayroll = async () => {
     try {
       const res = await api.get(`/admin/staff/payroll-data?month=${month}&year=${year}`);
-      setPayrollData(res.data.payments);
+      setPayroll(res.data.payments);
       setPayrollStats(res.data.stats);
     } catch (err) {}
   };
 
   useEffect(() => {
     fetchPayroll();
-  }, [month, year, refreshKey]);
+  }, [month, year]);
 
   const processSalary = async (staffId: string) => {
     try {
@@ -772,36 +639,16 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
     }
   };
 
-  const downloadBulkSlips = () => {
-    if (payrollData.length === 0) {
-      toast.error('No payroll records found. Please generate payroll first.');
-      return;
-    }
-    toast.success('Generating Bulk Salary Slips PDF...');
-    try {
-      const doc = generateBulkSalarySlipsPDF(payrollData, month, year);
-      doc.save(`Bulk_Salary_Slips_${month + 1}_${year}.pdf`);
-      toast.success('Bulk PDF Downloaded!');
-    } catch (err) {
-      toast.error('Failed to generate bulk slips');
-    }
-  };
-
-  const filteredPayroll = payrollData.filter((p: any) => p.staff?.name?.toLowerCase().includes((searchQuery || '').toLowerCase()));
-
   return (
     <div>
       <div className="p-6 border-b border-gray-100 flex justify-between items-center">
         <h3 className="font-bold text-gray-900 text-lg tracking-tight">Payroll Records</h3>
         <div className="flex gap-3">
           <button onClick={generateBulkPayroll} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
-            <FileText className="w-4 h-4" /> CALCULATE PAYROLL
+            <FileText className="w-4 h-4" /> BULK SLIPS
           </button>
-          <button onClick={downloadBulkSlips} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
-            <Download className="w-4 h-4" /> BULK PDF SLIPS
-          </button>
-          <button onClick={() => exportPayrollToExcel(filteredPayroll, month, year)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-blue-700 transition-colors">
-            <Download className="w-4 h-4" /> EXPORT EXCEL
+          <button onClick={() => toast('Export feature coming soon')} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-blue-700 transition-colors">
+            <Download className="w-4 h-4" /> EXPORT DATA
           </button>
         </div>
       </div>
@@ -810,7 +657,7 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
         <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
             <th className="px-6 py-5">Staff Member</th>
-            <th className="px-6 py-5">Attendance</th>
+            <th className="px-6 py-5">Payroll Month</th>
             <th className="px-6 py-5">Base Salary</th>
             <th className="px-6 py-5">Advances</th>
             <th className="px-6 py-5">Total Salary</th>
@@ -819,7 +666,7 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {filteredPayroll.map((p: any) => (
+          {payroll.map((p: any) => (
             <tr key={p._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
@@ -833,24 +680,16 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
                 </div>
               </td>
               <td className="px-6 py-4">
-                  <div className="flex gap-4">
-                    <div>
-                      <p className="font-black text-green-600 text-sm">{p.presentDays || 0} PRES</p>
-                      <p className="text-[9px] font-black tracking-widest text-green-600 uppercase">PRESENT</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-700 text-sm">01/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)} - 30/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)}</p>
-                      <p className="text-[9px] text-gray-400 font-black tracking-widest uppercase mt-0.5">Month Cycle</p>
-                    </div>
-                  </div>
-                </td>
-              <td className="px-6 py-4 font-black text-gray-800">₹{Math.round(p.basicSalary || 0).toLocaleString()}</td>
+                <p className="font-bold text-gray-700">01 {new Date(year, month).toLocaleString('default', {month:'short'})} {year} - 30 {new Date(year, month).toLocaleString('default', {month:'short'})} {year}</p>
+                <p className="text-[10px] text-gray-400 font-black tracking-widest uppercase">Payroll Month</p>
+              </td>
+              <td className="px-6 py-4 font-black text-gray-800">₹{p.basicSalary?.toLocaleString() || 0}</td>
               <td className="px-6 py-4">
-                <p className="font-bold text-red-600">₹{Math.round(p.advances || 0).toLocaleString()}</p>
+                <p className="font-bold text-red-600">₹{p.advances?.toLocaleString() || 0}</p>
                 <p className="text-[10px] text-gray-400 font-black tracking-widest uppercase">Monthly Advance</p>
               </td>
               <td className="px-6 py-4">
-                <p className="font-black text-gray-900 text-lg">₹{Math.round((p.earnedSalary || 0) + (p.allowances || 0) - (p.advances || 0)).toLocaleString()}</p>
+                <p className="font-black text-gray-900 text-lg">₹{((p.earnedSalary || 0) + (p.allowances || 0) - (p.advances || 0)).toLocaleString()}</p>
                 <p className="text-[10px] text-yellow-600 font-black tracking-widest uppercase">Net Payable</p>
               </td>
               <td className="px-6 py-4">
@@ -859,15 +698,15 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
                 )}>• {p.status}</span>
               </td>
               <td className="px-6 py-4 text-right">
-                  {p.status === 'pending' ? (
-                    <button onClick={() => setSettlePayrollData(p)} className="px-4 py-2 bg-yellow-50 text-yellow-600 font-bold rounded-lg hover:bg-yellow-100 transition-colors text-xs shadow-sm border border-yellow-200">SETTLE</button>
-                  ) : (
-                    <button onClick={() => setSelectedPayroll(p)} className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><FileText className="w-4 h-4" /></button>
-                  )}
-                </td>
+                {p.status === 'pending' ? (
+                  <button onClick={() => setSelectedPayroll(p)} className="px-4 py-2 bg-green-50 text-green-600 font-bold rounded-lg hover:bg-green-100 transition-colors text-xs">PROCESS</button>
+                ) : (
+                  <button onClick={() => setSelectedPayroll(p)} className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><FileText className="w-4 h-4" /></button>
+                )}
+              </td>
             </tr>
           ))}
-          {payrollData.length === 0 && <tr>
+          {payroll.length === 0 && <tr>
             <td colSpan={7} className="p-12 text-center">
               <p className="text-gray-400 font-bold mb-4">No payroll records generated for this month.</p>
               <button className="text-blue-600 font-bold text-sm bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100" onClick={generateBulkPayroll}>Generate Payroll Records</button>
@@ -879,75 +718,14 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
   );
 };
 
-  // -----------------------------------------------------------------------------
-  // Modals
-  // -----------------------------------------------------------------------------
-  
-  const SettlePaymentModalLight = ({ payroll, onClose, onSuccess }: any) => {
-    const [bonus, setBonus] = useState<number | string>('');
-    const [deduction, setDeduction] = useState<number | string>('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-  
-    const initialAmount = payroll.amount || 0;
-    const finalAmount = Math.max(0, initialAmount + Number(bonus || 0) - Number(deduction || 0));
-  
-    const handleSettle = async () => {
-      try {
-        setIsSubmitting(true);
-        await api.post('/admin/staff/salary/settle', { staffId: payroll.staff._id, month: payroll.month, year: payroll.year, bonus: Number(bonus || 0), deduction: Number(deduction || 0) });
-        toast.success('Payment Settled Successfully!');
-        onSuccess();
-      } catch (e) {
-        toast.error('Failed to settle payment');
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-  
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400"></div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-black text-gray-900 tracking-tight">Settle Final Payment</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <XCircle className="w-6 h-6 text-gray-400 hover:text-gray-600" />
-            </button>
-          </div>
-  
-          <div className="space-y-6">
-            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 flex justify-between items-center">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Net Payable</span>
-              <span className="text-lg font-black text-gray-900">₹{initialAmount.toLocaleString()}</span>
-            </div>
-  
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black text-green-600 uppercase tracking-widest block mb-2">Bonus (+)</label>
-                <input type="number" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-green-600 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" value={bonus} onChange={(e) => setBonus(e.target.value)} placeholder="0" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-red-600 uppercase tracking-widest block mb-2">Deduction (-)</label>
-                <input type="number" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-red-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" value={deduction} onChange={(e) => setDeduction(e.target.value)} placeholder="0" />
-              </div>
-            </div>
-  
-            <div className="bg-yellow-50 rounded-2xl p-5 border border-yellow-200 flex justify-between items-center">
-              <span className="text-sm font-black text-yellow-700 uppercase tracking-widest">Final Amount</span>
-              <span className="text-2xl font-black text-yellow-600">₹{finalAmount.toLocaleString()}</span>
-            </div>
-  
-            <button onClick={handleSettle} disabled={isSubmitting} className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-black tracking-widest uppercase text-sm py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
-              {isSubmitting ? 'Processing...' : 'Mark as Paid'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  const ManualDutyModal = ({ onClose, onSuccess }: any) => {
-  const [staffList, setStaffList] = useState<any[]>([]);
+// -----------------------------------------------------------------------------
+// Modals
+// -----------------------------------------------------------------------------
+
+
+
+const ManualDutyModal = ({ onClose }: any) => {
+  const [staffList, setStaffList] = useState([]);
   const [form, setForm] = useState({ staffId: '', date: '', timeIn: '09:00', timeOut: '18:00', status: 'present' });
 
   useEffect(() => {
@@ -962,8 +740,8 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
     try {
       await api.post('/admin/staff/manual-duty', form);
       toast.success('Manual Duty Logged');
-      onSuccess?.();
       onClose();
+      window.location.reload();
     } catch (error) { toast.error('Failed to log duty'); }
   };
 
@@ -999,9 +777,9 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
   );
 };
 
-const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
-  const [staffList, setStaffList] = useState<any[]>([]);
-  const [form, setForm] = useState({ staffId: '', amount: '', date: '', description: '' });
+const RecordAdvanceModal = ({ onClose }: any) => {
+  const [staffList, setStaffList] = useState([]);
+  const [form, setForm] = useState({ staffId: '', amount: '', description: '', month: new Date().getMonth(), year: new Date().getFullYear() });
 
   useEffect(() => {
     api.get('/admin/staff').then(res => {
@@ -1015,8 +793,8 @@ const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
     try {
       await api.post('/admin/staff/advance', form);
       toast.success('Advance Recorded');
-      onSuccess?.();
       onClose();
+      window.location.reload();
     } catch (error) { toast.error('Failed to record advance'); }
   };
 

@@ -7,25 +7,31 @@ import dynamic from 'next/dynamic';
 
 const DynamicMap = dynamic(() => import('./MapComponent'), { ssr: false, loading: () => <div className="w-full h-full bg-gray-100 rounded-xl animate-pulse"></div> });
 
-export default function AddStaffModal({ onClose }: any) {
+export default function EditStaffModal({ staff, onClose }: any) {
   const [form, setForm] = useState({ 
-    name: '', mobile: '', designation: '', 
-    salary: '', joiningDate: '', staffType: 'Regular', monthlyTarget: 26,
-    overtime: { enabled: false, thresholdHours: 9, ratePerHour: 100 },
-    username: '', password: '', 
-    geofence: { lat: 28.6129, lng: 77.2295, radius: 200 },
-    shift: { startTime: '09:00', endTime: '18:00' }
+    name: staff?.name || '', 
+    mobile: staff?.mobile || '', 
+    designation: staff?.designation || '', 
+    salary: staff?.salary || '', 
+    joiningDate: staff?.joiningDate ? new Date(staff.joiningDate).toISOString().split('T')[0] : '', 
+    staffType: staff?.staffType || 'Regular', 
+    monthlyTarget: staff?.monthlyTarget || 26,
+    overtime: staff?.overtime || { enabled: false, thresholdHours: 9, ratePerHour: 100 },
+    username: staff?.username || '', 
+    password: '', // leave empty to not update
+    geofence: (staff?.geofence && staff.geofence.lat) ? staff.geofence : { lat: 28.6129, lng: 77.2295, radius: 200 },
+    shift: staff?.shift || { startTime: '09:00', endTime: '18:00' }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/admin/staff', form);
-      toast.success('Staff added successfully!');
+      await api.put(`/admin/staff/${staff._id}`, form);
+      toast.success('Staff updated successfully!');
       onClose();
       window.location.reload();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to add staff');
+      toast.error(error.response?.data?.message || 'Failed to update staff');
     }
   };
 
@@ -55,8 +61,8 @@ export default function AddStaffModal({ onClose }: any) {
               <UserPlus className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">NEW STAFF RECORD</h2>
-              <p className="text-xs font-medium text-gray-500 mt-1">Onboard a new member to your organization</p>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">EDIT STAFF RECORD</h2>
+              <p className="text-xs font-medium text-gray-500 mt-1">Update personnel details</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-full bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all z-10 border border-gray-200 shadow-sm">
@@ -310,7 +316,7 @@ export default function AddStaffModal({ onClose }: any) {
               </div>
 
               <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black tracking-widest uppercase py-5 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4 text-sm">
-                <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div> CREATE STAFF ACCOUNT
+                <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div> UPDATE STAFF RECORD
               </button>
 
             </div>

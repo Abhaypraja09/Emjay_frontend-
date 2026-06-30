@@ -58,8 +58,7 @@ const Sales = () => {
         await api.put(`/parties/${customerForm._id}`, payload);
         // toast.success('Customer updated successfully');
       } else {
-        const postPayload = { ...payload };
-        delete (postPayload as any)._id;
+        const { _id, ...postPayload } = payload;
         await api.post('/parties', postPayload);
         // toast.success('Customer added successfully');
       }
