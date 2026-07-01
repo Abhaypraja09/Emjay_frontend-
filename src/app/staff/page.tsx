@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 import { 
   Users, UserPlus, User, Calendar, Clock, DollarSign,
   CheckCircle, XCircle, FileText, Search, ChevronLeft, ChevronRight,
-  Camera, MapPin, Download, Edit2, Trash2, Lock, ArrowUpRight, ArrowDownRight, ArrowRight
+  Camera, MapPin, Download, Edit2, Trash2, Lock, ArrowUpRight, ArrowDownRight, ArrowRight, Wallet
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import ManualDutyModal from './components/ManualDutyModal';
@@ -70,181 +70,144 @@ const StaffManagement = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F5F7FA]">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 p-8 overflow-y-auto pb-20">
-        {/* Header Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 text-blue-600 p-2 rounded-xl">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Staff Operations</h1>
-                <p className="text-sm text-gray-500 font-medium">Manage personnel, attendance and monthly payroll</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsAddStaffOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-md transition-all flex items-center gap-2">
-              <UserPlus className="w-4 h-4" /> Add Staff
-            </button>
-            <button onClick={() => { setManualDutyDefaultStaff(null); setManualDutyDefaultDate(null); setManualDutyDefaultTimeIn(null); setIsManualDutyOpen(true); }} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all flex items-center gap-2">
-              <Clock className="w-4 h-4" /> Manual Duty
-            </button>
-            <button onClick={() => setIsRecordAdvanceOpen(true)} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all flex items-center gap-2">
-              <DollarSign className="w-4 h-4" /> Record Advance
-            </button>
-            <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 p-2.5 rounded-full shadow-sm transition-all">
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Stats Cards */}
-        {/* Dynamic Stats Cards */}
+      <main className="flex-1 lg:ml-64 p-6 overflow-y-auto pb-20 max-w-7xl mx-auto w-full">
+        <h1 className="text-3xl font-bold mb-6 text-gray-900">Staff Management & Payroll</h1>
+        
+        {/* Dynamic Stats Cards (Retained for functionality) */}
         <div className={cn("grid gap-6 mb-6", activeTab === 'salary' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2")}>
           {activeTab !== 'salary' ? (
             <>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Personnel</p>
                   <p className="text-4xl font-black text-gray-900">{stats.totalPersonnel}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Users className="w-8 h-8 text-gray-400" />
-                </div>
+                <Users className="w-8 h-8 text-blue-500" />
               </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Today Attendance</p>
                   <p className="text-4xl font-black text-green-600">{stats.todayAttendance}</p>
                 </div>
-                <div className="bg-green-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Clock className="w-8 h-8 text-green-500" />
-                </div>
+                <Clock className="w-8 h-8 text-green-500" />
               </div>
             </>
           ) : (
             <>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Base Salary</p>
-                  <p className="text-4xl font-black text-gray-900">₹{Math.round(payrollStats.totalBaseSalary).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-gray-900">₹{Math.round(payrollStats.totalBaseSalary).toLocaleString()}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <DollarSign className="w-8 h-8 text-gray-400" />
-                </div>
+                <DollarSign className="w-8 h-8 text-gray-400" />
               </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Total Advances</p>
-                  <p className="text-4xl font-black text-red-600">₹{Math.round(payrollStats.totalAdvances || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-red-600">₹{Math.round(payrollStats.totalAdvances || 0).toLocaleString()}</p>
                 </div>
-                <div className="bg-red-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <ArrowDownRight className="w-8 h-8 text-red-500" />
-                </div>
+                <ArrowDownRight className="w-8 h-8 text-red-500" />
               </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-green-500 uppercase tracking-widest mb-2">Salary Paid</p>
-                  <p className="text-4xl font-black text-green-600">₹{Math.round(payrollStats.salaryPaid).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-green-600">₹{Math.round(payrollStats.salaryPaid).toLocaleString()}</p>
                 </div>
-                <div className="bg-green-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <CheckCircle className="w-8 h-8 text-green-500" />
-                </div>
+                <CheckCircle className="w-8 h-8 text-green-500" />
               </div>
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-yellow-500 uppercase tracking-widest mb-2">Pending Salary</p>
-                  <p className="text-4xl font-black text-yellow-600">₹{Math.round(payrollStats.pendingSalary).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-yellow-600">₹{Math.round(payrollStats.pendingSalary).toLocaleString()}</p>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Clock className="w-8 h-8 text-yellow-500" />
-                </div>
+                <Clock className="w-8 h-8 text-yellow-500" />
               </div>
             </>
           )}
         </div>
 
-        {/* Tab Navigation & Filters */}
-        <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-200 flex flex-col xl:flex-row justify-between items-stretch xl:items-center mb-6 gap-4">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 xl:pb-0">
-            {[
-              { id: 'directory', label: 'Personnel', icon: <Users className="w-4 h-4" /> },
-              { id: 'attendance', label: 'Attendance', icon: <Clock className="w-4 h-4" /> },
-              { id: 'leaves', label: 'Leaves', icon: <Calendar className="w-4 h-4" /> },
-              { id: 'advances', label: 'Advances', icon: <DollarSign className="w-4 h-4" /> },
-              { id: 'salary', label: 'Payroll', icon: <FileText className="w-4 h-4" /> }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0",
-                  activeTab === tab.id 
-                    ? "bg-blue-600 text-white shadow-md" 
-                    : "text-gray-600 hover:bg-gray-100"
-                )}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
+        {/* Tabs */}
+        <div className="flex space-x-4 mb-6 border-b pb-2 overflow-x-auto no-scrollbar">
+            <button onClick={() => setActiveTab('directory')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'directory' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Users size={20} /> Directory
+            </button>
+            <button onClick={() => setActiveTab('attendance')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'attendance' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Calendar size={20} /> Attendance
+            </button>
+            <button onClick={() => setActiveTab('salary')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'salary' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <DollarSign size={20} /> Payroll
+            </button>
+            <button onClick={() => setActiveTab('advances')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'advances' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Wallet size={20} /> Advances
+            </button>
+            <button onClick={() => setActiveTab('leaves')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'leaves' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <FileText size={20} /> Leaves
+            </button>
+        </div>
+
+        {/* Action Bar (Filters, Search, Add buttons) */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="flex items-center gap-2">
+             <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input type="text" placeholder="Search Personnel..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+             </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center px-2">
-            <div className="relative flex-1 sm:flex-initial">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input type="text" placeholder="Search Personnel..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            
-            {activeTab === 'attendance' ? (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1">
-                <button 
-                  onClick={() => {
-                    const d = new Date(selectedDate);
-                    d.setDate(d.getDate() - 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
-                  }}
-                  className="p-1 hover:bg-gray-200 rounded-lg"><ChevronLeft className="w-4 h-4 text-gray-600" /></button>
-                <input 
-                  type="date" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer px-1"
-                />
-                <button 
-                  onClick={() => {
-                    const d = new Date(selectedDate);
-                    d.setDate(d.getDate() + 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
-                  }}
-                  className="p-1 hover:bg-gray-200 rounded-lg"><ChevronRight className="w-4 h-4 text-gray-600" /></button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1">
-                <button className="p-1 hover:bg-gray-200 rounded-lg"><ChevronLeft className="w-4 h-4 text-gray-600" /></button>
-                <select value={month} onChange={e=>setMonth(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none appearance-none px-2 cursor-pointer">
-                  {Array.from({length:12}).map((_,i) => <option key={i} value={i}>{new Date(2000, i).toLocaleString('default', {month:'short'}).toUpperCase()}</option>)}
-                </select>
-                <select value={year} onChange={e=>setYear(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none appearance-none pr-4 cursor-pointer">
-                  {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <button className="p-1 hover:bg-gray-200 rounded-lg"><ChevronRight className="w-4 h-4 text-gray-600" /></button>
-              </div>
-            )}
+          <div className="flex items-center gap-3 flex-wrap">
+             {activeTab === 'attendance' ? (
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded shadow-sm px-2 py-1">
+                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
+                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none" />
+                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
+                </div>
+             ) : (
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded shadow-sm px-2 py-1">
+                  <button className="p-1 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
+                  <select value={month} onChange={e=>setMonth(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer">
+                    {Array.from({length:12}).map((_,i) => <option key={i} value={i}>{new Date(2000, i).toLocaleString('default', {month:'short'}).toUpperCase()}</option>)}
+                  </select>
+                  <select value={year} onChange={e=>setYear(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer pr-2">
+                    {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                  <button className="p-1 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
+                </div>
+             )}
+
+            <button onClick={() => setIsAddStaffOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold text-sm shadow flex items-center gap-2">
+              <UserPlus className="w-4 h-4" /> Add Staff
+            </button>
+            <button onClick={() => { setManualDutyDefaultStaff(null); setManualDutyDefaultDate(null); setManualDutyDefaultTimeIn(null); setIsManualDutyOpen(true); }} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded font-semibold text-sm shadow-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Manual Duty
+            </button>
+            <button onClick={() => setIsRecordAdvanceOpen(true)} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded font-semibold text-sm shadow-sm flex items-center gap-2">
+              <DollarSign className="w-4 h-4" /> Record Advance
+            </button>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px]">
+        {/* Tab Contents */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[500px]">
           {activeTab === 'directory' && <StaffDirectoryTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} getInitials={getInitials} searchQuery={searchQuery} />}
+          
           {activeTab === 'attendance' && <AttendanceTrackerTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} selectedDate={selectedDate} getInitials={getInitials} searchQuery={searchQuery} />}
-          {activeTab === 'leaves' && <LeaveRequestsTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} month={month} year={year} getInitials={getInitials} searchQuery={searchQuery} />}
+          
+          {activeTab === 'salary' && (
+              <div className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-semibold text-gray-800">Payroll Settlement (Auto-Calculated)</h2>
+                  </div>
+                  <p className="text-gray-500 mb-4 text-sm">Run payroll to apply formula: (Base / Days) * Present + Allowances - Advances.</p>
+                  <div className="overflow-x-auto">
+                      <SalaryProcessingTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} setSettlePayrollData={setSettlePayrollData} setDetailModalPayroll={setDetailModalPayroll} searchQuery={searchQuery} />
+                  </div>
+              </div>
+          )}
+          
           {activeTab === 'advances' && <AdvancesTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} triggerRefresh={triggerRefresh} searchQuery={searchQuery} />}
-          {activeTab === 'salary' && <SalaryProcessingTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} setSettlePayrollData={setSettlePayrollData} setDetailModalPayroll={setDetailModalPayroll} searchQuery={searchQuery} />}
+          
+          {activeTab === 'leaves' && <LeaveRequestsTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} month={month} year={year} getInitials={getInitials} searchQuery={searchQuery} />}
         </div>
 
         {/* Modals */}
