@@ -118,7 +118,7 @@ export default function SalarySlipModal({ payroll, onClose, onProcess }: any) {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Earned So Far</p>
               <div className="flex items-start justify-center gap-1">
                 <span className="text-xl font-bold text-amber-500 mt-2">₹</span>
-                <span className="text-5xl font-black text-white tracking-tight">{payroll.amount?.toLocaleString()}</span>
+                <span className="text-5xl font-black text-white tracking-tight">{Math.round(payroll.amount || 0).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex items-center justify-center gap-2 mt-4 text-xs font-medium text-slate-400">
                 <FileText className="w-3.5 h-3.5 text-slate-500" />
@@ -181,46 +181,50 @@ export default function SalarySlipModal({ payroll, onClose, onProcess }: any) {
               </div>
             </div>
 
-            <div className="bg-[#1e293b]/40 rounded-2xl p-4 border border-slate-700/50">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Leave Carry-Forward Pool</p>
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-lg font-black text-white">{leaveCarryForward}</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Accrued (Total)</p>
-                </div>
-                <div>
-                  <p className="text-lg font-black text-rose-400">{leaveUsed}</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Used (Till Date)</p>
-                </div>
-                <div>
-                  <p className="text-lg font-black text-emerald-400">{leavePool}</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Available (Pool)</p>
+            {payroll.staff?.staffType === 'Regular' && (
+              <div className="bg-[#1e293b]/40 rounded-2xl p-4 border border-slate-700/50">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Leave Carry-Forward Pool</p>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="text-lg font-black text-white">{leaveCarryForward}</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Accrued (Total)</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-black text-rose-400">{leaveUsed}</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Used (Till Date)</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-black text-emerald-400">{leavePool}</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Available (Pool)</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
           {/* Leave Pool Info */}
-          <div className="mb-8">
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Leave Carry-Forward Pool</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-                <span className="text-2xl font-black text-blue-600">{leaveCarryForward}</span>
-                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Previous C/F</p>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-                <span className="text-2xl font-black text-gray-900">{leavePool}</span>
-                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Allowed Leaves</p>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm">
-                <span className="text-2xl font-black text-emerald-600">{leaveCarryForward + leavePool}</span>
-                <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Total Available</p>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm">
-                <span className="text-2xl font-black text-rose-500">{leaveUsed}</span>
-                <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest mt-1">Utilized This Month</p>
+          {payroll.staff?.staffType === 'Regular' && (
+            <div className="mb-8">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Leave Carry-Forward Pool</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                  <span className="text-2xl font-black text-blue-600">{leaveCarryForward}</span>
+                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Previous C/F</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                  <span className="text-2xl font-black text-gray-900">{leavePool}</span>
+                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Allowed Leaves</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm">
+                  <span className="text-2xl font-black text-emerald-600">{leaveCarryForward + leavePool}</span>
+                  <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Total Available</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm">
+                  <span className="text-2xl font-black text-rose-500">{leaveUsed}</span>
+                  <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest mt-1">Utilized This Month</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Calculation Summary */}
           <div className="mt-auto">
@@ -229,9 +233,11 @@ export default function SalarySlipModal({ payroll, onClose, onProcess }: any) {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-bold text-gray-600">Extra Leaves: {Math.max(0, unpaidAbsentDays)} day(s)</span>
               </div>
-              <p className="text-xs font-bold text-gray-700 mb-1">Base Salary: ₹{totalBaseSalary.toLocaleString()}</p>
+              <p className="text-[11px] font-bold text-gray-500 mb-2">
+                ({totalBaseSalary.toLocaleString()} / {totalDays}) x {daysPresent + paidLeaves}
+              </p>
               <p className="text-xs font-bold text-gray-500 mb-2">Advances Deducted: -₹{payroll.advances?.toLocaleString()}</p>
-              <p className="text-sm font-black text-yellow-600">= ₹{payroll.amount?.toLocaleString()} (TOTAL SALARY)</p>
+              <p className="text-sm font-black text-yellow-600">= ₹{Math.round(payroll.amount || 0).toLocaleString()} (TOTAL SALARY)</p>
             </div>
           </div>
 

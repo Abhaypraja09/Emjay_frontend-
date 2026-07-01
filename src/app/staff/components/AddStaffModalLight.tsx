@@ -14,7 +14,8 @@ export default function AddStaffModal({ onClose }: any) {
     overtime: { enabled: false, thresholdHours: 9, ratePerHour: 100 },
     username: '', password: '', 
     geofence: { lat: 28.6129, lng: 77.2295, radius: 200 },
-    shift: { startTime: '09:00', endTime: '18:00' }
+    shift: { startTime: '09:00', endTime: '18:00' },
+    monthlyLeaveQuota: 4
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,19 +170,7 @@ export default function AddStaffModal({ onClose }: any) {
                       </div>
                     </div>
 
-                    {/* Hotel Card */}
-                    <div 
-                      onClick={() => setForm({...form, staffType: 'Hotel'})}
-                      className={cn(
-                        "cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center gap-2",
-                        form.staffType === 'Hotel' ? "border-orange-500 bg-orange-50/50 shadow-[0_0_15px_rgba(249,115,22,0.15)] scale-[1.02]" : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
-                      )}
-                    >
-                      <div>
-                        <p className={cn("font-black text-xs tracking-tight mb-1", form.staffType === 'Hotel' ? "text-orange-900" : "text-gray-700")}>Hotel</p>
-                        <p className="text-[9px] font-bold text-gray-400 leading-snug">7 Days Duty</p>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
 
@@ -212,6 +201,15 @@ export default function AddStaffModal({ onClose }: any) {
                     </div>
                   </div>
                 </div>
+
+                {form.staffType === 'Regular' && (
+                  <div className="grid grid-cols-2 gap-5 mb-5 relative z-10">
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Monthly Leave Quota</label>
+                      <input type="number" className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner focus:bg-white" value={form.monthlyLeaveQuota} onChange={e=>setForm({...form, monthlyLeaveQuota: Number(e.target.value)})} />
+                    </div>
+                  </div>
+                )}
 
                 {form.overtime.enabled && (
                   <div className="grid grid-cols-2 gap-5 mb-5 relative z-10 bg-blue-50 p-4 rounded-xl border border-blue-100">

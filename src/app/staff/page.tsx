@@ -14,9 +14,11 @@ import toast from 'react-hot-toast';
 import { 
   Users, UserPlus, User, Calendar, Clock, DollarSign,
   CheckCircle, XCircle, FileText, Search, ChevronLeft, ChevronRight,
-  Camera, MapPin, Download, Edit2, Trash2, Lock, ArrowUpRight, ArrowDownRight
+  Camera, MapPin, Download, Edit2, Trash2, Lock, ArrowUpRight, ArrowDownRight, ArrowRight
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import ManualDutyModal from './components/ManualDutyModal';
+import StaffPayrollDetailModal from './components/StaffPayrollDetailModal';
 
 const StaffManagement = () => {
   const [activeTab, setActiveTab] = useState('directory');
@@ -31,9 +33,13 @@ const StaffManagement = () => {
 
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [isManualDutyOpen, setIsManualDutyOpen] = useState(false);
+  const [manualDutyDefaultStaff, setManualDutyDefaultStaff] = useState<string | null>(null);
+  const [manualDutyDefaultDate, setManualDutyDefaultDate] = useState<string | null>(null);
+  const [manualDutyDefaultTimeIn, setManualDutyDefaultTimeIn] = useState<string | null>(null);
   const [isRecordAdvanceOpen, setIsRecordAdvanceOpen] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
   const [settlePayrollData, setSettlePayrollData] = useState<any>(null);
+  const [detailModalPayroll, setDetailModalPayroll] = useState<any>(null);
 
   const [refreshKey, setRefreshKey] = useState(0);
   const triggerRefresh = () => setRefreshKey(prev => prev + 1);
@@ -84,7 +90,7 @@ const StaffManagement = () => {
             <button onClick={() => setIsAddStaffOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-md transition-all flex items-center gap-2">
               <UserPlus className="w-4 h-4" /> Add Staff
             </button>
-            <button onClick={() => setIsManualDutyOpen(true)} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all flex items-center gap-2">
+            <button onClick={() => { setManualDutyDefaultStaff(null); setManualDutyDefaultDate(null); setManualDutyDefaultTimeIn(null); setIsManualDutyOpen(true); }} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all flex items-center gap-2">
               <Clock className="w-4 h-4" /> Manual Duty
             </button>
             <button onClick={() => setIsRecordAdvanceOpen(true)} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all flex items-center gap-2">
@@ -235,15 +241,33 @@ const StaffManagement = () => {
         {/* Main Content Area */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px]">
           {activeTab === 'directory' && <StaffDirectoryTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} getInitials={getInitials} searchQuery={searchQuery} />}
-          {activeTab === 'attendance' && <AttendanceTrackerTab refreshKey={refreshKey} selectedDate={selectedDate} getInitials={getInitials} searchQuery={searchQuery} />}
+          {activeTab === 'attendance' && <AttendanceTrackerTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} selectedDate={selectedDate} getInitials={getInitials} searchQuery={searchQuery} />}
           {activeTab === 'leaves' && <LeaveRequestsTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} month={month} year={year} getInitials={getInitials} searchQuery={searchQuery} />}
           {activeTab === 'advances' && <AdvancesTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} triggerRefresh={triggerRefresh} searchQuery={searchQuery} />}
-          {activeTab === 'salary' && <SalaryProcessingTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} setSettlePayrollData={setSettlePayrollData} searchQuery={searchQuery} />}
+          {activeTab === 'salary' && <SalaryProcessingTab refreshKey={refreshKey} month={month} year={year} getInitials={getInitials} setPayrollStats={setPayrollStats} setSelectedPayroll={setSelectedPayroll} setSettlePayrollData={setSettlePayrollData} setDetailModalPayroll={setDetailModalPayroll} searchQuery={searchQuery} />}
         </div>
 
         {/* Modals */}
         {isAddStaffOpen && <AddStaffModalLight onClose={() => setIsAddStaffOpen(false)} onSuccess={triggerRefresh} />}
-        {isManualDutyOpen && <ManualDutyModal onClose={() => setIsManualDutyOpen(false)} onSuccess={triggerRefresh} />}
+        {isManualDutyOpen && (
+          <ManualDutyModal 
+            isOpen={isManualDutyOpen}
+            onClose={() => setIsManualDutyOpen(false)} 
+            defaultStaffId={manualDutyDefaultStaff}
+            defaultDate={manualDutyDefaultDate}
+            defaultTimeIn={manualDutyDefaultTimeIn}
+            onSubmit={async (data) => {
+              try {
+                await api.post('/admin/staff/manual-duty', data);
+                toast.success('Attendance updated successfully');
+                triggerRefresh();
+                setIsManualDutyOpen(false);
+              } catch (err) {
+                toast.error('Failed to update attendance');
+              }
+            }} 
+          />
+        )}
         {isRecordAdvanceOpen && <RecordAdvanceModal onClose={() => setIsRecordAdvanceOpen(false)} onSuccess={triggerRefresh} />}
         {settlePayrollData && <SettlePaymentModalLight payroll={settlePayrollData} onClose={() => setSettlePayrollData(null)} onSuccess={() => { setSettlePayrollData(null); triggerRefresh(); }} />}
         {selectedPayroll && (
@@ -262,6 +286,17 @@ const StaffManagement = () => {
             }}
           />
         )}
+        <StaffPayrollDetailModal
+          isOpen={!!detailModalPayroll}
+          onClose={() => setDetailModalPayroll(null)}
+          staff={detailModalPayroll?.staff}
+          payroll={detailModalPayroll}
+          month={month}
+          year={year}
+          onSettle={(id) => {
+            setSettlePayrollData(detailModalPayroll);
+          }}
+        />
       </main>
     </div>
   );
@@ -364,7 +399,7 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
 // -----------------------------------------------------------------------------
 // 2. Attendance Tracker Tab
 // -----------------------------------------------------------------------------
-const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQuery }: any) => {
+const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getInitials, searchQuery }: any) => {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [photoViewerUrl, setPhotoViewerUrl] = useState<string | null>(null);
@@ -399,7 +434,7 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
     try {
       const res = await api.put(`/admin/staff/attendance/${id}/mark-out`);
       toast.success('Staff marked out successfully');
-      setAttendance(attendance.map(a => a._id === id ? res.data : a));
+      triggerRefresh();
     } catch (err) {
       toast.error('Failed to mark out');
     }
@@ -416,7 +451,10 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
     return { staff, attendance: att || null };
   });
 
-  const filteredMerged = mergedData.filter(({ staff }) => staff.name?.toLowerCase().includes((searchQuery || '').toLowerCase()));
+  const filteredMerged = mergedData.filter(({ staff, attendance }) => {
+    if (!attendance) return false;
+    return staff.name?.toLowerCase().includes((searchQuery || '').toLowerCase());
+  });
 
   return (
     <div>
@@ -476,7 +514,7 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
                     </div>
                   </div>
                 ) : (
-                  <span className="bg-yellow-50 text-yellow-800 border border-yellow-200 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider">On Leave / Absent</span>
+                  <span className="bg-gray-50 text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider">Not Punched In</span>
                 )}
               </td>
               <td className="px-6 py-4">
@@ -547,10 +585,10 @@ const AttendanceTrackerTab = ({ refreshKey, selectedDate, getInitials, searchQue
               </td>
             </tr>
           ))}
-          {mergedData.length === 0 && (
+          {filteredMerged.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-12 text-center text-gray-500 font-bold text-sm">
-                No active staff members found.
+              <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">
+                No attendance records found for this date.
               </td>
             </tr>
           )}
@@ -737,7 +775,7 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
 // -----------------------------------------------------------------------------
 // 5. Payroll Tab
 // -----------------------------------------------------------------------------
-const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollStats, setSelectedPayroll, setSettlePayrollData, searchQuery }: any) => {
+const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollStats, setSelectedPayroll, setSettlePayrollData, setDetailModalPayroll, searchQuery }: any) => {
   const [payrollData, setPayrollData] = useState<any[]>([]);
 
   const fetchPayroll = async () => {
@@ -859,11 +897,11 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
                 )}>• {p.status}</span>
               </td>
               <td className="px-6 py-4 text-right">
-                  {p.status === 'pending' ? (
-                    <button onClick={() => setSettlePayrollData(p)} className="px-4 py-2 bg-yellow-50 text-yellow-600 font-bold rounded-lg hover:bg-yellow-100 transition-colors text-xs shadow-sm border border-yellow-200">SETTLE</button>
-                  ) : (
-                    <button onClick={() => setSelectedPayroll(p)} className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><FileText className="w-4 h-4" /></button>
-                  )}
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => setDetailModalPayroll(p)} className="w-8 h-8 rounded-xl border border-yellow-200 text-yellow-600 flex items-center justify-center hover:bg-yellow-50 transition-colors shadow-sm" title="Details">
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
             </tr>
           ))}
@@ -946,58 +984,7 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
     );
   };
   
-  const ManualDutyModal = ({ onClose, onSuccess }: any) => {
-  const [staffList, setStaffList] = useState<any[]>([]);
-  const [form, setForm] = useState({ staffId: '', date: '', timeIn: '09:00', timeOut: '18:00', status: 'present' });
 
-  useEffect(() => {
-    api.get('/admin/staff').then(res => {
-      setStaffList(res.data);
-      if(res.data.length > 0) setForm(f => ({...f, staffId: res.data[0]._id}));
-    });
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.post('/admin/staff/manual-duty', form);
-      toast.success('Manual Duty Logged');
-      onSuccess?.();
-      onClose();
-    } catch (error) { toast.error('Failed to log duty'); }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-100">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-black text-gray-900">Manual Duty Logging</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><XCircle className="w-6 h-6 text-gray-400" /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Select Staff</label>
-            <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.staffId} onChange={e=>setForm({...form,staffId:e.target.value})}>
-              {staffList.map((s:any) => <option key={s._id} value={s._id}>{s.name}</option>)}
-            </select>
-          </div>
-          <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Date</label><input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} /></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Time In</label><input type="time" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.timeIn} onChange={e=>setForm({...form,timeIn:e.target.value})} /></div>
-            <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Time Out</label><input type="time" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.timeOut} onChange={e=>setForm({...form,timeOut:e.target.value})} /></div>
-          </div>
-          <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Status</label>
-            <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
-              <option value="present">Present</option>
-              <option value="half-day">Half Day</option>
-              <option value="absent">Absent</option>
-            </select>
-          </div>
-          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg mt-4 transition-all">Submit Manual Duty</button>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -1034,6 +1021,7 @@ const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
             </select>
           </div>
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Advance Amount (₹)</label><input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-2xl font-black text-red-600 focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} /></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Advance Date</label><input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} /></div>
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Reason / Remark</label><input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} /></div>
           <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg mt-4 transition-all">Record Advance</button>
         </form>

@@ -22,7 +22,7 @@ export const exportAttendanceToExcel = (mergedData: any[], selectedDate: string)
       'Staff Name': staff.name || 'N/A',
       'Designation': staff.designation || 'N/A',
       'Staff Type': staff.staffType || 'Regular',
-      'Status': (att.status || 'Absent').toUpperCase(),
+      'Status': (att.status || 'Not Punched In').toUpperCase(),
       'Punch In Time': inTime,
       'Punch Out Time': outTime,
       'Location Tracked': att.punchIn?.location?.lat ? 'Yes' : 'No'
