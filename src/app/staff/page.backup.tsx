@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import SalarySlipModal from './components/SalarySlipModal';
@@ -73,28 +73,7 @@ const StaffManagement = () => {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-6 overflow-y-auto pb-20 max-w-7xl mx-auto w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-[#FACC15] p-3 rounded-2xl shadow-lg shadow-[#FACC15]/20 hidden sm:flex">
-              <Users className="w-8 h-8 text-black" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">Staff Operations</h1>
-              <p className="text-gray-500 text-sm hidden sm:block">Manage personnel, attendance and monthly payroll</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsAddStaffOpen(true)} className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-[#FACC15]/20 flex items-center gap-2 transition-all">
-              <UserPlus className="w-5 h-5" /> Add Staff
-            </button>
-            <button onClick={() => { setManualDutyDefaultStaff(null); setManualDutyDefaultDate(null); setManualDutyDefaultTimeIn(null); setIsManualDutyOpen(true); }} className="bg-transparent border border-gray-300 text-gray-900 hover:bg-gray-100 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all">
-              <Clock className="w-5 h-5" /> Manual Duty
-            </button>
-            <button onClick={() => setIsRecordAdvanceOpen(true)} className="bg-white border border-gray-200 hover:bg-gray-50 text-green-500 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-sm">
-              <DollarSign className="w-5 h-5" /> Record Advance
-            </button>
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold mb-6 text-gray-900">Staff Management & Payroll</h1>
         
         {/* Dynamic Stats Cards (Retained for functionality) */}
         <div className={cn("grid gap-6 mb-6", activeTab === 'salary' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2")}>
@@ -105,7 +84,7 @@ const StaffManagement = () => {
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Personnel</p>
                   <p className="text-4xl font-black text-gray-900">{stats.totalPersonnel}</p>
                 </div>
-                <Users className="w-8 h-8 text-[#FACC15]" />
+                <Users className="w-8 h-8 text-blue-500" />
               </div>
               <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
@@ -122,7 +101,7 @@ const StaffManagement = () => {
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Base Salary</p>
                   <p className="text-2xl font-black text-gray-900">₹{Math.round(payrollStats.totalBaseSalary).toLocaleString()}</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-gray-500" />
+                <DollarSign className="w-8 h-8 text-gray-400" />
               </div>
               <div className="bg-white rounded-xl p-6 shadow border border-gray-200 flex justify-between items-center">
                 <div>
@@ -150,56 +129,66 @@ const StaffManagement = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-white p-2 rounded-2xl mb-8 gap-2 border border-gray-200 overflow-x-auto no-scrollbar w-max">
-            <button onClick={() => setActiveTab('directory')} className={`flex items-center gap-2 px-6 py-3 whitespace-nowrap transition-colors rounded-xl font-bold ${activeTab === 'directory' ? 'bg-[#FACC15] text-black shadow-lg shadow-[#FACC15]/20' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-                <Users size={20} /> Personnel
+        <div className="flex space-x-4 mb-6 border-b pb-2 overflow-x-auto no-scrollbar">
+            <button onClick={() => setActiveTab('directory')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'directory' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Users size={20} /> Directory
             </button>
-            <button onClick={() => setActiveTab('attendance')} className={`flex items-center gap-2 px-6 py-3 whitespace-nowrap transition-colors rounded-xl font-bold ${activeTab === 'attendance' ? 'bg-[#FACC15] text-black shadow-lg shadow-[#FACC15]/20' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+            <button onClick={() => setActiveTab('attendance')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'attendance' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
                 <Calendar size={20} /> Attendance
             </button>
-            <button onClick={() => setActiveTab('leaves')} className={`flex items-center gap-2 px-6 py-3 whitespace-nowrap transition-colors rounded-xl font-bold ${activeTab === 'leaves' ? 'bg-[#FACC15] text-black shadow-lg shadow-[#FACC15]/20' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-                <FileText size={20} /> Leaves
+            <button onClick={() => setActiveTab('salary')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'salary' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <DollarSign size={20} /> Payroll
             </button>
-            <button onClick={() => setActiveTab('advances')} className={`flex items-center gap-2 px-6 py-3 whitespace-nowrap transition-colors rounded-xl font-bold ${activeTab === 'advances' ? 'bg-[#FACC15] text-black shadow-lg shadow-[#FACC15]/20' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+            <button onClick={() => setActiveTab('advances')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'advances' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
                 <Wallet size={20} /> Advances
             </button>
-            <button onClick={() => setActiveTab('salary')} className={`flex items-center gap-2 px-6 py-3 whitespace-nowrap transition-colors rounded-xl font-bold ${activeTab === 'salary' ? 'bg-[#FACC15] text-black shadow-lg shadow-[#FACC15]/20' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-                <DollarSign size={20} /> Payroll
+            <button onClick={() => setActiveTab('leaves')} className={`flex items-center gap-2 p-2 whitespace-nowrap transition-colors ${activeTab === 'leaves' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+                <FileText size={20} /> Leaves
             </button>
         </div>
 
-        {/* Action Bar (Filters, Search) */}
+        {/* Action Bar (Filters, Search, Add buttons) */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-             <div className="relative w-full sm:w-auto">
-                <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="text" placeholder="Search Personnel..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 bg-white border border-gray-200 text-gray-900 rounded shadow-sm text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-[#FACC15]" />
+          <div className="flex items-center gap-2">
+             <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input type="text" placeholder="Search Personnel..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-blue-500" />
              </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
              {activeTab === 'attendance' ? (
-                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded shadow-sm px-2 py-1">
-                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
-                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent text-sm font-bold text-gray-500 focus:outline-none" />
-                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded shadow-sm px-2 py-1">
+                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
+                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none" />
+                  <button onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }} className="p-1 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
                 </div>
              ) : (
-                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded shadow-sm px-2 py-1">
-                  <button className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
-                  <select value={month} onChange={e=>setMonth(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-500 focus:outline-none cursor-pointer">
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded shadow-sm px-2 py-1">
+                  <button className="p-1 hover:bg-gray-100 rounded"><ChevronLeft className="w-4 h-4" /></button>
+                  <select value={month} onChange={e=>setMonth(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer">
                     {Array.from({length:12}).map((_,i) => <option key={i} value={i}>{new Date(2000, i).toLocaleString('default', {month:'short'}).toUpperCase()}</option>)}
                   </select>
-                  <select value={year} onChange={e=>setYear(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-500 focus:outline-none cursor-pointer pr-2">
+                  <select value={year} onChange={e=>setYear(Number(e.target.value))} className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer pr-2">
                     {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
                   </select>
-                  <button className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
+                  <button className="p-1 hover:bg-gray-100 rounded"><ChevronRight className="w-4 h-4" /></button>
                 </div>
              )}
+
+            <button onClick={() => setIsAddStaffOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold text-sm shadow flex items-center gap-2">
+              <UserPlus className="w-4 h-4" /> Add Staff
+            </button>
+            <button onClick={() => { setManualDutyDefaultStaff(null); setManualDutyDefaultDate(null); setManualDutyDefaultTimeIn(null); setIsManualDutyOpen(true); }} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded font-semibold text-sm shadow-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Manual Duty
+            </button>
+            <button onClick={() => setIsRecordAdvanceOpen(true)} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded font-semibold text-sm shadow-sm flex items-center gap-2">
+              <DollarSign className="w-4 h-4" /> Record Advance
+            </button>
           </div>
         </div>
 
         {/* Tab Contents */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px]">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[500px]">
           {activeTab === 'directory' && <StaffDirectoryTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} getInitials={getInitials} searchQuery={searchQuery} />}
           
           {activeTab === 'attendance' && <AttendanceTrackerTab refreshKey={refreshKey} triggerRefresh={triggerRefresh} selectedDate={selectedDate} getInitials={getInitials} searchQuery={searchQuery} />}
@@ -207,7 +196,7 @@ const StaffManagement = () => {
           {activeTab === 'salary' && (
               <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold text-gray-200">Payroll Settlement (Auto-Calculated)</h2>
+                      <h2 className="text-xl font-semibold text-gray-800">Payroll Settlement (Auto-Calculated)</h2>
                   </div>
                   <p className="text-gray-500 mb-4 text-sm">Run payroll to apply formula: (Base / Days) * Present + Allowances - Advances.</p>
                   <div className="overflow-x-auto">
@@ -312,7 +301,7 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
   return (
     <>
     <table className="w-full text-left text-sm whitespace-nowrap">
-      <thead className="text-gray-500 font-bold text-xs uppercase tracking-widest border-b border-gray-200">
+      <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
         <tr>
           <th className="px-6 py-5">Personnel</th>
           <th className="px-6 py-5">Designation</th>
@@ -322,12 +311,12 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
           <th className="px-6 py-5 text-right">Actions</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-100">
+      <tbody className="divide-y divide-gray-50">
         {staff.filter((s: any) => s.name?.toLowerCase().includes((searchQuery || '').toLowerCase()) || s.username?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((s: any) => (
           <tr key={s._id} className="hover:bg-gray-50/50 transition-colors">
             <td className="px-6 py-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#FACC15]/20 text-[#FACC15] flex items-center justify-center font-black text-sm">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-black text-sm">
                   {getInitials(s.name)}
                 </div>
                 <div>
@@ -337,13 +326,13 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
               </div>
             </td>
             <td className="px-6 py-4">
-              <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Staff</span>
+              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Staff</span>
             </td>
             <td className="px-6 py-4">
-              <p className="font-bold text-gray-600">{s.mobile || 'N/A'}</p>
-              <p className="text-xs text-gray-500 font-medium">Regular Duty</p>
+              <p className="font-bold text-gray-700">{s.mobile || 'N/A'}</p>
+              <p className="text-xs text-gray-400 font-medium">Regular Duty</p>
             </td>
-            <td className="px-6 py-4 font-bold text-gray-600">
+            <td className="px-6 py-4 font-bold text-gray-700">
               {new Date(s.createdAt).toLocaleDateString('en-GB')}
             </td>
             <td className="px-6 py-4">
@@ -355,13 +344,13 @@ const StaffDirectoryTab = ({ refreshKey, triggerRefresh, getInitials, searchQuer
             <td className="px-6 py-4 text-right">
               <div className="flex justify-end gap-2">
                 <button onClick={() => setDetailStaffData(s)} className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="View Details"><User className="w-4 h-4" /></button>
-                <button onClick={() => setEditStaffData(s)} className="p-2 rounded-lg bg-[#FACC15]/10 text-[#FACC15] hover:bg-[#FACC15]/20 transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => setEditStaffData(s)} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
                 <button onClick={() => deleteStaff(s._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
               </div>
             </td>
           </tr>
         ))}
-          {staff.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-gray-500 font-medium">No personnel found.</td></tr>}
+          {staff.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-gray-400 font-medium">No personnel found.</td></tr>}
         </tbody>
       </table>
         {editStaffData && <EditStaffModalLight staff={editStaffData} onClose={() => setEditStaffData(null)} onSuccess={triggerRefresh} />}
@@ -432,17 +421,17 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
 
   return (
     <div>
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
         <div>
           <h3 className="font-bold text-gray-900 text-lg tracking-tight">Daily Attendance Tracker</h3>
           <p className="text-xs text-gray-500 font-medium mt-0.5">Date: {new Date(selectedDate).toLocaleDateString('en-GB')}</p>
         </div>
-        <button onClick={() => exportAttendanceToExcel(filteredMerged, selectedDate)} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
+        <button onClick={() => exportAttendanceToExcel(filteredMerged, selectedDate)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
           <Download className="w-4 h-4" /> EXPORT EXCEL
         </button>
       </div>
       <table className="w-full text-left text-sm whitespace-nowrap">
-        <thead className="text-gray-500 font-bold text-xs uppercase tracking-widest border-b border-gray-200">
+        <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
             <th className="px-6 py-5">Date</th>
             <th className="px-6 py-5">Staff Member</th>
@@ -452,7 +441,7 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
             <th className="px-6 py-5 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-50">
           {filteredMerged.map(({ staff, attendance: a }) => (
             <tr key={staff._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
@@ -477,13 +466,13 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                       <div className="w-5 h-5 rounded-md bg-green-50 flex items-center justify-center">
                         <ArrowUpRight className="w-3.5 h-3.5 text-green-600" />
                       </div>
-                      <span className="font-bold text-sm text-gray-200">{a.punchIn?.time ? new Date(a.punchIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
+                      <span className="font-bold text-sm text-gray-800">{a.punchIn?.time ? new Date(a.punchIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-md bg-orange-50 flex items-center justify-center">
                         <ArrowDownRight className="w-3.5 h-3.5 text-orange-600" />
                       </div>
-                      <span className="font-bold text-sm text-gray-200">{a.punchOut?.time ? new Date(a.punchOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'ACTIVE SHIFT'}</span>
+                      <span className="font-bold text-sm text-gray-800">{a.punchOut?.time ? new Date(a.punchOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'ACTIVE SHIFT'}</span>
                       {!a.punchOut?.time && <button onClick={() => markOut(a._id)} className="text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 px-1.5 py-0.5 rounded ml-1 transition-colors">MARK OUT</button>}
                     </div>
                   </div>
@@ -499,7 +488,7 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                       {a.punchIn?.evidence ? (
                         <img src={a.punchIn.evidence} alt="In" className="w-full h-full object-cover" />
                       ) : (
-                        <Camera className="w-4 h-4 text-gray-500" />
+                        <Camera className="w-4 h-4 text-gray-400" />
                       )}
                       <div className="absolute top-0 right-0 bg-green-500 w-2.5 h-2.5 rounded-full border border-white shadow-sm"></div>
                     </div>
@@ -509,21 +498,21 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                       {a.punchOut?.evidence ? (
                         <img src={a.punchOut.evidence} alt="Out" className="w-full h-full object-cover" />
                       ) : (
-                        <Camera className="w-4 h-4 text-gray-500" />
+                        <Camera className="w-4 h-4 text-gray-400" />
                       )}
                       {a.punchOut?.time && <div className="absolute top-0 right-0 bg-orange-500 w-2.5 h-2.5 rounded-full border border-white shadow-sm"></div>}
                     </div>
                   </div>
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 border-dashed flex items-center justify-center">
-                    <Camera className="w-4 h-4 text-gray-600" />
+                    <Camera className="w-4 h-4 text-gray-300" />
                   </div>
                 )}
               </td>
               <td className="px-6 py-4">
                 {a && (a.status === 'present' || a.status === 'half-day') ? (
                   <div className="flex items-start gap-3 max-w-[200px]">
-                    <div className="p-1.5 rounded-lg bg-[#FACC15]/10 text-[#FACC15] mt-0.5">
+                    <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 mt-0.5">
                       <MapPin className="w-4 h-4" />
                     </div>
                     <div>
@@ -531,7 +520,7 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                         {a.punchIn?.location?.lat ? 'Location Tracked' : 'Location unknown'}
                       </p>
                       {a.punchIn?.location?.lat && (
-                        <a href={`https://maps.google.com/?q=${a.punchIn.location.lat},${a.punchIn.location.lng}`} target="_blank" className="text-[10px] font-black text-[#FACC15] hover:text-blue-700 uppercase tracking-widest mt-0.5 block">
+                        <a href={`https://maps.google.com/?q=${a.punchIn.location.lat},${a.punchIn.location.lng}`} target="_blank" className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest mt-0.5 block">
                           OPEN MAP →
                         </a>
                       )}
@@ -539,10 +528,10 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                   </div>
                 ) : (
                   <div className="flex items-start gap-3 opacity-60">
-                    <div className="p-1.5 rounded-lg bg-gray-50 text-gray-500 mt-0.5">
+                    <div className="p-1.5 rounded-lg bg-gray-50 text-gray-400 mt-0.5">
                       <MapPin className="w-4 h-4" />
                     </div>
-                    <p className="font-bold text-sm text-gray-500 mt-1">Location unknown</p>
+                    <p className="font-bold text-sm text-gray-400 mt-1">Location unknown</p>
                   </div>
                 )}
               </td>
@@ -552,8 +541,8 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
                     <Trash2 className="w-4 h-4" />
                   </button>
                 ) : (
-                  <div className="w-10 h-10 inline-flex items-center justify-center bg-gray-50 border border-gray-200 rounded-full">
-                    <Trash2 className="w-4 h-4 text-gray-600" />
+                  <div className="w-10 h-10 inline-flex items-center justify-center bg-gray-50 border border-gray-100 rounded-full">
+                    <Trash2 className="w-4 h-4 text-gray-300" />
                   </div>
                 )}
               </td>
@@ -561,7 +550,7 @@ const AttendanceTrackerTab = ({ refreshKey, triggerRefresh, selectedDate, getIni
           ))}
           {filteredMerged.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-6 py-12 text-center text-gray-500 font-medium bg-gray-50/50">
+              <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">
                 No attendance records found for this date.
               </td>
             </tr>
@@ -597,7 +586,7 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
       </div>
       
       <table className="w-full text-left text-sm whitespace-nowrap">
-        <thead className="text-gray-500 font-bold text-xs uppercase tracking-widest border-b border-gray-200">
+        <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
             <th className="px-6 py-5">Staff Member</th>
             <th className="px-6 py-5">Leave Dates</th>
@@ -605,7 +594,7 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
             <th className="px-6 py-5 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-50">
           {leaves.filter((l: any) => l.staff?.name?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((l: any) => (
             <tr key={l._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
@@ -620,10 +609,10 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
                 </div>
               </td>
               <td className="px-6 py-4">
-                <p className="font-bold text-gray-600">{l.startDate} to {l.endDate}</p>
-                <p className="text-xs text-gray-500 font-medium truncate w-48">{l.reason}</p>
+                <p className="font-bold text-gray-700">{l.startDate} to {l.endDate}</p>
+                <p className="text-xs text-gray-400 font-medium truncate w-48">{l.reason}</p>
               </td>
-              <td className="px-6 py-4 font-bold text-gray-600">
+              <td className="px-6 py-4 font-bold text-gray-700">
                 {new Date(l.createdAt).toLocaleDateString('en-GB')}
               </td>
               <td className="px-6 py-4 text-right">
@@ -649,7 +638,7 @@ const LeaveRequestsTab = ({ refreshKey, triggerRefresh, month, year, getInitials
           {leaves.length === 0 && <tr>
             <td colSpan={4} className="py-20 text-center">
               <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 font-bold">No pending leave requests at the moment.</p>
+              <p className="text-gray-400 font-bold">No pending leave requests at the moment.</p>
             </td>
           </tr>}
         </tbody>
@@ -699,13 +688,13 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
         </div>
       </div>
       
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-6 border-b border-gray-100 flex justify-between items-center">
         <h3 className="font-bold text-gray-900 text-lg tracking-tight">Advance Payment Records</h3>
-        <p className="text-sm font-bold text-gray-500">{advances.length} Records found</p>
+        <p className="text-sm font-bold text-gray-400">{advances.length} Records found</p>
       </div>
 
       <table className="w-full text-left text-sm whitespace-nowrap">
-        <thead className="text-gray-500 font-bold text-xs uppercase tracking-widest border-b border-gray-200">
+        <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
             <th className="px-6 py-5">Staff Member</th>
             <th className="px-6 py-5">Date</th>
@@ -714,7 +703,7 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
             <th className="px-6 py-5 text-right">Action</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-50">
           {advances.filter((a: any) => a.staff?.name?.toLowerCase().includes((searchQuery || '').toLowerCase())).map((a: any) => (
             <tr key={a._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
@@ -727,18 +716,18 @@ const AdvancesTab = ({ refreshKey, month, year, getInitials, triggerRefresh, sea
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 font-bold text-gray-600">{new Date(a.date).toLocaleDateString('en-GB')}</td>
+              <td className="px-6 py-4 font-bold text-gray-700">{new Date(a.date).toLocaleDateString('en-GB')}</td>
               <td className="px-6 py-4 font-black text-red-600">₹{a.amount.toLocaleString()}</td>
               <td className="px-6 py-4 text-gray-500 font-medium">{a.description || '-'}</td>
               <td className="px-6 py-4 text-right">
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => setEditAdvanceData(a)} className="p-2 rounded-lg bg-[#FACC15]/10 text-[#FACC15] hover:bg-[#FACC15]/20 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                  <button onClick={() => setEditAdvanceData(a)} className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"><Edit2 className="w-4 h-4" /></button>
                   <button onClick={() => deleteAdvance(a._id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </td>
             </tr>
           ))}
-          {advances.length === 0 && <tr><td colSpan={5} className="p-12 text-center text-gray-500 font-medium">No advances found for this month.</td></tr>}
+          {advances.length === 0 && <tr><td colSpan={5} className="p-12 text-center text-gray-400 font-medium">No advances found for this month.</td></tr>}
         </tbody>
       </table>
       {editAdvanceData && <EditAdvanceModal advance={editAdvanceData} onClose={() => setEditAdvanceData(null)} onRefresh={triggerRefresh} />}
@@ -803,23 +792,23 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
 
   return (
     <div>
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-6 border-b border-gray-100 flex justify-between items-center">
         <h3 className="font-bold text-gray-900 text-lg tracking-tight">Payroll Records</h3>
         <div className="flex gap-3">
-          <button onClick={generateBulkPayroll} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
+          <button onClick={generateBulkPayroll} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
             <FileText className="w-4 h-4" /> CALCULATE PAYROLL
           </button>
-          <button onClick={downloadBulkSlips} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
+          <button onClick={downloadBulkSlips} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4" /> BULK PDF SLIPS
           </button>
-          <button onClick={() => exportPayrollToExcel(filteredPayroll, month, year)} className="bg-[#FACC15] text-black px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-[#EAB308] transition-colors">
+          <button onClick={() => exportPayrollToExcel(filteredPayroll, month, year)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:bg-blue-700 transition-colors">
             <Download className="w-4 h-4" /> EXPORT EXCEL
           </button>
         </div>
       </div>
       
       <table className="w-full text-left text-sm whitespace-nowrap">
-        <thead className="text-gray-500 font-bold text-xs uppercase tracking-widest border-b border-gray-200">
+        <thead className="text-gray-400 font-bold text-xs uppercase tracking-widest border-b border-gray-100">
           <tr>
             <th className="px-6 py-5">Staff Member</th>
             <th className="px-6 py-5">Attendance</th>
@@ -830,12 +819,12 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
             <th className="px-6 py-5 text-right">Action</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-50">
           {filteredPayroll.map((p: any) => (
             <tr key={p._id} className="hover:bg-gray-50/50 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#FACC15]/20 text-[#FACC15] flex items-center justify-center font-black text-sm">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-black text-sm">
                     {getInitials(p.staff?.name || 'SM')}
                   </div>
                   <div>
@@ -851,15 +840,15 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
                       <p className="text-[9px] font-black tracking-widest text-green-600 uppercase">PRESENT</p>
                     </div>
                     <div>
-                      <p className="font-bold text-gray-600 text-sm">01/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)} - 30/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)}</p>
-                      <p className="text-[9px] text-gray-500 font-black tracking-widest uppercase mt-0.5">Month Cycle</p>
+                      <p className="font-bold text-gray-700 text-sm">01/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)} - 30/{String(month+1).padStart(2,'0')}/{String(year).slice(-2)}</p>
+                      <p className="text-[9px] text-gray-400 font-black tracking-widest uppercase mt-0.5">Month Cycle</p>
                     </div>
                   </div>
                 </td>
-              <td className="px-6 py-4 font-black text-gray-200">₹{Math.round(p.basicSalary || 0).toLocaleString()}</td>
+              <td className="px-6 py-4 font-black text-gray-800">₹{Math.round(p.basicSalary || 0).toLocaleString()}</td>
               <td className="px-6 py-4">
                 <p className="font-bold text-red-600">₹{Math.round(p.advances || 0).toLocaleString()}</p>
-                <p className="text-[10px] text-gray-500 font-black tracking-widest uppercase">Monthly Advance</p>
+                <p className="text-[10px] text-gray-400 font-black tracking-widest uppercase">Monthly Advance</p>
               </td>
               <td className="px-6 py-4">
                 <p className="font-black text-gray-900 text-lg">₹{Math.round((p.earnedSalary || 0) + (p.allowances || 0) - (p.advances || 0)).toLocaleString()}</p>
@@ -881,8 +870,8 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
           ))}
           {payrollData.length === 0 && <tr>
             <td colSpan={7} className="p-12 text-center">
-              <p className="text-gray-500 font-bold mb-4">No payroll records generated for this month.</p>
-              <button className="text-[#FACC15] font-bold text-sm bg-[#FACC15]/10 px-4 py-2 rounded-lg hover:bg-[#FACC15]/20" onClick={generateBulkPayroll}>Generate Payroll Records</button>
+              <p className="text-gray-400 font-bold mb-4">No payroll records generated for this month.</p>
+              <button className="text-blue-600 font-bold text-sm bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100" onClick={generateBulkPayroll}>Generate Payroll Records</button>
             </td>
           </tr>}
         </tbody>
@@ -918,12 +907,12 @@ const SalaryProcessingTab = ({ refreshKey, month, year, getInitials, setPayrollS
   
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-200 relative overflow-hidden">
+        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400"></div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-black text-gray-900 tracking-tight">Settle Final Payment</h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <XCircle className="w-6 h-6 text-gray-500 hover:text-gray-500" />
+              <XCircle className="w-6 h-6 text-gray-400 hover:text-gray-600" />
             </button>
           </div>
   
@@ -983,10 +972,10 @@ const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-200">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-gray-100">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-black text-gray-900">Record Salary Advance</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><XCircle className="w-6 h-6 text-gray-500" /></button>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><XCircle className="w-6 h-6 text-gray-400" /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Select Staff</label>
@@ -997,7 +986,7 @@ const RecordAdvanceModal = ({ onClose, onSuccess }: any) => {
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Advance Amount (₹)</label><input type="number" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-2xl font-black text-red-600 focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} /></div>
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Advance Date</label><input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} /></div>
           <div><label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Reason / Remark</label><input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} /></div>
-          <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-gray-900 font-bold py-4 rounded-xl shadow-lg mt-4 transition-all">Record Advance</button>
+          <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg mt-4 transition-all">Record Advance</button>
         </form>
       </div>
     </div>
