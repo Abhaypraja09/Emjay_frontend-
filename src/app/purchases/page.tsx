@@ -878,7 +878,8 @@ const PurchasesPage = () => {
                       address: selectedProfileVendor.address || '', 
                       hasGST: selectedProfileVendor.gstRegistered ? 'Yes' : 'No', 
                       gstNo: selectedProfileVendor.gstNumber || '', 
-                      type: 'supplier' 
+                      type: 'supplier',
+                      openingBalance: selectedProfileVendor.openingBalance?.toString() || '0'
                     });
                     setSelectedProfileVendor(null);
                     setIsVendorModalOpen(true);
