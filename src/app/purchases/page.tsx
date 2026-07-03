@@ -32,7 +32,7 @@ const PurchasesPage = () => {
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   const [selectedProfileVendor, setSelectedProfileVendor] = useState<any>(null);
   const [selectedBillImage, setSelectedBillImage] = useState<string | null>(null);
-  const [vendorForm, setVendorForm] = useState({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier' });
+  const [vendorForm, setVendorForm] = useState({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier', openingBalance: '' });
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -144,18 +144,20 @@ const PurchasesPage = () => {
       const payload = {
         ...vendorForm,
         gstRegistered: vendorForm.hasGST === 'Yes',
-        gstNumber: vendorForm.gstNo
+        gstNumber: vendorForm.gstNo,
+        openingBalance: vendorForm.openingBalance || '0'
       };
       
       if (vendorForm._id) {
         await api.put(`/parties/${vendorForm._id}`, payload);
         toast.success('Vendor Updated');
       } else {
-        await api.post('/parties', payload);
+        const { _id, ...postPayload } = payload;
+        await api.post('/parties', postPayload);
         toast.success('Vendor Created');
       }
       setIsVendorModalOpen(false);
-      setVendorForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier' });
+      setVendorForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier', openingBalance: '' });
       fetchData();
     } catch (error) {
       toast.error('Failed to save vendor');
@@ -462,7 +464,7 @@ const PurchasesPage = () => {
                             <span className={cn(
                               "px-3 py-1 rounded-full text-xs font-bold",
                               p.status === 'Cash' || p.status === 'Paid' ? 'bg-green-100 text-green-700' :
-                                p.status === 'Online/UPI' ? 'bg-blue-100 text-blue-700' :
+                                p.status === 'UPI' ? 'bg-blue-100 text-blue-700' :
                                   'bg-red-100 text-red-700'
                             )}>{p.status}</span>
                           )}
@@ -504,7 +506,7 @@ const PurchasesPage = () => {
               </div>
               <button 
                 onClick={() => {
-                  setVendorForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier' });
+                  setVendorForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'supplier', openingBalance: '' });
                   setIsVendorModalOpen(true);
                 }} 
                 className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 w-full md:w-auto"
@@ -522,6 +524,7 @@ const PurchasesPage = () => {
                   <thead>
                     <tr className="bg-gradient-to-r from-slate-50 to-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100">
                       <th className="px-8 py-5">Vendor Details</th>
+                      <th className="px-8 py-5">Last Purchase</th>
                       <th className="px-8 py-5">Contact</th>
                       <th className="px-8 py-5 text-right">Net Balance</th>
                       <th className="px-8 py-5 text-center">Status</th>
@@ -557,6 +560,16 @@ const PurchasesPage = () => {
                             </div>
                           </div>
                         </td>
+                        <td className="px-8 py-5">
+                          {v.lastTransactionDate ? (
+                            <div className="flex items-center gap-2 text-slate-600 bg-slate-50 w-max px-3 py-1.5 rounded-lg border border-slate-100">
+                              <Activity className="w-3.5 h-3.5 text-blue-500" />
+                              <span className="text-xs font-bold">{new Date(v.lastTransactionDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs font-bold text-slate-300">-</span>
+                          )}
+                        </td>
                         <td className="px-8 py-5 space-y-2">
                           <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-600 shadow-sm">
                             {v.phone || 'No Contact Info'}
@@ -573,7 +586,7 @@ const PurchasesPage = () => {
                           <p className={cn(
                               "text-xl font-black tracking-tighter",
                               (v.balance || 0) >= 0 ? "text-emerald-500" : "text-rose-500"
-                          )}>₹{Math.abs(v.balance || 0).toLocaleString()}</p>
+                          )}>{(v.balance || 0) < 0 ? '-' : ''}₹{Math.abs(v.balance || 0).toLocaleString()}</p>
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
                             {(v.balance || 0) >= 0 ? ((v.balance || 0) === 0 ? 'Settled' : 'Advance Paid') : 'Amount Payable'}
                           </p>
@@ -685,7 +698,7 @@ const PurchasesPage = () => {
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Category</label>
                                 <select className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" value={item.category} onChange={e => updateItem(index, 'category', e.target.value)}>
                                     <option>Raw Materials</option>
-                                    <option>Bottles</option>
+                                    
                                     <option>Packaging</option>
                                     <option>Machinery</option>
                                     <option>Other</option>
@@ -741,10 +754,10 @@ const PurchasesPage = () => {
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-600">Payment Status</label>
                     <select className="input-field" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                      <option value="Cash">Cash (Paid)</option>
-                      <option value="Online/UPI">Online / UPI</option>
-                      <option value="Split">Split (Multiple Modes)</option>
-                      <option value="Due">Due (Unpaid)</option>
+                      <option value="Cash">Cash Only</option>
+                      <option value="UPI">UPI / Online Only</option>
+                      <option value="Split">Split (Cash + UPI)</option>
+                      <option value="Due">Due / Unpaid</option>
                     </select>
                   </div>
                 </div>
@@ -821,9 +834,16 @@ const PurchasesPage = () => {
                     <input type="text" required className="w-full bg-blue-50/50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-900 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all shadow-inner uppercase" placeholder="22AAAAA0000A1Z5" value={vendorForm.gstNo} onChange={e => setVendorForm({ ...vendorForm, gstNo: e.target.value })} />
                   </motion.div>
                 )}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Address (Optional)</label>
-                  <input type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="Full address" value={vendorForm.address} onChange={e => setVendorForm({ ...vendorForm, address: e.target.value })} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Address (Optional)</label>
+                    <input type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="Full address" value={vendorForm.address} onChange={e => setVendorForm({ ...vendorForm, address: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Opening Balance / Purana Baki (₹)</label>
+                    <input type="number" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="e.g. 5000 (Amount we owe)" value={vendorForm.openingBalance} onChange={e => setVendorForm({ ...vendorForm, openingBalance: e.target.value })} />
+                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Leave 0 if no old dues</p>
+                  </div>
                 </div>
                 <div className="pt-2">
                   <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/25 active:scale-95 transition-all text-sm flex items-center justify-center gap-2">

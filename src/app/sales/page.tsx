@@ -17,7 +17,8 @@ import {
   ArrowRight,
   ChevronDown,
   ArrowUpDown,
-  Search
+  Search,
+  Download
 } from 'lucide-react';
 import MonthYearFilter from '@/components/MonthYearFilter';
 
@@ -43,7 +44,7 @@ const Sales = () => {
   const [searchCustomer, setSearchCustomer] = useState('');
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedProfileCustomer, setSelectedProfileCustomer] = useState<any>(null);
-  const [customerForm, setCustomerForm] = useState({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer' });
+  const [customerForm, setCustomerForm] = useState({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer', openingBalance: '' });
 
   const handleCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +80,222 @@ const Sales = () => {
         toast.error('Failed to delete customer');
       }
     }
+  };
+
+  const generateInvoice = (order: any) => {
+    import('jspdf').then(({ default: jsPDF }) => {
+        import('jspdf-autotable').then(({ default: autoTable }) => {
+            const doc = new jsPDF();
+            const party = parties.find(p => p._id === (order.partyId?._id || order.partyId)) || {};
+            
+            const renderPdf = (imgUrl: string | null) => {
+                const primaryColor: [number, number, number] = [138, 28, 28]; // Emjay Logo Maroon/Red
+                const secondaryColor: [number, number, number] = [107, 114, 128]; // Gray 500
+                const lightBg: [number, number, number] = [249, 250, 251]; // Gray 50
+
+                // 1. Top Centered "TAX INVOICE"
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TAX INVOICE', 105, 15, { align: 'center' });
+
+                // 2. Left Side (Logo & Company Details)
+                let currentY = 25;
+                if (imgUrl) {
+                    try {
+                        doc.addImage(imgUrl, 'JPEG', 14, currentY, 20, 20); // Smaller, neat logo
+                        currentY += 25;
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Emjay Brewery', 14, currentY);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                doc.text('86, Bhil Basti, Hawala Khurd', 14, currentY + 5);
+                doc.text('Badi, Udaipur', 14, currentY + 10);
+                doc.text('GSTIN/UIN: 08ATJPC9542M1Z7', 14, currentY + 15);
+                doc.text('State Name : Rajasthan, Code : 08', 14, currentY + 20);
+                doc.text('E-Mail : emjaybrewery@gmail.com', 14, currentY + 25);
+
+                // 3. Right Side (Invoice Details)
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Invoice No:', 140, currentY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(order.invoiceNo || 'PENDING', 196, currentY, { align: 'right' });
+
+                doc.setFont('helvetica', 'bold');
+                doc.text('Date:', 140, currentY + 7);
+                doc.setFont('helvetica', 'normal');
+                doc.text(new Date(order.date).toLocaleDateString('en-GB'), 196, currentY + 7, { align: 'right' });
+
+                doc.setFont('helvetica', 'bold');
+                doc.text('Payment Mode:', 140, currentY + 14);
+                doc.setFont('helvetica', 'normal');
+                doc.text(order.paymentMode || 'Cash', 196, currentY + 14, { align: 'right' });
+
+                // 4. Line Separator
+                currentY += 32;
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, currentY, 196, currentY);
+
+                // 5. Bill To Section
+                currentY += 8;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('BILLED TO:', 14, currentY);
+                
+                currentY += 6;
+                doc.setFontSize(10);
+                doc.text(order.customerName || party.name || 'Walk-in Customer', 14, currentY);
+                doc.setFont('helvetica', 'normal');
+                if (party.address) {
+                    currentY += 5;
+                    doc.text(party.address, 14, currentY);
+                }
+                if (party.phone) {
+                    currentY += 5;
+                    doc.text(`Phone: ${party.phone}`, 14, currentY);
+                }
+                if (party.gstNumber) {
+                    currentY += 5;
+                    doc.text(`GSTIN: ${party.gstNumber}`, 14, currentY);
+                }
+
+                currentY += 12;
+
+                // 4. Table Section
+                const tableColumn = ["Item Description", "Qty", "Rate (Rs)", "Amount (Rs)"];
+                const tableRows: any[] = [];
+                
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach((item: any) => {
+                        const juiceName = item.juiceType?.name || item.juiceType || 'Product';
+                        const itemData = [
+                            juiceName,
+                            item.quantity.toString(),
+                            item.price.toLocaleString(),
+                            (item.quantity * item.price).toLocaleString()
+                        ];
+                        tableRows.push(itemData);
+                    });
+                }
+                
+                // @ts-ignore
+                autoTable(doc, {
+                    startY: currentY,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'grid',
+                    headStyles: { 
+                        fillColor: primaryColor, 
+                        textColor: 255, 
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    styles: { 
+                        fontSize: 10, 
+                        cellPadding: 6,
+                        textColor: [40, 40, 40],
+                        lineColor: [220, 220, 220]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 90, halign: 'left' },
+                        1: { cellWidth: 25, halign: 'center' },
+                        2: { cellWidth: 30, halign: 'right' },
+                        3: { cellWidth: 35, halign: 'right' }
+                    },
+                    alternateRowStyles: { fillColor: lightBg }
+                });
+                
+                // @ts-ignore
+                const finalY = doc.lastAutoTable?.finalY || currentY + 20;
+                
+                // 5. Total Section
+                doc.setFontSize(10);
+                const rightColX = 145;
+                const valX = 194;
+                
+                let sumY = finalY + 10;
+                const totalAmount = order.totalAmount || order.grandTotal || 0;
+                const gst = order.gst || 0;
+                const discount = order.discount || 0;
+                const subtotal = totalAmount - gst + discount;
+
+                doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+                doc.text('Subtotal:', rightColX, sumY);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Rs. ${subtotal.toLocaleString()}`, valX, sumY, { align: 'right' });
+                sumY += 7;
+                
+                if (gst > 0) {
+                    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+                    doc.text('GST:', rightColX, sumY);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`+ Rs. ${gst.toLocaleString()}`, valX, sumY, { align: 'right' });
+                    sumY += 7;
+                }
+                
+                if (discount > 0) {
+                    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+                    doc.text('Discount:', rightColX, sumY);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`- Rs. ${discount.toLocaleString()}`, valX, sumY, { align: 'right' });
+                    sumY += 7;
+                }
+                
+                // Grand Total Banner
+                doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+                doc.rect(rightColX - 5, sumY - 4, 60, 10, 'F');
+                
+                doc.setFont('helvetica', 'bold');
+                doc.text('Grand Total:', rightColX, sumY + 3);
+                doc.text(`Rs. ${totalAmount.toLocaleString()}`, valX, sumY + 3, { align: 'right' });
+                sumY += 15;
+                
+                // Payment Status
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+                doc.text('Paid Amount:', rightColX, sumY);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Rs. ${(order.paidAmount || 0).toLocaleString()}`, valX, sumY, { align: 'right' });
+                sumY += 7;
+                
+                const due = totalAmount - (order.paidAmount || 0);
+                if (due > 0) {
+                    doc.setTextColor(220, 38, 38);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Amount Due:', rightColX, sumY);
+                    doc.text(`Rs. ${due.toLocaleString()}`, valX, sumY, { align: 'right' });
+                } else {
+                    doc.setTextColor(22, 163, 74);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Status:', rightColX, sumY);
+                    doc.text(`Fully Paid`, valX, sumY, { align: 'right' });
+                }
+                
+                // 6. Footer Note
+                doc.setTextColor(150, 150, 150);
+                doc.setFont('helvetica', 'italic');
+                doc.text('Thank you for your business! For any queries, please contact us.', 105, 280, { align: 'center' });
+
+                const safeName = (party.name || order.customerName || 'Customer').replace(/[^a-z0-9]/gi, '_');
+                doc.save(`Invoice_${safeName}_${order.invoiceNo ? order.invoiceNo.replace(/\//g, '-') : new Date(order.date).toISOString().split('T')[0]}.pdf`);
+            };
+
+            const img = new Image();
+            img.src = '/Logo.jpg';
+            img.onload = () => renderPdf(img.src);
+            img.onerror = () => renderPdf(null);
+        });
+    });
   };
 
   const [orderItems, setOrderItems] = useState([{
@@ -380,6 +597,13 @@ const Sales = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-3">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); generateInvoice(o); }} 
+                                                className="p-2 text-gray-400 hover:text-emerald-600 transition-colors"
+                                                title="Download Invoice"
+                                            >
+                                                <Download className="w-5 h-5" />
+                                            </button>
                                             <button onClick={() => handleEdit(o)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><PencilLine className="w-5 h-5" /></button>
                                             <button 
                                                 onClick={async () => {
@@ -419,7 +643,7 @@ const Sales = () => {
               </div>
               <button 
                 onClick={() => {
-                  setCustomerForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer' });
+                  setCustomerForm({ _id: '', name: '', phone: '', email: '', address: '', hasGST: 'No', gstNo: '', type: 'customer', openingBalance: '' });
                   setIsCustomerModalOpen(true);
                 }} 
                 className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 w-full md:w-auto"
@@ -437,6 +661,7 @@ const Sales = () => {
                   <thead>
                     <tr className="bg-gradient-to-r from-slate-50 to-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100">
                       <th className="px-8 py-5">Customer Details</th>
+                      <th className="px-8 py-5">Last Sale</th>
                       <th className="px-8 py-5">Contact</th>
                       <th className="px-8 py-5 text-right">Net Balance</th>
                       <th className="px-8 py-5 text-center">Status</th>
@@ -463,14 +688,24 @@ const Sales = () => {
                               <User className="w-5 h-5" />
                             </button>
                             <div>
-                              <h4 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-blue-700 transition-colors">
-                                {p.name}
-                              </h4>
-                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">Buyer / Customer</p>
+                                <h4 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-blue-700 transition-colors">
+                                  {p.name}
+                                </h4>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">Buyer / Customer</p>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5 space-y-2">
+                          </td>
+                          <td className="px-8 py-5">
+                            {p.lastTransactionDate ? (
+                              <div className="flex items-center gap-2 text-slate-600 bg-slate-50 w-max px-3 py-1.5 rounded-lg border border-slate-100">
+                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                <span className="text-xs font-bold">{new Date(p.lastTransactionDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs font-bold text-slate-300">-</span>
+                            )}
+                          </td>
+                          <td className="px-8 py-5 space-y-2">
                           <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-600 shadow-sm">
                             {p.phone || 'No Contact Info'}
                           </div>
@@ -824,6 +1059,13 @@ const Sales = () => {
                     <label className="text-[11px] font-black uppercase tracking-widest text-blue-600">GST / TAX ID Number</label>
                     <input type="text" required className="w-full bg-blue-50/50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-900 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all shadow-inner uppercase" placeholder="22AAAAA0000A1Z5" value={customerForm.gstNo} onChange={e => setCustomerForm({ ...customerForm, gstNo: e.target.value })} />
                   </motion.div>
+                )}
+                {!customerForm._id && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Opening Balance / Purana Baki (₹)</label>
+                    <input type="number" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="e.g. 5000 (Amount they owe)" value={customerForm.openingBalance} onChange={e => setCustomerForm({ ...customerForm, openingBalance: e.target.value })} />
+                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Leave 0 if no old dues</p>
+                  </div>
                 )}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Address (Optional)</label>

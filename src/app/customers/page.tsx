@@ -24,7 +24,10 @@ function CustomerDetailContent() {
   const [editingTx, setEditingTx] = useState<any>(null);
   const [txForm, setTxForm] = useState({
     amount: '',
-    type: 'credit',
+    paidCash: '',
+    paidBank: '',
+    type: 'debit',
+    paymentMode: 'Cash',
     description: '',
     date: new Date().toISOString().split('T')[0],
   });
@@ -63,7 +66,7 @@ function CustomerDetailContent() {
       }
       setIsTxModalOpen(false);
       setEditingTx(null);
-      setTxForm({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
+      setTxForm({ amount: '', paidCash: '', paidBank: '', type: 'debit', paymentMode: 'Cash', description: '', date: new Date().toISOString().split('T')[0] });
       fetchData();
     } catch {
       toast.error('Failed to save transaction');
@@ -146,8 +149,8 @@ function CustomerDetailContent() {
             <button
               onClick={() => {
                 setEditingTx(null);
-                const dueAmt = customer.balance && customer.balance < 0 ? Math.abs(customer.balance).toString() : '';
-                setTxForm({ amount: dueAmt, type: 'credit', description: 'Payment towards due balance', date: new Date().toISOString().split('T')[0] });
+                const dueAmt = customer.balance && customer.balance > 0 ? customer.balance.toString() : '';
+                setTxForm({ amount: dueAmt, paidCash: '', paidBank: '', type: 'debit', paymentMode: 'Cash', description: 'Payment towards due balance', date: new Date().toISOString().split('T')[0] });
                 setIsTxModalOpen(true);
               }}
               className="btn-primary whitespace-nowrap"
@@ -161,36 +164,36 @@ function CustomerDetailContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Total Billed</p>
-            <h3 className="text-2xl font-bold text-gray-900">₹{filtered.filter(t => t.type === 'debit').reduce((a, b) => a + b.amount, 0).toLocaleString()}</h3>
-            <p className="text-[10px] text-gray-400 mt-1">{filtered.filter(t => t.type === 'debit').length} transactions</p>
+            <h3 className="text-2xl font-bold text-gray-900">₹{filtered.filter(t => t.type === 'credit').reduce((a, b) => a + b.amount, 0).toLocaleString()}</h3>
+            <p className="text-[10px] text-gray-400 mt-1">{filtered.filter(t => t.type === 'credit').length} transactions</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Total Paid</p>
-            <h3 className="text-2xl font-bold text-gray-900">₹{filtered.filter(t => t.type === 'credit').reduce((a, b) => a + b.amount, 0).toLocaleString()}</h3>
-            <p className="text-[10px] text-gray-400 mt-1">{filtered.filter(t => t.type === 'credit').length} payments</p>
+            <h3 className="text-2xl font-bold text-gray-900">₹{filtered.filter(t => t.type === 'debit').reduce((a, b) => a + b.amount, 0).toLocaleString()}</h3>
+            <p className="text-[10px] text-gray-400 mt-1">{filtered.filter(t => t.type === 'debit').length} payments</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Current Balance</p>
-            <h3 className={cn("text-2xl font-bold", (customer.balance || 0) >= 0 ? "text-green-600" : "text-red-600")}>
+            <h3 className={cn("text-2xl font-bold", (customer.balance || 0) <= 0 ? "text-green-600" : "text-red-600")}>
               ₹{Math.abs(customer.balance || 0).toLocaleString()}
             </h3>
-            <p className="text-[10px] text-gray-400 mt-1">{(customer.balance || 0) >= 0 ? 'Settled' : 'Payable'}</p>
+            <p className="text-[10px] text-gray-400 mt-1">{(customer.balance || 0) <= 0 ? 'Settled / Advance' : 'Payable by them'}</p>
           </div>
         </div>
 
         {/* Balance Highlight */}
         <div className={cn(
             "p-5 rounded-xl mb-8 flex items-center justify-between border shadow-sm",
-            (customer.balance || 0) >= 0 ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
+            (customer.balance || 0) <= 0 ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
         )}>
             <div>
-                <p className={cn("text-[10px] font-bold uppercase tracking-wider", (customer.balance || 0) >= 0 ? "text-green-600" : "text-red-600")}>Total Outstanding</p>
+                <p className={cn("text-[10px] font-bold uppercase tracking-wider", (customer.balance || 0) <= 0 ? "text-green-600" : "text-red-600")}>Total Outstanding</p>
                 <p className="text-xs text-gray-500 font-medium">Net standing balance for this customer</p>
             </div>
-            <h2 className={cn("text-3xl font-bold", (customer.balance || 0) >= 0 ? "text-green-600" : "text-red-600")}>
-                {(customer.balance || 0) < 0 ? '-' : ''}₹{Math.abs(customer.balance || 0).toLocaleString()}
+            <h2 className={cn("text-3xl font-bold", (customer.balance || 0) <= 0 ? "text-green-600" : "text-red-600")}>
+                {(customer.balance || 0) < 0 ? 'Adv: ' : ''}₹{Math.abs(customer.balance || 0).toLocaleString()}
             </h2>
         </div>
 
@@ -207,8 +210,8 @@ function CustomerDetailContent() {
                 <tr className="bg-gray-50 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase">
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Narration</th>
-                  <th className="px-6 py-4 text-green-600">Paid Amount (Dr)</th>
-                  <th className="px-6 py-4 text-red-600">Bill Amount (Cr)</th>
+                  <th className="px-6 py-4 text-green-600">Paid Amount</th>
+                  <th className="px-6 py-4 text-red-600">Bill Amount</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -216,9 +219,14 @@ function CustomerDetailContent() {
                 {displayTransactions.map((t) => (
                   <tr key={t._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-xs font-medium text-gray-600">{new Date(t.date).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-xs text-gray-500">{t.description || '-'}</td>
-                    <td className="px-6 py-4 font-bold text-green-600">{t.type === 'credit' ? `₹${t.amount.toLocaleString()}` : '₹0'}</td>
-                    <td className="px-6 py-4 font-bold text-red-600">{t.type === 'debit' ? `₹${t.amount.toLocaleString()}` : '₹0'}</td>
+                    <td className="px-6 py-4 text-xs text-gray-500 flex items-center">
+                      {t.paymentMode && t.type === 'debit' && (
+                        <span className="bg-indigo-50 border border-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase tracking-widest">{t.paymentMode}</span>
+                      )}
+                      <span>{t.description || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-green-600">{t.type === 'debit' ? `₹${t.amount.toLocaleString()}` : '₹0'}</td>
+                    <td className="px-6 py-4 font-bold text-red-600">{t.type === 'credit' ? `₹${t.amount.toLocaleString()}` : '₹0'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {t.saleId?.billImage && (
@@ -300,22 +308,69 @@ function CustomerDetailContent() {
                 </div>
                 <form onSubmit={handleTxSubmit} className="p-6 space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Amount (₹)</label>
-                      <input
-                        type="number"
-                        required
-                        className="input-field"
-                        value={txForm.amount}
-                        onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 col-span-2">
+                    {txForm.paymentMode === 'Split' ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-500 uppercase">Cash Amount (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            className="input-field"
+                            value={txForm.paidCash}
+                            onChange={(e) => {
+                              const cash = e.target.value;
+                              const bank = txForm.paidBank;
+                              setTxForm({ ...txForm, paidCash: cash, amount: (Number(cash) + Number(bank)).toString() });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-500 uppercase">Bank Amount (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            className="input-field"
+                            value={txForm.paidBank}
+                            onChange={(e) => {
+                              const bank = e.target.value;
+                              const cash = txForm.paidCash;
+                              setTxForm({ ...txForm, paidBank: bank, amount: (Number(cash) + Number(bank)).toString() });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Amount (₹) *</label>
+                        <input
+                          type="number"
+                          required
+                          className="input-field"
+                          value={txForm.amount}
+                          onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Type</label>
                       <div className="w-full bg-green-50 text-green-700 border border-green-200 rounded-lg p-2.5 text-sm font-bold shadow-inner">
-                        Payment Sent (Credit)
+                        Payment Received
                       </div>
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Payment Method</label>
+                    <select
+                      className="input-field"
+                      value={txForm.paymentMode}
+                      onChange={(e) => setTxForm({ ...txForm, paymentMode: e.target.value })}
+                    >
+                        <option value="Cash">Cash Only</option>
+                        <option value="UPI">UPI / Online Only</option>
+                        <option value="Split">Split (Cash + UPI)</option>
+                    </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Date</label>

@@ -192,11 +192,15 @@ const Production = () => {
 
     const handleTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!transferForm.partyId) {
+            toast.error('Please select a target branch');
+            return;
+        }
+
         try {
-            const targetBranchId = branches.length > 0 ? branches[0]._id : transferForm.partyId;
-            
             await api.post('/branch-stock/transfer-in', {
-                partyId: targetBranchId,
+                partyId: transferForm.partyId,
                 juiceType: transferForm.juiceType,
                 quantity: Number(transferForm.quantity),
                 rate: 0,
@@ -675,6 +679,20 @@ const Production = () => {
                             </button>
                         </div>
                         <form onSubmit={handleTransfer} className="p-6 space-y-5">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 uppercase">Target Branch</label>
+                                <select 
+                                    className="input-field w-full border border-gray-300 rounded-lg p-2.5" 
+                                    required 
+                                    value={transferForm.partyId} 
+                                    onChange={e => setTransferForm({...transferForm, partyId: e.target.value})}
+                                >
+                                    <option value="" disabled>Select Branch</option>
+                                    {branches.map(b => (
+                                        <option key={b._id} value={b._id}>{b.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-600 uppercase">Product</label>
                                 <select 

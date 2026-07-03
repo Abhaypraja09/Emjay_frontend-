@@ -29,7 +29,7 @@ const PartyLedger = () => {
 
   const [activeTab, setActiveTab] = useState<'supplier' | 'customer'>('supplier');
   const [partyForm, setPartyForm] = useState({ name: '', type: 'supplier', phone: '', address: '', gstRegistered: false, gstNumber: '', openingBalanceAmount: '', openingBalanceType: 'receivable' });
-  const [txForm, setTxForm] = useState({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
+  const [txForm, setTxForm] = useState({ amount: '', paidCash: '', paidBank: '', type: 'credit', paymentMode: 'Cash', description: '', date: new Date().toISOString().split('T')[0] });
 
   const fetchData = async () => {
     try {
@@ -79,7 +79,7 @@ const PartyLedger = () => {
       await api.post('/parties/transaction', { ...txForm, partyId: selectedParty._id });
       toast.success('Journal entry recorded');
       setIsTxModalOpen(false);
-      setTxForm({ amount: '', type: 'credit', description: '', date: new Date().toISOString().split('T')[0] });
+      setTxForm({ amount: '', paidCash: '', paidBank: '', type: 'credit', paymentMode: 'Cash', description: '', date: new Date().toISOString().split('T')[0] });
       // Refresh both party info (for balance) and transactions
       const res = await api.get('/parties');
       const updatedParties = res.data;
@@ -354,15 +354,46 @@ const PartyLedger = () => {
                              <p className="text-xl font-black text-indigo-900 italic uppercase truncate">{selectedParty.name}</p>
                          </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Capital Amount (₹)</label>
-                                <input type="number" required className="input-field font-black italic text-lg" placeholder="0" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} />
+                            <div className="space-y-1 col-span-2">
+                                {txForm.paymentMode === 'Split' ? (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cash Amount (₹)</label>
+                                            <input type="number" required className="input-field font-black italic text-lg" placeholder="0" value={txForm.paidCash} onChange={(e) => {
+                                                const cash = e.target.value;
+                                                const bank = txForm.paidBank;
+                                                setTxForm({ ...txForm, paidCash: cash, amount: (Number(cash) + Number(bank)).toString() });
+                                            }} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bank Amount (₹)</label>
+                                            <input type="number" required className="input-field font-black italic text-lg" placeholder="0" value={txForm.paidBank} onChange={(e) => {
+                                                const bank = e.target.value;
+                                                const cash = txForm.paidCash;
+                                                setTxForm({ ...txForm, paidBank: bank, amount: (Number(cash) + Number(bank)).toString() });
+                                            }} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Capital Amount (₹)</label>
+                                        <input type="number" required className="input-field font-black italic text-lg" placeholder="0" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} />
+                                    </div>
+                                )}
                             </div>
                              <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Flow Type</label>
                                 <select className="input-field" value={txForm.type} onChange={e => setTxForm({...txForm, type: e.target.value})}>
-                                    <option value="credit">Credit (Inflow)</option>
-                                    <option value="debit">Debit (Payment)</option>
+                                    <option value="credit">Credit (Inflow/Sale/Due)</option>
+                                    <option value="debit">Debit (Payment/Outflow)</option>
+                                </select>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Payment Method</label>
+                                <select className="input-field" value={txForm.paymentMode} onChange={e => setTxForm({...txForm, paymentMode: e.target.value})}>
+                                    <option value="Cash">Cash Only</option>
+                                    <option value="UPI">UPI / Online Only</option>
+                                    <option value="Split">Split (Cash + UPI)</option>
                                 </select>
                             </div>
                         </div>

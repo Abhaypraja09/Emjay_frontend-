@@ -185,6 +185,17 @@ const BranchStock = () => {
                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+              <button 
+                  onClick={() => {
+                      setEditingPartyId(null);
+                      setBranchForm({ name: '', contactPerson: '', phone: '', address: '' });
+                      setIsCreateBranchOpen(true);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center h-[42px] gap-2 shadow-sm"
+              >
+                  <Plus className="w-4 h-4" />
+                  New Branch
+              </button>
             </div>
           </div>
 
