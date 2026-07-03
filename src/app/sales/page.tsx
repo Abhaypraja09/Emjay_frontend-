@@ -980,7 +980,8 @@ const Sales = () => {
                       address: selectedProfileCustomer.address || '', 
                       hasGST: selectedProfileCustomer.gstRegistered ? 'Yes' : 'No', 
                       gstNo: selectedProfileCustomer.gstNumber || '', 
-                      type: 'customer' 
+                      type: 'customer',
+                      openingBalance: selectedProfileCustomer.openingBalance?.toString() || '0'
                     });
                     setSelectedProfileCustomer(null);
                     setIsCustomerModalOpen(true);
