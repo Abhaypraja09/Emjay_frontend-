@@ -16,9 +16,14 @@ import {
   ArrowDownLeft,
   ChevronDown,
   Warehouse,
-  Eye
+  Eye,
+  User,
+  Search,
+  Calendar,
+  Activity
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -26,14 +31,29 @@ import MonthYearFilter from '@/components/MonthYearFilter';
 import { Pencil } from 'lucide-react';
 
 const Bottles = () => {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'purchases' | 'ledger'>('ledger');
+  const [activeTab, setActiveTab] = useState<'purchases' | 'ledger' | 'vendors'>('ledger');
 
   const [ledgerData, setLedgerData] = useState<any[]>([]);
+  const [parties, setParties] = useState<any[]>([]);
+  const [searchSupplier, setSearchSupplier] = useState('');
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    hasGST: 'No',
+    gstNo: '',
+    openingBalance: '',
+    type: 'bottle_supplier'
+  });
+  const [selectedProfileSupplier, setSelectedProfileSupplier] = useState<any>(null);
   const [bottleTypeFilter, setBottleTypeFilter] = useState('Bottles');
   const [ledgerLoading, setLedgerLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,15 +73,19 @@ const Bottles = () => {
   }]);
 
   const [form, setForm] = useState({
+    partyId: '',
     supplier: '',
     date: new Date().toISOString().split('T')[0],
-    paymentMode: 'Cash'
+    status: 'Cash',
+    paidCash: '' as string | number,
+    paidOnline: '' as string | number
   });
   const [viewBillModal, setViewBillModal] = useState(false);
   const [selectedBillUrl, setSelectedBillUrl] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [editForm, setEditForm] = useState({
+    partyId: '',
     bottleType: '',
     quantity: '',
     pricePerUnit: '',
@@ -88,12 +112,42 @@ const Bottles = () => {
 
   const fetchData = async () => {
     try {
-      const res = await api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } });
-      setData(res.data);
+      const [stockRes, partiesRes] = await Promise.all([
+        api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
+        api.get('/parties')
+      ]);
+      setData(stockRes.data);
+      setParties(partiesRes.data.filter((p: any) => p.type === 'bottle_supplier'));
     } catch (error) {
       toast.error('Could not load bottle data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSupplierSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/parties', {
+        ...supplierForm,
+        gstRegistered: supplierForm.hasGST === 'Yes',
+        gstNumber: supplierForm.gstNo
+      });
+      toast.success('Supplier enlisted successfully');
+      setIsSupplierModalOpen(false);
+      setSupplierForm({
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        hasGST: 'No',
+        gstNo: '',
+        openingBalance: '',
+        type: 'bottle_supplier'
+      });
+      fetchData();
+    } catch {
+      toast.error('Failed to enlist supplier');
     }
   };
 
@@ -135,8 +189,15 @@ const Bottles = () => {
           totalCost: Number(item.quantity) * Number(item.pricePerUnit)
       }))));
       formData.append('supplierName', form.supplier);
+      if (form.partyId) {
+          formData.append('partyId', form.partyId);
+      }
       formData.append('date', form.date);
-      formData.append('paymentMode', form.paymentMode);
+      formData.append('status', form.status);
+      if (form.status === 'Split') {
+          formData.append('paidCash', form.paidCash.toString());
+          formData.append('paidOnline', form.paidOnline.toString());
+      }
 
       items.forEach((item, index) => {
           if (item.billFile) {
@@ -151,7 +212,7 @@ const Bottles = () => {
       toast.success('Purchases recorded');
       setIsModalOpen(false);
       setItems([{ bottleType: 'New', quantity: '', pricePerUnit: '', totalCost: 0, billFile: null }]);
-      setForm({ supplier: '', date: new Date().toISOString().split('T')[0], paymentMode: 'Cash' });
+      setForm({ partyId: '', supplier: '', date: new Date().toISOString().split('T')[0], status: 'Cash', paidCash: '', paidOnline: '' });
       fetchData();
       if (activeTab === 'ledger') fetchLedger();
     } catch (error: any) {
@@ -176,6 +237,7 @@ const Bottles = () => {
   const handleEdit = (record: any) => {
     setEditingRecord(record);
     setEditForm({
+      partyId: record.partyId || '',
       bottleType: record.bottleType,
       quantity: record.quantity.toString(),
       pricePerUnit: record.costPerUnit.toString(),
@@ -188,8 +250,12 @@ const Bottles = () => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const selectedParty = parties.find(p => p._id === editForm.partyId);
+      const supplierName = selectedParty ? selectedParty.name : editForm.supplierName;
+
       await api.put(`/bottles/${editingRecord._id}`, {
         ...editForm,
+        supplierName,
         quantity: Number(editForm.quantity),
         costPerUnit: Number(editForm.pricePerUnit)
       });
@@ -314,6 +380,16 @@ const Bottles = () => {
                 <Truck className="w-4 h-4" />
                 Purchase History
             </button>
+            <button 
+                onClick={() => setActiveTab('vendors')}
+                className={cn(
+                    "px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
+                    activeTab === 'vendors' ? "bg-slate-900 text-white shadow-md" : "text-gray-500 hover:bg-slate-50"
+                )}
+            >
+                <User className="w-4 h-4" />
+                Suppliers / Vendors
+            </button>
         </div>
 
         {activeTab === 'purchases' ? (
@@ -370,6 +446,142 @@ const Bottles = () => {
                     </table>
                 </div>
             </div>
+        ) : activeTab === 'vendors' ? (
+          <div className="space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search className="h-5 w-5 text-slate-400" />
+                  </span>
+                  <input 
+                    type="text" 
+                    placeholder="Search bottle suppliers..." 
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                    value={searchSupplier}
+                    onChange={(e) => setSearchSupplier(e.target.value)}
+                  />
+                </div>
+                <button 
+                  onClick={() => {
+                    setSupplierForm({
+                      name: '',
+                      phone: '',
+                      email: '',
+                      address: '',
+                      hasGST: 'No',
+                      gstNo: '',
+                      openingBalance: '',
+                      type: 'bottle_supplier'
+                    });
+                    setIsSupplierModalOpen(true);
+                  }}
+                  className="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2"
+                >
+                  <div className="bg-white/20 rounded-lg p-1">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  Enlist New Supplier
+                </button>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-slate-50 to-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100">
+                        <th className="px-8 py-5">Supplier Details</th>
+                        <th className="px-8 py-5">Contact</th>
+                        <th className="px-8 py-5 text-right">Net Balance</th>
+                        <th className="px-8 py-5 text-center">Status</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {parties.filter(p => p.name.toLowerCase().includes(searchSupplier.toLowerCase())).map(p => (
+                        <tr 
+                          key={p._id} 
+                          onClick={() => router.push(`/vendors?id=${p._id}`)}
+                          className="group hover:bg-blue-50/50 transition-all duration-300 cursor-pointer"
+                        >
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProfileSupplier(p);
+                                }}
+                                className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100/50 hover:scale-110 hover:rotate-3 hover:shadow-blue-200 transition-all duration-300 cursor-pointer"
+                                title="View Profile"
+                              >
+                                <User className="w-5 h-5" />
+                              </button>
+                              <div>
+                                <h4 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-blue-700 transition-colors">
+                                  {p.name}
+                                </h4>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">Bottle Supplier</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-5 space-y-2">
+                            <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-600 shadow-sm">
+                              {p.phone || 'No Contact Info'}
+                            </div>
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                            <p className={cn(
+                              "text-sm font-black tracking-tight",
+                              (p.balance || 0) >= 0 ? "text-emerald-600" : "text-rose-600"
+                            )}>
+                              ₹{Math.abs(p.balance || 0).toLocaleString()}
+                            </p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                              {(p.balance || 0) >= 0 ? 'Settled' : 'Amount Payable'}
+                            </p>
+                          </td>
+                          <td className="px-8 py-5 text-center">
+                            <span className={cn(
+                              "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm",
+                              (p.balance || 0) >= 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"
+                            )}>
+                              {(p.balance || 0) >= 0 ? 'Account Clear' : 'Action Required'}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                            <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                              <button 
+                                onClick={async () => {
+                                  if (confirm('Are you sure you want to delete this supplier?')) {
+                                    try {
+                                      await api.delete(`/parties/${p._id}`);
+                                      toast.success('Supplier deleted');
+                                      fetchData();
+                                    } catch {
+                                      toast.error('Failed to delete supplier');
+                                    }
+                                  }
+                                }}
+                                className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                title="Delete Supplier"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {parties.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-8 py-16 text-center text-slate-400">
+                            No bottle suppliers found. Enlist one to begin.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+          </div>
         ) : (
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
@@ -459,21 +671,58 @@ const Bottles = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Supplier Name</label>
-                                    <input type="text" className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="ABC Bottles Ltd." value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} />
+                                    <select 
+                                        required
+                                        className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full font-bold cursor-pointer"
+                                        value={form.partyId}
+                                        onChange={e => {
+                                            const selectedParty = parties.find(p => p._id === e.target.value);
+                                            setForm({
+                                                ...form,
+                                                partyId: e.target.value,
+                                                supplier: selectedParty ? selectedParty.name : ''
+                                            });
+                                        }}
+                                    >
+                                        <option value="">Select Bottle Supplier...</option>
+                                        {parties.map(p => (
+                                            <option key={p._id} value={p._id}>{p.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Date</label>
                                     <input type="date" required className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Payment Mode</label>
-                                    <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
-                                        <option value="Cash">Cash</option>
-                                        <option value="Online/UPI">Online/UPI</option>
-                                        <option value="Due">Due</option>
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Payment Status</label>
+                                    <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+                                        <option value="Cash">Cash Only</option>
+                                        <option value="UPI">UPI / Online Only</option>
+                                        <option value="Split">Split (Cash + UPI)</option>
+                                        <option value="Due">Due / Unpaid</option>
                                     </select>
                                 </div>
                             </div>
+                            
+                            {form.status === 'Split' && (
+                                <div className="grid grid-cols-3 gap-4 border border-indigo-100 bg-indigo-50/50 p-4 rounded-xl">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Cash Paid</label>
+                                        <input type="number" className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="₹0" value={form.paidCash} onChange={e => setForm({ ...form, paidCash: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Online/UPI Paid</label>
+                                        <input type="number" className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" placeholder="₹0" value={form.paidOnline} onChange={e => setForm({ ...form, paidOnline: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Due Amount</label>
+                                        <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full text-gray-500 font-bold">
+                                            ₹{Math.max(0, items.reduce((acc, curr) => acc + (Number(curr.quantity)*Number(curr.pricePerUnit)), 0) - (Number(form.paidCash) || 0) - (Number(form.paidOnline) || 0)).toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
@@ -553,7 +802,23 @@ const Bottles = () => {
                         <form onSubmit={handleUpdate} className="p-6 space-y-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-600 uppercase">Supplier Name</label>
-                                <input type="text" className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full" value={editForm.supplierName} onChange={e => setEditForm({...editForm, supplierName: e.target.value})} />
+                                <select 
+                                    className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm w-full font-bold cursor-pointer"
+                                    value={editForm.partyId}
+                                    onChange={e => {
+                                        const selectedParty = parties.find(p => p._id === e.target.value);
+                                        setEditForm({
+                                            ...editForm,
+                                            partyId: e.target.value,
+                                            supplierName: selectedParty ? selectedParty.name : ''
+                                        });
+                                    }}
+                                >
+                                    <option value="">Select Bottle Supplier...</option>
+                                    {parties.map(p => (
+                                        <option key={p._id} value={p._id}>{p.name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
@@ -580,6 +845,71 @@ const Bottles = () => {
                                 </div>
                             </div>
                             <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-600/20 mt-4">Update Record</button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+
+        {/* Enlist Supplier Modal */}
+        <AnimatePresence>
+            {isSupplierModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsSupplierModalOpen(false)} />
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-3xl w-full max-w-lg z-50 relative shadow-2xl overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white relative">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                          <div className="flex justify-between items-start relative z-10">
+                            <div>
+                              <h2 className="text-xl font-black tracking-tight">Enlist New Supplier</h2>
+                              <p className="text-blue-100 text-xs font-medium mt-1 opacity-90">Add supplier details for bottle tracking</p>
+                            </div>
+                            <button onClick={() => setIsSupplierModalOpen(false)} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-sm transition-all text-white">
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                        <form onSubmit={handleSupplierSubmit} className="p-6 space-y-5 bg-slate-50/50">
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Company / Supplier Name</label>
+                            <input type="text" required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="e.g. ABC Glassware Ltd." value={supplierForm.name} onChange={e => setSupplierForm({ ...supplierForm, name: e.target.value })} />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Contact No.</label>
+                              <input type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="+91..." value={supplierForm.phone} onChange={e => setSupplierForm({ ...supplierForm, phone: e.target.value })} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">GST Registration</label>
+                              <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner gap-1">
+                                  <button type="button" onClick={() => setSupplierForm({...supplierForm, hasGST: 'Yes'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${supplierForm.hasGST === 'Yes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Yes</button>
+                                  <button type="button" onClick={() => setSupplierForm({...supplierForm, hasGST: 'No'})} className={`flex-1 text-xs font-bold py-2.5 rounded-lg transition-all ${supplierForm.hasGST === 'No' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>No</button>
+                              </div>
+                            </div>
+                          </div>
+                          {supplierForm.hasGST === 'Yes' && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
+                              <label className="text-[11px] font-black uppercase tracking-widest text-blue-600">GST / TAX ID Number</label>
+                              <input type="text" required className="w-full bg-blue-50/50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-900 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all shadow-inner uppercase" placeholder="22AAAAA0000A1Z5" value={supplierForm.gstNo} onChange={e => setSupplierForm({ ...supplierForm, gstNo: e.target.value })} />
+                            </motion.div>
+                          )}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Email Address</label>
+                              <input type="email" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="contact@supplier.com" value={supplierForm.email} onChange={e => setSupplierForm({ ...supplierForm, email: e.target.value })} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Opening Balance (₹)</label>
+                              <input type="number" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm" placeholder="0" value={supplierForm.openingBalance} onChange={e => setSupplierForm({ ...supplierForm, openingBalance: e.target.value })} />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Business Address</label>
+                            <textarea rows={2} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm resize-none" placeholder="Enter complete billing address..." value={supplierForm.address} onChange={e => setSupplierForm({ ...supplierForm, address: e.target.value })} />
+                          </div>
+                          <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 mt-4 text-sm">
+                            Enlist Supplier Entity
+                          </button>
                         </form>
                     </motion.div>
                 </div>

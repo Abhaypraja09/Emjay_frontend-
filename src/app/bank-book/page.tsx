@@ -216,9 +216,8 @@ const BankBook = () => {
               <thead className="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
                 <tr>
                   <th className="px-8 py-4">Date</th>
-                  <th className="px-8 py-4">Description</th>
+                  <th className="px-8 py-4">Particulars / Party Details</th>
                   <th className="px-8 py-4">Category</th>
-                  <th className="px-8 py-4">Mode</th>
                   <th className="px-8 py-4 text-emerald-600">Debit (IN)</th>
                   <th className="px-8 py-4 text-rose-600">Credit (OUT)</th>
                   <th className="px-8 py-4 text-right">Actions</th>
@@ -249,9 +248,6 @@ const BankBook = () => {
                       <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-600">
                         {log.category}
                       </span>
-                    </td>
-                    <td className="px-8 py-5 text-xs font-bold text-gray-400">
-                      {log.paymentMode}
                     </td>
                     <td className="px-8 py-5 font-bold text-emerald-600">
                       {log.type === 'IN' ? `₹${log.amount.toLocaleString()}` : '-'}

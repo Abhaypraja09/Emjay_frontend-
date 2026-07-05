@@ -77,7 +77,7 @@ const Production = () => {
         try {
             setLoading(true);
             const [itemRes, bottleRes, prodRes, partyRes] = await Promise.all([
-                api.get('/products'),
+                api.get('/products', { params: { month: selectedMonth, year: selectedYear } }),
                 api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
                 api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
                 api.get('/parties')
@@ -461,7 +461,7 @@ const Production = () => {
                                                     });
 
                                                     // Then return descending for UI display (newest first)
-                                                    return rowsWithClosing.reverse().map((item, idx) => {
+                                                    const finalRows = rowsWithClosing.reverse().map((item, idx) => {
                                                         const row = (
                                                             <tr key={idx} className="hover:bg-gray-50 transition-colors group">
                                                                 <td className="px-8 py-4">
@@ -508,6 +508,29 @@ const Production = () => {
                                                         );
                                                         return row;
                                                     });
+                                                    
+                                                    if (ledgerData.length > 0) {
+                                                        const firstRow = ledgerData[0];
+                                                        finalRows.push(
+                                                            <tr key="opening-balance" className="bg-amber-50/50 border-t border-b border-amber-100">
+                                                                <td className="px-8 py-4">
+                                                                    <p className="font-semibold text-gray-700 text-sm">
+                                                                        {new Date(firstRow.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                    </p>
+                                                                </td>
+                                                                <td className="px-8 py-4">
+                                                                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-amber-100 text-amber-700">OPENING</span>
+                                                                    <span className="text-xs text-gray-500 font-medium">Opening Balance</span>
+                                                                </td>
+                                                                <td className="px-8 py-4 text-center">-</td>
+                                                                <td className="px-8 py-4 text-center">-</td>
+                                                                <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">{firstRow.openingStock}</td>
+                                                                <td className="px-8 py-4 text-right"></td>
+                                                            </tr>
+                                                        );
+                                                    }
+                                                    
+                                                    return finalRows;
                                                 })()}
                                                 {ledgerData.length === 0 && (
                                                     <tr><td colSpan={6} className="p-16 text-center text-gray-400">No records found for this period.</td></tr>

@@ -586,7 +586,7 @@ const PurchasesPage = () => {
                           <p className={cn(
                               "text-xl font-black tracking-tighter",
                               (v.balance || 0) >= 0 ? "text-emerald-500" : "text-rose-500"
-                          )}>{(v.balance || 0) < 0 ? '-' : ''}₹{Math.abs(v.balance || 0).toLocaleString()}</p>
+                          )}>{/* Removed minus sign */}₹{Math.abs(v.balance || 0).toLocaleString()}</p>
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
                             {(v.balance || 0) >= 0 ? ((v.balance || 0) === 0 ? 'Settled' : 'Advance Paid') : 'Amount Payable'}
                           </p>

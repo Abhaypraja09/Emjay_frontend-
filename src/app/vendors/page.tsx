@@ -110,8 +110,8 @@ function VendorDetailContent() {
     return (
       <div className="flex h-screen items-center justify-center flex-col gap-4 bg-gray-50">
         <p className="text-gray-500 font-medium">Vendor not found.</p>
-        <button onClick={() => router.push('/purchases?tab=vendors')} className="btn-primary">
-          ← Back to Purchases
+        <button onClick={() => router.push(vendor?.type === 'bottle_supplier' ? '/bottles?tab=vendors' : '/purchases?tab=vendors')} className="btn-primary">
+          ← Back
         </button>
       </div>
     );
@@ -124,7 +124,7 @@ function VendorDetailContent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/purchases?tab=vendors')}
+              onClick={() => router.push(vendor?.type === 'bottle_supplier' ? '/bottles?tab=vendors' : '/purchases?tab=vendors')}
               className="p-2.5 bg-white rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -177,7 +177,7 @@ function VendorDetailContent() {
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Current Balance</p>
             <h3 className={cn("text-2xl font-bold", (vendor.balance || 0) >= 0 ? "text-green-600" : "text-red-600")}>
-              ₹{(vendor.balance || 0).toLocaleString()}
+              ₹{Math.abs(vendor.balance || 0).toLocaleString()}
             </h3>
             <p className="text-[10px] text-gray-400 mt-1">{(vendor.balance || 0) >= 0 ? 'Settled' : 'Payable'}</p>
           </div>
@@ -193,7 +193,7 @@ function VendorDetailContent() {
                 <p className="text-xs text-gray-500 font-medium">Net standing balance for this vendor</p>
             </div>
             <h2 className={cn("text-3xl font-bold", (vendor.balance || 0) >= 0 ? "text-green-600" : "text-red-600")}>
-                ₹{(vendor.balance || 0).toLocaleString()}
+                ₹{Math.abs(vendor.balance || 0).toLocaleString()}
             </h2>
         </div>
 
