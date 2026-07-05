@@ -242,9 +242,12 @@ function VendorDetailContent() {
                             setEditingTx(t);
                             setTxForm({
                               amount: t.amount.toString(),
+                              paidCash: '',
+                              paidBank: '',
+                              paymentMode: t.paymentMode || 'Cash',
                               type: t.type,
                               description: t.description || '',
-                              date: new Date(t.date).toISOString().split('T')[0],
+                              date: t.date ? new Date(t.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
                             });
                             setIsTxModalOpen(true);
                           }}
