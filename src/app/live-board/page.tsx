@@ -11,7 +11,9 @@ import {
   ShoppingBag,
   Filter,
   Plus,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useRouter } from 'next/navigation';
@@ -27,6 +29,18 @@ export default function LiveBoard() {
   useEffect(() => {
      fetchDailyReport();
   }, [selectedDate]);
+
+  const handlePrevDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
 
   const fetchDailyReport = async () => {
       try {
@@ -63,13 +77,27 @@ export default function LiveBoard() {
             </div>
 
             <div className="flex items-center gap-3">
-                <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-xl flex items-center gap-3 shadow-sm hover:border-gray-300 transition-colors">
+                <div className="flex items-center gap-1 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                    <button 
+                        onClick={handlePrevDay}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+                        title="Previous Day"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
                     <input 
                         type="date" 
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="text-sm font-bold text-gray-700 outline-none bg-transparent cursor-pointer"
+                        className="text-sm font-bold text-gray-700 outline-none bg-transparent cursor-pointer px-2"
                     />
+                    <button 
+                        onClick={handleNextDay}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+                        title="Next Day"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
                 </div>
                 <button 
                     onClick={fetchDailyReport}
