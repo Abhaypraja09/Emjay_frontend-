@@ -97,13 +97,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          <div className="text-center py-6 border-t border-slate-100 flex flex-col gap-2">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Environment: Development</p>
-            <p className="text-[10px] text-slate-500 italic">
-              Credential: <span className="text-indigo-600 font-black">admin@emjay.com</span> / <span className="text-indigo-600 font-black">admin123</span>
-            </p>
-          </div>
         </div>
       </div>
     </div>
