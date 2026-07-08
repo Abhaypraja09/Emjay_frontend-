@@ -1,12 +1,14 @@
 'use client'
-import React from 'react';
-import { Calendar, ChevronDown } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Calendar, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface MonthYearFilterProps {
   selectedMonth: number;
   selectedYear: number;
   onFilterChange: (month: number, year: number) => void;
+  selectedDate?: string;
+  onDateSelect?: (date: string) => void;
 }
 
 const monthOptions = [
@@ -31,14 +33,61 @@ const currentMonth = new Date().getMonth() + 1;
 const baseFyYear = currentMonth <= 3 ? currentYear - 1 : currentYear;
 const years = Array.from({ length: 5 }, (_, i) => baseFyYear - 2 + i);
 
-const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, selectedYear, onFilterChange }) => {
+const MonthYearFilter: React.FC<MonthYearFilterProps> = ({ selectedMonth, selectedYear, onFilterChange, selectedDate, onDateSelect }) => {
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleDateClick = () => {
+    if (onDateSelect && !selectedDate && dateInputRef.current) {
+        try {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                dateInputRef.current.showPicker();
+            } else {
+                dateInputRef.current.focus();
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    }
+  };
+
   return (
     <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
-      <div className="flex items-center gap-2 px-3 py-2 border-r border-gray-100">
-        <Calendar className="w-4 h-4 text-blue-600" />
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight text-left">
-          Filter<br/>Period
-        </span>
+      <div 
+        className={cn("flex items-center gap-2 px-3 py-2 border-r border-gray-100 relative group min-w-[80px]", onDateSelect && !selectedDate && "cursor-pointer hover:bg-gray-50 transition-colors rounded-xl")}
+        onClick={handleDateClick}
+      >
+        {selectedDate ? (
+          <div className="flex items-center gap-2 z-10 w-full justify-between">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mb-0.5">Selected Date</span>
+              <span className="text-xs font-bold text-gray-700 leading-none">{new Date(selectedDate).toLocaleDateString('en-IN', {day: '2-digit', month: 'short'})}</span>
+            </div>
+            <button 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDateSelect?.(''); }} 
+              className="p-1 hover:bg-gray-100 rounded-full text-red-500 transition-colors"
+              title="Clear Date"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Calendar className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black text-gray-400 group-hover:text-blue-500 uppercase tracking-widest leading-tight text-left transition-colors">
+              Filter<br/>Period
+            </span>
+          </>
+        )}
+        
+        {onDateSelect && (
+          <input 
+             ref={dateInputRef}
+             type="date" 
+             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 pointer-events-none w-0 h-0"
+             value={selectedDate || ''}
+             onChange={e => onDateSelect(e.target.value)}
+          />
+        )}
       </div>
       
       <div className="flex gap-2 p-1">

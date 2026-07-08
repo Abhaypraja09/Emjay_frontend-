@@ -38,6 +38,7 @@ const Bottles = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'purchases' | 'ledger' | 'vendors'>('ledger');
+  const [selectedDateFilter, setSelectedDateFilter] = useState('');
 
   const [ledgerData, setLedgerData] = useState<any[]>([]);
   const [parties, setParties] = useState<any[]>([]);
@@ -289,7 +290,9 @@ const Bottles = () => {
                 <MonthYearFilter 
                     selectedMonth={selectedMonth} 
                     selectedYear={selectedYear} 
-                    onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
+                    onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setSelectedDateFilter(''); }}
+                    selectedDate={selectedDateFilter}
+                    onDateSelect={setSelectedDateFilter}
                 />
                 <button 
                     onClick={() => setIsModalOpen(true)}
@@ -624,9 +627,12 @@ const Bottles = () => {
                                 ) : ledgerData.length === 0 ? (
                                     <tr><td colSpan={5} className="p-12 text-center text-gray-400 text-sm">No inventory flow recorded for this type.</td></tr>
                                 ) : (
-                                    ledgerData.map((row, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                                            <td className="px-8 py-5">
+                                    (selectedDateFilter ? ledgerData.filter(r => r.date.startsWith(selectedDateFilter)) : ledgerData).length === 0 ? (
+                                        <tr><td colSpan={5} className="p-12 text-center text-gray-400 text-sm">No records found for the selected date.</td></tr>
+                                    ) : (
+                                        (selectedDateFilter ? ledgerData.filter(r => r.date.startsWith(selectedDateFilter)) : ledgerData).map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                                                <td className="px-8 py-5">
                                                 <p className="font-black text-gray-800 text-xs italic">{formatDate(row.date)}</p>
                                             </td>
                                             <td className="px-8 py-5 text-center font-bold text-gray-400 text-xs">{row.openingStock}</td>
@@ -649,7 +655,7 @@ const Bottles = () => {
                                             </td>
                                         </tr>
                                     ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>

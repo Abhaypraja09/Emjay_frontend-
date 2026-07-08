@@ -17,7 +17,8 @@ import {
     Database,
     AlertCircle,
     Search,
-    Edit
+    Edit,
+    Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -32,6 +33,7 @@ const Production = () => {
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedDateFilter, setSelectedDateFilter] = useState('');
 
     // Production Ledger State
     const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
@@ -246,7 +248,9 @@ const Production = () => {
                         <MonthYearFilter
                             selectedMonth={selectedMonth}
                             selectedYear={selectedYear}
-                            onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
+                            onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setSelectedDateFilter(''); }}
+                            selectedDate={selectedDateFilter}
+                            onDateSelect={setSelectedDateFilter}
                         />
                         <div className="flex gap-3">
                             {currentTab === 'ledger' ? (
@@ -318,10 +322,10 @@ const Production = () => {
                         <div className="flex flex-col lg:flex-row gap-6 mb-10 items-start">
 
                             {/* Compact Total Production Card */}
-                            <div className="w-full lg:w-48 shrink-0 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Stock in Hand</p>
-                                <h3 className={cn("text-xl font-bold leading-none", (products.find(p => p._id === selectedProduct)?.currentStock || 0) < 0 ? "text-red-600" : "text-emerald-600")}>
-                                    {products.find(p => p._id === selectedProduct)?.currentStock || 0}
+                            <div className="w-full lg:w-48 shrink-0 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Total Stock in Hand</p>
+                                <h3 className={cn("text-2xl font-bold leading-none", products.reduce((acc, p) => acc + (p.currentStock || 0), 0) < 0 ? "text-red-600" : "text-emerald-600")}>
+                                    {products.reduce((acc, p) => acc + (p.currentStock || 0), 0)}
                                     <span className="text-[10px] font-normal text-gray-400 ml-1">Units</span>
                                 </h3>
                             </div>
@@ -460,8 +464,13 @@ const Production = () => {
                                                         return { ...item, closing: currentBal };
                                                     });
 
+                                                    let displayRows = rowsWithClosing.reverse();
+                                                    if (selectedDateFilter) {
+                                                        displayRows = displayRows.filter(item => item.date.startsWith(selectedDateFilter));
+                                                    }
+
                                                     // Then return descending for UI display (newest first)
-                                                    const finalRows = rowsWithClosing.reverse().map((item, idx) => {
+                                                    const finalRows = displayRows.map((item, idx) => {
                                                         const row = (
                                                             <tr key={idx} className="hover:bg-gray-50 transition-colors group">
                                                                 <td className="px-8 py-4">
@@ -509,7 +518,32 @@ const Production = () => {
                                                         return row;
                                                     });
                                                     
-                                                    if (ledgerData.length > 0) {
+                                                    if (selectedDateFilter) {
+                                                        const dayData = ledgerData.find((d: any) => d.date.startsWith(selectedDateFilter));
+                                                        if (dayData) {
+                                                            finalRows.push(
+                                                                <tr key="opening-balance" className="bg-amber-50/50 border-t border-b border-amber-100">
+                                                                    <td className="px-8 py-4">
+                                                                        <p className="font-semibold text-gray-700 text-sm">
+                                                                            {new Date(dayData.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                        </p>
+                                                                    </td>
+                                                                    <td className="px-8 py-4">
+                                                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-amber-100 text-amber-700">OPENING</span>
+                                                                        <span className="text-xs text-gray-500 font-medium">Opening Balance</span>
+                                                                    </td>
+                                                                    <td className="px-8 py-4 text-center">-</td>
+                                                                    <td className="px-8 py-4 text-center">-</td>
+                                                                    <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">{dayData.openingStock}</td>
+                                                                    <td className="px-8 py-4 text-right"></td>
+                                                                </tr>
+                                                            );
+                                                        } else {
+                                                            finalRows.push(
+                                                                <tr key="no-records"><td colSpan={6} className="p-8 text-center text-gray-400">No records found for the selected date.</td></tr>
+                                                            );
+                                                        }
+                                                    } else if (ledgerData.length > 0) {
                                                         const firstRow = ledgerData[0];
                                                         finalRows.push(
                                                             <tr key="opening-balance" className="bg-amber-50/50 border-t border-b border-amber-100">
