@@ -79,7 +79,7 @@ const Production = () => {
         try {
             setLoading(true);
             const [itemRes, bottleRes, prodRes, partyRes] = await Promise.all([
-                api.get('/products', { params: { month: selectedMonth, year: selectedYear } }),
+                api.get('/products', { params: { month: selectedMonth, year: selectedYear, date: selectedDateFilter || undefined } }),
                 api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
                 api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
                 api.get('/parties')
@@ -101,7 +101,7 @@ const Production = () => {
 
     useEffect(() => {
         fetchInitialData();
-    }, [selectedMonth, selectedYear]);
+    }, [selectedMonth, selectedYear, selectedDateFilter]);
 
     const fetchLedger = async (productId: string) => {
         if (!productId) return;
@@ -519,30 +519,58 @@ const Production = () => {
                                                     });
                                                     
                                                     if (selectedDateFilter) {
-                                                        const dayData = ledgerData.find((d: any) => d.date.startsWith(selectedDateFilter));
+                                                        const targetDate = new Date(selectedDateFilter).getTime();
+                                                        let dayData = ledgerData.find((d: any) => d.date.startsWith(selectedDateFilter));
+                                                        let opening = 0;
+                                                        
                                                         if (dayData) {
+                                                            opening = dayData.openingStock;
+                                                        } else {
+                                                            const beforeRecords = ledgerData.filter((d: any) => new Date(d.date).getTime() < targetDate);
+                                                            if (beforeRecords.length > 0) {
+                                                                opening = beforeRecords[beforeRecords.length - 1].closingStock;
+                                                            } else if (ledgerData.length > 0) {
+                                                                opening = ledgerData[0].openingStock;
+                                                            }
+                                                        }
+                                                        
+                                                        if (displayRows.length === 0) {
                                                             finalRows.push(
-                                                                <tr key="opening-balance" className="bg-amber-50/50 border-t border-b border-amber-100">
+                                                                <tr key="closing-balance" className="bg-green-50/50 border-t border-b border-green-100">
                                                                     <td className="px-8 py-4">
                                                                         <p className="font-semibold text-gray-700 text-sm">
-                                                                            {new Date(dayData.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                            {new Date(selectedDateFilter).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                                         </p>
                                                                     </td>
                                                                     <td className="px-8 py-4">
-                                                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-amber-100 text-amber-700">OPENING</span>
-                                                                        <span className="text-xs text-gray-500 font-medium">Opening Balance</span>
+                                                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-green-100 text-green-700">CLOSING</span>
+                                                                        <span className="text-xs text-gray-500 font-medium">Closing Balance</span>
                                                                     </td>
                                                                     <td className="px-8 py-4 text-center">-</td>
                                                                     <td className="px-8 py-4 text-center">-</td>
-                                                                    <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">{dayData.openingStock}</td>
+                                                                    <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">{opening}</td>
                                                                     <td className="px-8 py-4 text-right"></td>
                                                                 </tr>
                                                             );
-                                                        } else {
-                                                            finalRows.push(
-                                                                <tr key="no-records"><td colSpan={6} className="p-8 text-center text-gray-400">No records found for the selected date.</td></tr>
-                                                            );
                                                         }
+
+                                                        finalRows.push(
+                                                            <tr key="opening-balance" className="bg-amber-50/50 border-t border-b border-amber-100">
+                                                                <td className="px-8 py-4">
+                                                                    <p className="font-semibold text-gray-700 text-sm">
+                                                                        {new Date(selectedDateFilter).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                    </p>
+                                                                </td>
+                                                                <td className="px-8 py-4">
+                                                                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-amber-100 text-amber-700">OPENING</span>
+                                                                    <span className="text-xs text-gray-500 font-medium">Opening Balance</span>
+                                                                </td>
+                                                                <td className="px-8 py-4 text-center">-</td>
+                                                                <td className="px-8 py-4 text-center">-</td>
+                                                                <td className="px-8 py-4 text-center font-bold text-gray-900 text-sm">{opening}</td>
+                                                                <td className="px-8 py-4 text-right"></td>
+                                                            </tr>
+                                                        );
                                                     } else if (ledgerData.length > 0) {
                                                         const firstRow = ledgerData[0];
                                                         finalRows.push(

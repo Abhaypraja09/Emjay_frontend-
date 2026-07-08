@@ -114,7 +114,7 @@ const Bottles = () => {
   const fetchData = async () => {
     try {
       const [stockRes, partiesRes] = await Promise.all([
-        api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear } }),
+        api.get('/bottles/stock', { params: { month: selectedMonth, year: selectedYear, date: selectedDateFilter || undefined } }),
         api.get('/parties')
       ]);
       setData(stockRes.data);
@@ -169,7 +169,7 @@ const Bottles = () => {
 
   useEffect(() => {
     fetchData();
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, selectedDateFilter]);
 
   useEffect(() => {
     if (activeTab === 'ledger') {
@@ -624,38 +624,79 @@ const Bottles = () => {
                             <tbody className="divide-y divide-gray-50">
                                 {ledgerLoading ? (
                                     <tr><td colSpan={5} className="p-12 text-center text-gray-400 font-bold animate-pulse text-[10px] tracking-widest uppercase">Calculating Metrics...</td></tr>
-                                ) : ledgerData.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-12 text-center text-gray-400 text-sm">No inventory flow recorded for this type.</td></tr>
-                                ) : (
-                                    (selectedDateFilter ? ledgerData.filter(r => r.date.startsWith(selectedDateFilter)) : ledgerData).length === 0 ? (
-                                        <tr><td colSpan={5} className="p-12 text-center text-gray-400 text-sm">No records found for the selected date.</td></tr>
-                                    ) : (
-                                        (selectedDateFilter ? ledgerData.filter(r => r.date.startsWith(selectedDateFilter)) : ledgerData).map((row, idx) => (
-                                            <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                                                <td className="px-8 py-5">
-                                                <p className="font-black text-gray-800 text-xs italic">{formatDate(row.date)}</p>
-                                            </td>
-                                            <td className="px-8 py-5 text-center font-bold text-gray-400 text-xs">{row.openingStock}</td>
-                                            <td className="px-8 py-5 text-center">
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-50 text-blue-700 font-black text-[11px]">
-                                                    <ArrowUpRight className="w-3 h-3" />
-                                                    +{row.buy}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-center">
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-red-50 text-red-700 font-black text-[11px]">
-                                                    <ArrowDownLeft className="w-3 h-3" />
-                                                    -{row.used}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-center">
-                                                <span className="px-5 py-1.5 bg-slate-900 text-white rounded-lg font-black italic text-[11px] shadow-sm tracking-tighter">
-                                                    {row.closingStock}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ))}
+                                ) : (() => {
+                                    if (ledgerData.length === 0) {
+                                        return <tr><td colSpan={5} className="p-12 text-center text-gray-400 text-sm">No inventory flow recorded for this type.</td></tr>;
+                                    }
+
+                                    let displayRows = ledgerData;
+                                    let emptyStateRow = null;
+
+                                    if (selectedDateFilter) {
+                                        displayRows = ledgerData.filter(r => r.date.startsWith(selectedDateFilter));
+                                        
+                                        if (displayRows.length === 0) {
+                                            const targetDate = new Date(selectedDateFilter).getTime();
+                                            const beforeRecords = ledgerData.filter((d: any) => new Date(d.date).getTime() < targetDate);
+                                            
+                                            let opening = 0;
+                                            if (beforeRecords.length > 0) {
+                                                opening = beforeRecords[0].closingStock; // Array is descending, so [0] is the most recent
+                                            } else {
+                                                opening = ledgerData[ledgerData.length - 1].openingStock;
+                                            }
+
+                                            emptyStateRow = (
+                                                <tr className="bg-amber-50/50 border-t border-b border-amber-100">
+                                                    <td className="px-8 py-5">
+                                                        <p className="font-black text-gray-800 text-xs italic">{formatDate(selectedDateFilter)}</p>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center font-bold text-gray-400 text-xs">
+                                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full mr-2 bg-amber-100 text-amber-700">OPENING</span>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center">-</td>
+                                                    <td className="px-8 py-5 text-center">-</td>
+                                                    <td className="px-8 py-5 text-center">
+                                                        <span className="px-5 py-1.5 bg-slate-900 text-white rounded-lg font-black italic text-[11px] shadow-sm tracking-tighter">
+                                                            {opening}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
+                                    }
+
+                                    return (
+                                        <>
+                                            {emptyStateRow}
+                                            {displayRows.map((row, idx) => (
+                                                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                                                    <td className="px-8 py-5">
+                                                        <p className="font-black text-gray-800 text-xs italic">{formatDate(row.date)}</p>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center font-bold text-gray-400 text-xs">{row.openingStock}</td>
+                                                    <td className="px-8 py-5 text-center">
+                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-50 text-blue-700 font-black text-[11px]">
+                                                            <ArrowUpRight className="w-3 h-3" />
+                                                            +{row.buy}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center">
+                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-red-50 text-red-700 font-black text-[11px]">
+                                                            <ArrowDownLeft className="w-3 h-3" />
+                                                            -{row.used}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center">
+                                                        <span className="px-5 py-1.5 bg-slate-900 text-white rounded-lg font-black italic text-[11px] shadow-sm tracking-tighter">
+                                                            {row.closingStock}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </>
+                                    );
+                                })()}
                             </tbody>
                         </table>
                     </div>
