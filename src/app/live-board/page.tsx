@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 
 export default function LiveBoard() {
   const router = useRouter();
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dailyReport, setDailyReport] = useState<any>(null);
@@ -85,7 +86,17 @@ export default function LiveBoard() {
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <div className="relative flex items-center justify-center min-w-[90px] cursor-pointer">
+                    <div 
+                        className="relative flex items-center justify-center min-w-[90px] cursor-pointer"
+                        onClick={() => {
+                            try {
+                                dateInputRef.current?.showPicker();
+                            } catch (e) {
+                                // Fallback for browsers that don't support showPicker
+                                dateInputRef.current?.focus();
+                            }
+                        }}
+                    >
                         <span className="text-sm font-bold text-gray-700 px-2 pointer-events-none">
                             {(() => {
                                 const [y, m, d] = selectedDate.split('-');
@@ -93,10 +104,11 @@ export default function LiveBoard() {
                             })()}
                         </span>
                         <input 
+                            ref={dateInputRef}
                             type="date" 
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none"
                         />
                     </div>
                     <button 
