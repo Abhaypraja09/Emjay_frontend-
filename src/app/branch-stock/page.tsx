@@ -293,14 +293,23 @@ const BranchStock = () => {
                             <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
                                 <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <h2 className="text-lg font-black text-slate-900 tracking-tight">Transactions</h2>
-                                    <div className="relative">
+                                    <div className="relative flex items-center">
                                         <input
                                             type="date"
                                             value={transactionDateFilter}
                                             onChange={(e) => setTransactionDateFilter(e.target.value)}
-                                            className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 w-full sm:w-auto"
+                                            className="pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 w-full sm:w-auto"
                                         />
                                         <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        {transactionDateFilter && (
+                                            <button 
+                                                onClick={() => setTransactionDateFilter('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors"
+                                                title="Clear date filter"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="overflow-y-auto flex-1 custom-scrollbar">
