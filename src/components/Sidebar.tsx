@@ -129,7 +129,7 @@ const Sidebar = () => {
         )}
 
         {/* Nav */}
-        <nav className="flex-1 mt-4 px-3 space-y-1">
+        <nav className="flex-1 mt-4 px-3 space-y-1 overflow-y-auto pb-4 custom-scrollbar">
           {filteredNavItems.map((item) => (
             <Link
               key={item.path}
@@ -141,8 +141,8 @@ const Sidebar = () => {
                   : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
               )}
             >
-              <item.icon className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm font-semibold">{getMenuName(item)}</span>}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {!isCollapsed && <span className="text-sm font-semibold whitespace-nowrap">{getMenuName(item)}</span>}
             </Link>
           ))}
         </nav>
