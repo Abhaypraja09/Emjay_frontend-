@@ -617,6 +617,7 @@ const Sales = () => {
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Invoice No</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Party / Customer</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Product(s)</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
@@ -628,7 +629,10 @@ const Sales = () => {
                             {filteredOrders.length > 0 ? filteredOrders.map((o, i) => (
                                 <tr key={i} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 text-sm font-bold text-gray-600 whitespace-nowrap">
-                                        {new Date(o.date).toLocaleDateString()}
+                                        {new Date(o.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-bold text-blue-600 whitespace-nowrap">
+                                        {o.invoiceNo || 'N/A'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <p className="font-bold text-gray-800 leading-tight">{o.customerName}</p>

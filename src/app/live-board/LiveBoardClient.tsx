@@ -198,8 +198,13 @@ const LiveBoardClient = () => {
                     {dailyReport?.orders.map((o: any) => (
                         <div key={o._id} className="p-3 rounded-lg border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all">
                              <div className="flex justify-between items-start mb-0.5">
-                                <p className="text-[9px] font-bold uppercase text-gray-900 truncate">{o.customerName}</p>
-                                <span className="text-[8px] font-medium text-gray-400">{new Date(o.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <p className="text-[9px] font-bold uppercase text-gray-900 truncate flex gap-1">
+                                    <span>{o.customerName}</span>
+                                    {o.invoiceNo && <span className="text-blue-500">[{o.invoiceNo}]</span>}
+                                </p>
+                                <span className="text-[8px] font-medium text-gray-400">
+                                    {new Date(o.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                                </span>
                              </div>
                              <div className="flex justify-between items-center">
                                  <h4 className="text-base font-bold text-blue-600">₹{o.totalAmount.toLocaleString()}</h4>
