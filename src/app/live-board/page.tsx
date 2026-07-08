@@ -85,7 +85,7 @@ export default function LiveBoard() {
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <div className="relative flex items-center justify-center min-w-[90px]">
+                    <div className="relative flex items-center justify-center min-w-[90px] cursor-pointer">
                         <span className="text-sm font-bold text-gray-700 px-2 pointer-events-none">
                             {(() => {
                                 const [y, m, d] = selectedDate.split('-');
@@ -96,7 +96,7 @@ export default function LiveBoard() {
                             type="date" 
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                         />
                     </div>
                     <button 
