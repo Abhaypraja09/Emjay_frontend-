@@ -85,12 +85,20 @@ export default function LiveBoard() {
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <input 
-                        type="date" 
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="text-sm font-bold text-gray-700 outline-none bg-transparent cursor-pointer px-2"
-                    />
+                    <div className="relative flex items-center justify-center min-w-[90px]">
+                        <span className="text-sm font-bold text-gray-700 px-2 pointer-events-none">
+                            {(() => {
+                                const [y, m, d] = selectedDate.split('-');
+                                return `${d}/${m}/${y.slice(-2)}`;
+                            })()}
+                        </span>
+                        <input 
+                            type="date" 
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                    </div>
                     <button 
                         onClick={handleNextDay}
                         className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
