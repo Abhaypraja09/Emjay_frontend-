@@ -364,6 +364,16 @@ const Sales = () => {
     fetchData();
   }, [selectedMonth, selectedYear]);
 
+  const [nextInvoiceNo, setNextInvoiceNo] = useState('');
+
+  useEffect(() => {
+    if (isModalOpen && !editingOrder) {
+      api.get('/orders/next-invoice', { params: { date: form.date } })
+        .then(res => setNextInvoiceNo(res.data.invoiceNo))
+        .catch(console.error);
+    }
+  }, [isModalOpen, editingOrder, form.date]);
+
   const [productions, setProductions] = useState<any[]>([]);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   
@@ -835,8 +845,16 @@ const Sales = () => {
                         exit={{ opacity: 0, y: 30 }}
                         className="bg-white rounded-lg w-full max-w-2xl z-50 relative shadow-2xl overflow-hidden"
                     >
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-800">{editingOrder ? 'Edit Sale' : 'New Sale Entry'}</h2>
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-start">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800">{editingOrder ? 'Edit Sale' : 'New Sale Entry'}</h2>
+                                {!editingOrder && nextInvoiceNo && (
+                                    <p className="text-sm font-bold text-blue-600 mt-1">Invoice No: {nextInvoiceNo}</p>
+                                )}
+                                {editingOrder && editingOrder.invoiceNo && (
+                                    <p className="text-sm font-bold text-blue-600 mt-1">Invoice No: {editingOrder.invoiceNo}</p>
+                                )}
+                            </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-6 h-6" /></button>
                         </div>
                         
@@ -968,17 +986,6 @@ const Sales = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 mb-2">
-                                <div className="space-y-1 w-1/2">
-                                    <label className="text-xs font-bold text-gray-600">Payment Status</label>
-                                    <select className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}>
-                                        <option value="Cash">Cash Only</option>
-                                        <option value="UPI">UPI / Online Only</option>
-                                        <option value="Split">Split (Cash + UPI)</option>
-                                        <option value="Due">Due / Unpaid</option>
-                                    </select>
-                                </div>
-                            </div>
 
                             {form.paymentMode === 'Split' && (
                                 <div className="grid grid-cols-3 gap-4 border border-indigo-100 bg-indigo-50/50 p-4 rounded-xl mt-4">

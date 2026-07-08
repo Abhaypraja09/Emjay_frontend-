@@ -314,7 +314,7 @@ export default function LiveBoard() {
                                     {new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })},{' '}
                                     {new Date(o.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                 </td>
-                                <td className="px-6 py-4">{o.invoiceNumber || o.orderNumber || `INV-${String(idx + 1).padStart(4, '0')}`}</td>
+                                <td className="px-6 py-4">{o.invoiceNo || o.orderNumber || `INV-${String(idx + 1).padStart(4, '0')}`}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide", o.type === 'B2B' ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600")}>
                                         {o.type === 'B2B' ? 'Wholesaler' : 'Retailer'}
