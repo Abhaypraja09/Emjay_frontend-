@@ -509,20 +509,80 @@ const Sales = () => {
             </div>
         </div>
 
-        {/* Totals Block */}
+        {/* Totals & Filters Block */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Sales</p>
-                <h3 className="text-2xl font-bold text-gray-800">₹{orders.reduce((a, b) => a + (b.grandTotal || b.totalAmount), 0).toLocaleString()}</h3>
-            </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Collected</p>
-                <h3 className="text-2xl font-bold text-green-600">₹{orders.reduce((a, b) => a + (b.paidAmount || 0), 0).toLocaleString()}</h3>
-            </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <p className="text-gray-400 text-xs font-bold uppercase mb-1">Total Pcs Sold</p>
-                <h3 className="text-2xl font-bold text-gray-800">{orders.reduce((a, b) => a + b.items.reduce((acc: number, item: any) => acc + item.quantity, 0), 0)} Pcs</h3>
-            </div>
+            {activeMainTab === 'ledger' ? (
+                <>
+                    <div 
+                        onClick={() => { setActiveMainTab('ledger'); setActiveTab('All'); }}
+                        className={cn(
+                            "cursor-pointer p-6 rounded-xl border shadow-sm transition-all",
+                            activeTab === 'All' ? "border-blue-600 ring-2 ring-blue-600 bg-blue-50/50" : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-md"
+                        )}
+                    >
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">All Sales</p>
+                            {activeTab === 'All' && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900">₹{orders.reduce((a, b) => a + (b.grandTotal || b.totalAmount), 0).toLocaleString()}</h3>
+                        <p className="text-xs text-gray-400 mt-2">Click to view all records</p>
+                    </div>
+                    
+                    <div 
+                        onClick={() => { setActiveMainTab('ledger'); setActiveTab('Wholesale'); }}
+                        className={cn(
+                            "cursor-pointer p-6 rounded-xl border shadow-sm transition-all",
+                            activeTab === 'Wholesale' ? "border-blue-600 ring-2 ring-blue-600 bg-blue-50/50" : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-md"
+                        )}
+                    >
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Wholesale (B2B)</p>
+                            {activeTab === 'Wholesale' && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900">₹{orders.filter(o => o.type === 'B2B').reduce((a, b) => a + (b.grandTotal || b.totalAmount), 0).toLocaleString()}</h3>
+                        <p className="text-xs text-gray-400 mt-2">Click to view wholesale</p>
+                    </div>
+                    
+                    <div 
+                        onClick={() => { setActiveMainTab('ledger'); setActiveTab('Retail'); }}
+                        className={cn(
+                            "cursor-pointer p-6 rounded-xl border shadow-sm transition-all",
+                            activeTab === 'Retail' ? "border-blue-600 ring-2 ring-blue-600 bg-blue-50/50" : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-md"
+                        )}
+                    >
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Retail (B2C)</p>
+                            {activeTab === 'Retail' && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900">₹{orders.filter(o => o.type === 'B2C' || o.type === 'Customer').reduce((a, b) => a + (b.grandTotal || b.totalAmount), 0).toLocaleString()}</h3>
+                        <p className="text-xs text-gray-400 mt-2">Click to view retail</p>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Overall Net Balance</p>
+                        <h3 className={cn("text-2xl font-bold", parties.reduce((a, p) => a + (p.balance || 0), 0) >= 0 ? "text-gray-900" : "text-emerald-600")}>
+                            ₹{Math.abs(parties.reduce((a, p) => a + (p.balance || 0), 0)).toLocaleString()}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-2">Combined balance of all customers</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Advance Received</p>
+                        <h3 className="text-2xl font-bold text-emerald-600">
+                            ₹{Math.abs(parties.reduce((a, p) => a + ((p.balance && p.balance < 0) ? p.balance : 0), 0)).toLocaleString()}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-2">Extra money deposited by customers</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Due (To Receive)</p>
+                        <h3 className="text-2xl font-bold text-rose-600">
+                            ₹{parties.reduce((a, p) => a + ((p.balance && p.balance > 0) ? p.balance : 0), 0).toLocaleString()}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-2">Money pending from customers</p>
+                    </div>
+                </>
+            )}
         </div>
 
         {/* Main Tab System */}
@@ -545,21 +605,7 @@ const Sales = () => {
 
         {activeMainTab === 'ledger' ? (
           <>
-            {/* Sales Ledger Content (Original) */}
-            <div className="flex flex-wrap sm:flex-nowrap bg-white p-1 rounded-lg border border-gray-200 w-full sm:w-fit mb-6 gap-1">
-                {['All', 'Wholesale', 'Retail'].map(tab => (
-                    <button 
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={cn(
-                            "px-6 py-2 rounded-md text-sm font-bold transition-all",
-                            activeTab === tab ? "bg-gray-800 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"
-                        )}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
+            {/* Sales Ledger Content */}
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
