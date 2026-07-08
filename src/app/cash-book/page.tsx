@@ -29,6 +29,15 @@ const CashBook = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [user, setUser] = useState<any>(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferForm, setTransferForm] = useState({ amount: '', date: new Date().toISOString().split('T')[0], remarks: '' });
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) setUser(JSON.parse(userStr));
+  }, []);
 
   const [form, setForm] = useState({
     type: 'IN',
@@ -71,6 +80,19 @@ const CashBook = () => {
       fetchData();
     } catch (error) {
       toast.error(editingId ? 'Failed to update entry' : 'Failed to save entry');
+    }
+  };
+
+  const handleTransferSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/cash/transfer-to-main', transferForm);
+      toast.success('Amount transferred to Main Company');
+      setIsTransferModalOpen(false);
+      setTransferForm({ amount: '', date: new Date().toISOString().split('T')[0], remarks: '' });
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to transfer amount');
     }
   };
 
@@ -125,7 +147,7 @@ const CashBook = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 pt-20 lg:p-8 lg:pt-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -133,28 +155,37 @@ const CashBook = () => {
             <h1 className="text-2xl font-bold text-gray-900">Cash Book</h1>
             <p className="text-sm text-gray-500 mt-1">Real-time payment tracking and cash flow</p>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
             <MonthYearFilter 
               selectedMonth={selectedMonth} 
               selectedYear={selectedYear} 
               onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
             />
+            {user?.role === 'branch_admin' && (
+                <button 
+                  onClick={() => setIsTransferModalOpen(true)}
+                  className="w-full sm:w-auto bg-amber-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-amber-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]"
+                >
+                  <ArrowUpRight className="w-4 h-4 opacity-70" strokeWidth={3} />
+                  <span className="leading-tight text-left">Transfer to<br/>Company</span>
+                </button>
+            )}
             <button 
               onClick={() => {
                 setEditingId(null);
                 setForm({ type: 'IN', amount: '', category: 'Sale', paymentMode: 'Cash', description: '', date: new Date().toISOString().split('T')[0] });
                 setIsModalOpen(true);
               }}
-              className="bg-[#2563eb] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]"
+              className="w-full sm:w-auto bg-[#2563eb] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]"
             >
               <Plus className="w-4 h-4 opacity-70" strokeWidth={3} />
               <span className="leading-tight text-left">New<br/>Entry</span>
             </button>
-            <button onClick={handleExportCSV} className="bg-[#059669] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]">
+            <button onClick={handleExportCSV} className="w-full sm:w-auto bg-[#059669] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]">
                <Download className="w-4 h-4 opacity-70" strokeWidth={3} />
                <span className="leading-tight text-left">Excel<br/>/ CSV</span>
             </button>
-            <button onClick={handlePrint} className="bg-[#1e293b] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-slate-900 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]">
+            <button onClick={handlePrint} className="w-full sm:w-auto bg-[#1e293b] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-slate-900 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]">
                <Printer className="w-4 h-4 opacity-70" strokeWidth={3} />
                <span className="leading-tight text-left">PDF /<br/>Print</span>
             </button>
@@ -206,7 +237,7 @@ const CashBook = () => {
             <h3 className="font-bold text-gray-900 uppercase text-sm tracking-tight">Recent Transactions</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[800px]">
               <thead className="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
                 <tr>
                   <th className="px-8 py-4">Date</th>
@@ -224,10 +255,10 @@ const CashBook = () => {
                     return d1;
                 }).map((log: any) => (
                   <tr key={log._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-8 py-5 text-xs font-bold text-gray-500">
+                    <td className="px-8 py-5 text-xs font-bold text-gray-500 whitespace-nowrap">
                       {new Date(log.date).toLocaleDateString()}
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-8 py-5 whitespace-nowrap">
                       <p className="font-bold text-gray-900 text-sm">{log.description || 'No description'}</p>
                       {log.isAutoGenerated && log.paymentStatus && log.paymentStatus !== 'paid' && (
                         <span className={cn(
@@ -238,18 +269,18 @@ const CashBook = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-8 py-5 whitespace-nowrap">
                       <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-600">
                         {log.category}
                       </span>
                     </td>
-                    <td className="px-8 py-5 font-bold text-emerald-600">
+                    <td className="px-8 py-5 font-bold text-emerald-600 whitespace-nowrap">
                       {log.type === 'IN' ? `₹${(log.amount || 0).toLocaleString()}` : '-'}
                     </td>
-                    <td className="px-8 py-5 font-bold text-rose-600">
+                    <td className="px-8 py-5 font-bold text-rose-600 whitespace-nowrap">
                       {log.type === 'OUT' ? `₹${(log.amount || 0).toLocaleString()}` : '-'}
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-8 py-5 text-right whitespace-nowrap">
                       {!log.isAutoGenerated ? (
                         <div className="flex items-center justify-end gap-3">
                           <button onClick={() => handleEdit(log)} className="text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
@@ -287,7 +318,7 @@ const CashBook = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Type</label>
                       <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={form.type} onChange={e => setForm({...form, type: e.target.value, category: e.target.value === 'IN' ? 'Sale' : 'Salary'})}>
@@ -301,7 +332,7 @@ const CashBook = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Category</label>
                       <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
@@ -346,6 +377,42 @@ const CashBook = () => {
 
                   <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98]">
                     Save Transaction
+                  </button>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Transfer Modal */}
+        <AnimatePresence>
+          {isTransferModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsTransferModalOpen(false)} />
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                  <h2 className="text-xl font-bold text-gray-900">Transfer to Company</h2>
+                  <button onClick={() => setIsTransferModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><XCircle className="w-6 h-6" /></button>
+                </div>
+
+                <form onSubmit={handleTransferSubmit} className="p-6 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest text-amber-600">Amount to Transfer (₹)</label>
+                    <input type="number" required className="w-full bg-amber-50 border border-amber-100 rounded-lg px-4 py-4 text-2xl font-black text-amber-600 outline-none" placeholder="0" value={transferForm.amount} onChange={e => setTransferForm({...transferForm, amount: e.target.value})} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Date</label>
+                    <input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none" value={transferForm.date} onChange={e => setTransferForm({...transferForm, date: e.target.value})} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Remarks</label>
+                    <textarea className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none h-24" placeholder="Enter details..." value={transferForm.remarks} onChange={e => setTransferForm({...transferForm, remarks: e.target.value})} />
+                  </div>
+
+                  <button type="submit" className="w-full bg-amber-600 text-white py-4 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-amber-600/20 hover:bg-amber-700 transition-all active:scale-[0.98]">
+                    Send Transfer
                   </button>
                 </form>
               </motion.div>

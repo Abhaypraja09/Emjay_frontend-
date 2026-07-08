@@ -124,11 +124,32 @@ const Sidebar = ()=>{
             icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ShieldCheck$7d$__["ShieldCheck"]
         },
         {
+            name: 'Manage Admins',
+            path: '/manage-admin',
+            icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ShieldCheck$7d$__["ShieldCheck"]
+        },
+        {
             name: 'Reports',
             path: '/reports',
             icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__FileText$7d$__["FileText"]
         }
     ];
+    const filteredNavItems = navItems.filter((item)=>{
+        if (user?.role === 'branch_admin') {
+            return [
+                '/branch-stock',
+                '/sales',
+                '/cash-book'
+            ].includes(item.path);
+        }
+        return true; // Admin and others see all
+    });
+    const getMenuName = (item)=>{
+        if (user?.role === 'branch_admin' && item.path === '/branch-stock') {
+            return user?.branchName || 'My Branch';
+        }
+        return item.name;
+    };
     const handleLogout = ()=>{
         localStorage.removeItem('user');
         router.push('/login');
@@ -140,7 +161,7 @@ const Sidebar = ()=>{
                 onClick: ()=>setIsMobileMenuOpen(false)
             }, void 0, false, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 69,
+                lineNumber: 82,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -150,18 +171,18 @@ const Sidebar = ()=>{
                     className: "w-6 h-6"
                 }, void 0, false, {
                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                    lineNumber: 80,
+                    lineNumber: 93,
                     columnNumber: 29
                 }, this) : /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Menu$7d$__["Menu"], {
                     className: "w-6 h-6"
                 }, void 0, false, {
                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                    lineNumber: 80,
+                    lineNumber: 93,
                     columnNumber: 57
                 }, this)
             }, void 0, false, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 76,
+                lineNumber: 89,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("aside", {
@@ -180,12 +201,12 @@ const Sidebar = ()=>{
                                         className: "w-full h-full object-contain"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 94,
+                                        lineNumber: 107,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 93,
+                                    lineNumber: 106,
                                     columnNumber: 13
                                 }, this),
                                 !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -196,7 +217,7 @@ const Sidebar = ()=>{
                                             children: "Emjay"
                                         }, void 0, false, {
                                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                                            lineNumber: 98,
+                                            lineNumber: 111,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -204,24 +225,24 @@ const Sidebar = ()=>{
                                             children: "Brewery"
                                         }, void 0, false, {
                                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                                            lineNumber: 99,
+                                            lineNumber: 112,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 97,
+                                    lineNumber: 110,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                            lineNumber: 92,
+                            lineNumber: 105,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 91,
+                        lineNumber: 104,
                         columnNumber: 9
                     }, this),
                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -233,12 +254,12 @@ const Sidebar = ()=>{
                                     className: "w-5 h-5"
                                 }, void 0, false, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 109,
+                                    lineNumber: 122,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 108,
+                                lineNumber: 121,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -249,7 +270,7 @@ const Sidebar = ()=>{
                                         children: user?.name || 'Admin'
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 112,
+                                        lineNumber: 125,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -257,24 +278,24 @@ const Sidebar = ()=>{
                                         children: user?.role || 'Manager'
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 113,
+                                        lineNumber: 126,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 111,
+                                lineNumber: 124,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 107,
+                        lineNumber: 120,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("nav", {
                         className: "flex-1 mt-4 px-3 space-y-1",
-                        children: navItems.map((item)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                        children: filteredNavItems.map((item)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                 href: item.path,
                                 className: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cn$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"]("flex items-center gap-3 px-4 py-3 rounded-lg transition-all", pathname === item.path ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"),
                                 children: [
@@ -282,26 +303,26 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 131,
+                                        lineNumber: 144,
                                         columnNumber: 15
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
                                         className: "text-sm font-semibold",
-                                        children: item.name
+                                        children: getMenuName(item)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 132,
+                                        lineNumber: 145,
                                         columnNumber: 32
                                     }, this)
                                 ]
                             }, item.path, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 121,
+                                lineNumber: 134,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 119,
+                        lineNumber: 132,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -315,13 +336,13 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 143,
+                                        lineNumber: 156,
                                         columnNumber: 28
                                     }, this) : /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ChevronLeft$7d$__["ChevronLeft"], {
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 143,
+                                        lineNumber: 156,
                                         columnNumber: 67
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -329,13 +350,13 @@ const Sidebar = ()=>{
                                         children: "Collapse"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 144,
+                                        lineNumber: 157,
                                         columnNumber: 30
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 139,
+                                lineNumber: 152,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -346,7 +367,7 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 151,
+                                        lineNumber: 164,
                                         columnNumber: 13
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -354,25 +375,25 @@ const Sidebar = ()=>{
                                         children: "Logout"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 152,
+                                        lineNumber: 165,
                                         columnNumber: 30
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 147,
+                                lineNumber: 160,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 138,
+                        lineNumber: 151,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 83,
+                lineNumber: 96,
                 columnNumber: 7
             }, this)
         ]
@@ -622,6 +643,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Sidebar
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/src/services/api.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/react-hot-toast/dist/index.mjs [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Plus$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript) {export default as Plus}");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ArrowUpRight$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/arrow-up-right.js [app-client] (ecmascript) {export default as ArrowUpRight}");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$wallet$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Wallet$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/wallet.js [app-client] (ecmascript) {export default as Wallet}");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__XCircle$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/x-circle.js [app-client] (ecmascript) {export default as XCircle}");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$history$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__History$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/history.js [app-client] (ecmascript) {export default as History}");
@@ -662,6 +684,17 @@ const CashBook = ()=>{
     const [selectedYear, setSelectedYear] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](new Date().getFullYear());
     const [isModalOpen, setIsModalOpen] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
     const [editingId, setEditingId] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](null);
+    const [user, setUser] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](null);
+    const [isTransferModalOpen, setIsTransferModalOpen] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
+    const [transferForm, setTransferForm] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"]({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        remarks: ''
+    });
+    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"](()=>{
+        const userStr = localStorage.getItem('user');
+        if (userStr) setUser(JSON.parse(userStr));
+    }, []);
     const [form, setForm] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"]({
         type: 'IN',
         amount: '',
@@ -715,6 +748,22 @@ const CashBook = ()=>{
             fetchData();
         } catch (error) {
             __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].error(editingId ? 'Failed to update entry' : 'Failed to save entry');
+        }
+    };
+    const handleTransferSubmit = async (e)=>{
+        e.preventDefault();
+        try {
+            await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post('/cash/transfer-to-main', transferForm);
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].success('Amount transferred to Main Company');
+            setIsTransferModalOpen(false);
+            setTransferForm({
+                amount: '',
+                date: new Date().toISOString().split('T')[0],
+                remarks: ''
+            });
+            fetchData();
+        } catch (error) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].error('Failed to transfer amount');
         }
     };
     const handleEdit = (log)=>{
@@ -778,7 +827,7 @@ const CashBook = ()=>{
         children: "Loading Cash Book..."
     }, void 0, false, {
         fileName: "<[project]/src/app/cash-book/page.tsx>",
-        lineNumber: 123,
+        lineNumber: 145,
         columnNumber: 23
     }, this);
     return /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -786,11 +835,11 @@ const CashBook = ()=>{
         children: [
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                lineNumber: 127,
+                lineNumber: 149,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("main", {
-                className: "flex-1 lg:ml-64 p-8",
+                className: "flex-1 lg:ml-64 p-4 pt-20 lg:p-8 lg:pt-8",
                 children: [
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                         className: "flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10",
@@ -802,7 +851,7 @@ const CashBook = ()=>{
                                         children: "Cash Book"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 133,
+                                        lineNumber: 155,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -810,17 +859,17 @@ const CashBook = ()=>{
                                         children: "Real-time payment tracking and cash flow"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 134,
+                                        lineNumber: 156,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 132,
+                                lineNumber: 154,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
-                                className: "flex flex-col md:flex-row items-center gap-4",
+                                className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto",
                                 children: [
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$MonthYearFilter$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                         selectedMonth: selectedMonth,
@@ -831,8 +880,42 @@ const CashBook = ()=>{
                                         }
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 137,
+                                        lineNumber: 159,
                                         columnNumber: 13
+                                    }, this),
+                                    user?.role === 'branch_admin' && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
+                                        onClick: ()=>setIsTransferModalOpen(true),
+                                        className: "w-full sm:w-auto bg-amber-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-amber-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
+                                        children: [
+                                            /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ArrowUpRight$7d$__["ArrowUpRight"], {
+                                                className: "w-4 h-4 opacity-70",
+                                                strokeWidth: 3
+                                            }, void 0, false, {
+                                                fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                lineNumber: 169,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
+                                                className: "leading-tight text-left",
+                                                children: [
+                                                    "Transfer to",
+                                                    /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("br", {}, void 0, false, {
+                                                        fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                        lineNumber: 170,
+                                                        columnNumber: 72
+                                                    }, this),
+                                                    "Company"
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                lineNumber: 170,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                        lineNumber: 165,
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
                                         onClick: ()=>{
@@ -847,14 +930,14 @@ const CashBook = ()=>{
                                             });
                                             setIsModalOpen(true);
                                         },
-                                        className: "bg-[#2563eb] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
+                                        className: "w-full sm:w-auto bg-[#2563eb] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
                                         children: [
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Plus$7d$__["Plus"], {
                                                 className: "w-4 h-4 opacity-70",
                                                 strokeWidth: 3
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 150,
+                                                lineNumber: 181,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -863,32 +946,32 @@ const CashBook = ()=>{
                                                     "New",
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("br", {}, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 151,
+                                                        lineNumber: 182,
                                                         columnNumber: 60
                                                     }, this),
                                                     "Entry"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 151,
+                                                lineNumber: 182,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 142,
+                                        lineNumber: 173,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
                                         onClick: handleExportCSV,
-                                        className: "bg-[#059669] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
+                                        className: "w-full sm:w-auto bg-[#059669] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
                                         children: [
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Download$7d$__["Download"], {
                                                 className: "w-4 h-4 opacity-70",
                                                 strokeWidth: 3
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 154,
+                                                lineNumber: 185,
                                                 columnNumber: 16
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -897,32 +980,32 @@ const CashBook = ()=>{
                                                     "Excel",
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("br", {}, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 155,
+                                                        lineNumber: 186,
                                                         columnNumber: 63
                                                     }, this),
                                                     "/ CSV"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 155,
+                                                lineNumber: 186,
                                                 columnNumber: 16
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 153,
+                                        lineNumber: 184,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
                                         onClick: handlePrint,
-                                        className: "bg-[#1e293b] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-slate-900 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
+                                        className: "w-full sm:w-auto bg-[#1e293b] text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2.5 hover:bg-slate-900 transition-all shadow-sm active:scale-95 text-[13px] hide-on-print h-[48px]",
                                         children: [
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$printer$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Printer$7d$__["Printer"], {
                                                 className: "w-4 h-4 opacity-70",
                                                 strokeWidth: 3
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 158,
+                                                lineNumber: 189,
                                                 columnNumber: 16
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -931,32 +1014,32 @@ const CashBook = ()=>{
                                                     "PDF /",
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("br", {}, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 159,
+                                                        lineNumber: 190,
                                                         columnNumber: 63
                                                     }, this),
                                                     "Print"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 159,
+                                                lineNumber: 190,
                                                 columnNumber: 16
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 157,
+                                        lineNumber: 188,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 136,
+                                lineNumber: 158,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                        lineNumber: 131,
+                        lineNumber: 153,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -972,7 +1055,7 @@ const CashBook = ()=>{
                                                 children: "Total Income (In)"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 168,
+                                                lineNumber: 199,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("h3", {
@@ -983,7 +1066,7 @@ const CashBook = ()=>{
                                                         children: "+"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 170,
+                                                        lineNumber: 201,
                                                         columnNumber: 17
                                                     }, this),
                                                     " ₹",
@@ -991,13 +1074,13 @@ const CashBook = ()=>{
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 169,
+                                                lineNumber: 200,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 167,
+                                        lineNumber: 198,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1008,23 +1091,23 @@ const CashBook = ()=>{
                                                 className: "w-5 h-5"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 174,
+                                                lineNumber: 205,
                                                 columnNumber: 78
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 174,
+                                            lineNumber: 205,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 173,
+                                        lineNumber: 204,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 166,
+                                lineNumber: 197,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1037,7 +1120,7 @@ const CashBook = ()=>{
                                                 children: "Total Expense (Out)"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 179,
+                                                lineNumber: 210,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("h3", {
@@ -1048,7 +1131,7 @@ const CashBook = ()=>{
                                                         children: "-"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 181,
+                                                        lineNumber: 212,
                                                         columnNumber: 17
                                                     }, this),
                                                     " ₹",
@@ -1056,13 +1139,13 @@ const CashBook = ()=>{
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 180,
+                                                lineNumber: 211,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 178,
+                                        lineNumber: 209,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1073,23 +1156,23 @@ const CashBook = ()=>{
                                                 className: "w-5 h-5"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 185,
+                                                lineNumber: 216,
                                                 columnNumber: 72
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 185,
+                                            lineNumber: 216,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 184,
+                                        lineNumber: 215,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 177,
+                                lineNumber: 208,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1102,7 +1185,7 @@ const CashBook = ()=>{
                                                 children: "Current Balance"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 193,
+                                                lineNumber: 224,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("h3", {
@@ -1113,13 +1196,13 @@ const CashBook = ()=>{
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 194,
+                                                lineNumber: 225,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 192,
+                                        lineNumber: 223,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1130,29 +1213,29 @@ const CashBook = ()=>{
                                                 className: "w-5 h-5"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 197,
+                                                lineNumber: 228,
                                                 columnNumber: 70
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 197,
+                                            lineNumber: 228,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 196,
+                                        lineNumber: 227,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 188,
+                                lineNumber: 219,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                        lineNumber: 165,
+                        lineNumber: 196,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1167,12 +1250,12 @@ const CashBook = ()=>{
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 205,
+                                            lineNumber: 236,
                                             columnNumber: 68
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 205,
+                                        lineNumber: 236,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("h3", {
@@ -1180,19 +1263,19 @@ const CashBook = ()=>{
                                         children: "Recent Transactions"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                        lineNumber: 206,
+                                        lineNumber: 237,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 204,
+                                lineNumber: 235,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                                 className: "overflow-x-auto",
                                 children: /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("table", {
-                                    className: "w-full text-left",
+                                    className: "w-full text-left min-w-[800px]",
                                     children: [
                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("thead", {
                                             className: "bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100",
@@ -1203,7 +1286,7 @@ const CashBook = ()=>{
                                                         children: "Date"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 212,
+                                                        lineNumber: 243,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1211,7 +1294,7 @@ const CashBook = ()=>{
                                                         children: "Particulars / Party Details"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 213,
+                                                        lineNumber: 244,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1219,7 +1302,7 @@ const CashBook = ()=>{
                                                         children: "Category"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 214,
+                                                        lineNumber: 245,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1227,7 +1310,7 @@ const CashBook = ()=>{
                                                         children: "Debit (IN)"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 215,
+                                                        lineNumber: 246,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1235,7 +1318,7 @@ const CashBook = ()=>{
                                                         children: "Credit (OUT)"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 216,
+                                                        lineNumber: 247,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1243,18 +1326,18 @@ const CashBook = ()=>{
                                                         children: "Actions"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 217,
+                                                        lineNumber: 248,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                lineNumber: 211,
+                                                lineNumber: 242,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 210,
+                                            lineNumber: 241,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tbody", {
@@ -1270,22 +1353,22 @@ const CashBook = ()=>{
                                                         className: "hover:bg-gray-50 transition-colors",
                                                         children: [
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5 text-xs font-bold text-gray-500",
+                                                                className: "px-8 py-5 text-xs font-bold text-gray-500 whitespace-nowrap",
                                                                 children: new Date(log.date).toLocaleDateString()
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 227,
+                                                                lineNumber: 258,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5",
+                                                                className: "px-8 py-5 whitespace-nowrap",
                                                                 children: [
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
                                                                         className: "font-bold text-gray-900 text-sm",
                                                                         children: log.description || 'No description'
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                        lineNumber: 231,
+                                                                        lineNumber: 262,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     log.isAutoGenerated && log.paymentStatus && log.paymentStatus !== 'paid' && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -1293,48 +1376,48 @@ const CashBook = ()=>{
                                                                         children: log.paymentStatus === 'partial' ? 'Partial' : 'Unpaid / Due'
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                        lineNumber: 233,
+                                                                        lineNumber: 264,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 230,
+                                                                lineNumber: 261,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5",
+                                                                className: "px-8 py-5 whitespace-nowrap",
                                                                 children: /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
                                                                     className: "px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-600",
                                                                     children: log.category
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 242,
+                                                                    lineNumber: 273,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 241,
+                                                                lineNumber: 272,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5 font-bold text-emerald-600",
+                                                                className: "px-8 py-5 font-bold text-emerald-600 whitespace-nowrap",
                                                                 children: log.type === 'IN' ? `₹${(log.amount || 0).toLocaleString()}` : '-'
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 246,
+                                                                lineNumber: 277,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5 font-bold text-rose-600",
+                                                                className: "px-8 py-5 font-bold text-rose-600 whitespace-nowrap",
                                                                 children: log.type === 'OUT' ? `₹${(log.amount || 0).toLocaleString()}` : '-'
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 249,
+                                                                lineNumber: 280,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                className: "px-8 py-5 text-right",
+                                                                className: "px-8 py-5 text-right whitespace-nowrap",
                                                                 children: !log.isAutoGenerated ? /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                                                                     className: "flex items-center justify-end gap-3",
                                                                     children: [
@@ -1346,12 +1429,12 @@ const CashBook = ()=>{
                                                                                 className: "w-4 h-4"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 256,
+                                                                                lineNumber: 287,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                            lineNumber: 255,
+                                                                            lineNumber: 286,
                                                                             columnNumber: 27
                                                                         }, this),
                                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1362,36 +1445,36 @@ const CashBook = ()=>{
                                                                                 className: "w-4 h-4"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 259,
+                                                                                lineNumber: 290,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                            lineNumber: 258,
+                                                                            lineNumber: 289,
                                                                             columnNumber: 27
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 254,
+                                                                    lineNumber: 285,
                                                                     columnNumber: 25
                                                                 }, this) : /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
                                                                     className: "text-[9px] font-black text-gray-300 uppercase tracking-widest",
                                                                     children: "Auto"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 263,
+                                                                    lineNumber: 294,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                lineNumber: 252,
+                                                                lineNumber: 283,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, log._id, true, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 226,
+                                                        lineNumber: 257,
                                                         columnNumber: 19
                                                     }, this)),
                                                 data.logs.length === 0 && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tr", {
@@ -1401,35 +1484,35 @@ const CashBook = ()=>{
                                                         children: "No transactions found for this period."
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 270,
+                                                        lineNumber: 301,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 269,
+                                                    lineNumber: 300,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 220,
+                                            lineNumber: 251,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                    lineNumber: 209,
+                                    lineNumber: 240,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                lineNumber: 208,
+                                lineNumber: 239,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                        lineNumber: 203,
+                        lineNumber: 234,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1450,7 +1533,7 @@ const CashBook = ()=>{
                                     onClick: ()=>setIsModalOpen(false)
                                 }, void 0, false, {
                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                    lineNumber: 282,
+                                    lineNumber: 313,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -1476,7 +1559,7 @@ const CashBook = ()=>{
                                                     children: editingId ? 'Edit Cash Book Entry' : 'New Cash Book Entry'
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 285,
+                                                    lineNumber: 316,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1486,18 +1569,18 @@ const CashBook = ()=>{
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                        lineNumber: 286,
+                                                        lineNumber: 317,
                                                         columnNumber: 129
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 286,
+                                                    lineNumber: 317,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 284,
+                                            lineNumber: 315,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("form", {
@@ -1505,7 +1588,7 @@ const CashBook = ()=>{
                                             className: "p-6 space-y-4",
                                             children: [
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
-                                                    className: "grid grid-cols-2 gap-4",
+                                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
                                                     children: [
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                                                             className: "space-y-1",
@@ -1515,7 +1598,7 @@ const CashBook = ()=>{
                                                                     children: "Type"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 292,
+                                                                    lineNumber: 323,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("select", {
@@ -1532,7 +1615,7 @@ const CashBook = ()=>{
                                                                             children: "Income"
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                            lineNumber: 294,
+                                                                            lineNumber: 325,
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
@@ -1540,19 +1623,19 @@ const CashBook = ()=>{
                                                                             children: "Expense"
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                            lineNumber: 295,
+                                                                            lineNumber: 326,
                                                                             columnNumber: 25
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 293,
+                                                                    lineNumber: 324,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 291,
+                                                            lineNumber: 322,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1563,7 +1646,7 @@ const CashBook = ()=>{
                                                                     children: "Date"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 299,
+                                                                    lineNumber: 330,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1577,23 +1660,23 @@ const CashBook = ()=>{
                                                                         })
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 300,
+                                                                    lineNumber: 331,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 298,
+                                                            lineNumber: 329,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 290,
+                                                    lineNumber: 321,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
-                                                    className: "grid grid-cols-2 gap-4",
+                                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
                                                     children: [
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                                                             className: "space-y-1",
@@ -1603,7 +1686,7 @@ const CashBook = ()=>{
                                                                     children: "Category"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 306,
+                                                                    lineNumber: 337,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("select", {
@@ -1619,42 +1702,42 @@ const CashBook = ()=>{
                                                                                 children: "Sale"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 310,
+                                                                                lineNumber: 341,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Capital Introduced"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 311,
+                                                                                lineNumber: 342,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Other Income"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 312,
+                                                                                lineNumber: 343,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Loan Received"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 313,
+                                                                                lineNumber: 344,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Refund Received"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 314,
+                                                                                lineNumber: 345,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Miscellaneous Income"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 315,
+                                                                                lineNumber: 346,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         ]
@@ -1664,55 +1747,55 @@ const CashBook = ()=>{
                                                                                 children: "Salary"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 319,
+                                                                                lineNumber: 350,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Rent"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 320,
+                                                                                lineNumber: 351,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Electricity"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 321,
+                                                                                lineNumber: 352,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Fuel"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 322,
+                                                                                lineNumber: 353,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Maintenance"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 323,
+                                                                                lineNumber: 354,
                                                                                 columnNumber: 29
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                                 children: "Other"
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                                lineNumber: 324,
+                                                                                lineNumber: 355,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true)
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 307,
+                                                                    lineNumber: 338,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 305,
+                                                            lineNumber: 336,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1723,7 +1806,7 @@ const CashBook = ()=>{
                                                                     children: "Mode"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 330,
+                                                                    lineNumber: 361,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("select", {
@@ -1735,24 +1818,24 @@ const CashBook = ()=>{
                                                                         children: "Cash"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                        lineNumber: 332,
+                                                                        lineNumber: 363,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                                    lineNumber: 331,
+                                                                    lineNumber: 362,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 329,
+                                                            lineNumber: 360,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 304,
+                                                    lineNumber: 335,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1763,7 +1846,7 @@ const CashBook = ()=>{
                                                             children: "Amount (₹)"
                                                         }, void 0, false, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 338,
+                                                            lineNumber: 369,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1778,13 +1861,13 @@ const CashBook = ()=>{
                                                                 })
                                                         }, void 0, false, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 339,
+                                                            lineNumber: 370,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 337,
+                                                    lineNumber: 368,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1795,7 +1878,7 @@ const CashBook = ()=>{
                                                             children: "Description"
                                                         }, void 0, false, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 343,
+                                                            lineNumber: 374,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("textarea", {
@@ -1808,13 +1891,13 @@ const CashBook = ()=>{
                                                                 })
                                                         }, void 0, false, {
                                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                            lineNumber: 344,
+                                                            lineNumber: 375,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 342,
+                                                    lineNumber: 373,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1823,46 +1906,243 @@ const CashBook = ()=>{
                                                     children: "Save Transaction"
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                                    lineNumber: 347,
+                                                    lineNumber: 378,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                            lineNumber: 289,
+                                            lineNumber: 320,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "<[project]/src/app/cash-book/page.tsx>",
-                                    lineNumber: 283,
+                                    lineNumber: 314,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "<[project]/src/app/cash-book/page.tsx>",
-                            lineNumber: 281,
+                            lineNumber: 312,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "<[project]/src/app/cash-book/page.tsx>",
-                        lineNumber: 279,
+                        lineNumber: 310,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
+                        children: isTransferModalOpen && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
+                            className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+                            children: [
+                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
+                                    initial: {
+                                        opacity: 0
+                                    },
+                                    animate: {
+                                        opacity: 1
+                                    },
+                                    exit: {
+                                        opacity: 0
+                                    },
+                                    className: "fixed inset-0 bg-slate-900/40 backdrop-blur-sm",
+                                    onClick: ()=>setIsTransferModalOpen(false)
+                                }, void 0, false, {
+                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                    lineNumber: 391,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
+                                    initial: {
+                                        scale: 0.95,
+                                        opacity: 0
+                                    },
+                                    animate: {
+                                        scale: 1,
+                                        opacity: 1
+                                    },
+                                    exit: {
+                                        scale: 0.95,
+                                        opacity: 0
+                                    },
+                                    className: "bg-white rounded-2xl w-full max-w-lg z-50 relative shadow-xl overflow-hidden",
+                                    children: [
+                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
+                                            className: "p-6 border-b border-gray-100 flex justify-between items-center",
+                                            children: [
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("h2", {
+                                                    className: "text-xl font-bold text-gray-900",
+                                                    children: "Transfer to Company"
+                                                }, void 0, false, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 394,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
+                                                    onClick: ()=>setIsTransferModalOpen(false),
+                                                    className: "text-gray-400 hover:text-gray-600 transition-colors",
+                                                    children: /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__XCircle$7d$__["XCircle"], {
+                                                        className: "w-6 h-6"
+                                                    }, void 0, false, {
+                                                        fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                        lineNumber: 395,
+                                                        columnNumber: 137
+                                                    }, this)
+                                                }, void 0, false, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 395,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                            lineNumber: 393,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("form", {
+                                            onSubmit: handleTransferSubmit,
+                                            className: "p-6 space-y-4",
+                                            children: [
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
+                                                    className: "space-y-1",
+                                                    children: [
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("label", {
+                                                            className: "text-xs font-bold text-gray-500 uppercase tracking-widest text-amber-600",
+                                                            children: "Amount to Transfer (₹)"
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 400,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
+                                                            type: "number",
+                                                            required: true,
+                                                            className: "w-full bg-amber-50 border border-amber-100 rounded-lg px-4 py-4 text-2xl font-black text-amber-600 outline-none",
+                                                            placeholder: "0",
+                                                            value: transferForm.amount,
+                                                            onChange: (e)=>setTransferForm({
+                                                                    ...transferForm,
+                                                                    amount: e.target.value
+                                                                })
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 401,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 399,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
+                                                    className: "space-y-1",
+                                                    children: [
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("label", {
+                                                            className: "text-xs font-bold text-gray-500 uppercase tracking-widest",
+                                                            children: "Date"
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 405,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
+                                                            type: "date",
+                                                            required: true,
+                                                            className: "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none",
+                                                            value: transferForm.date,
+                                                            onChange: (e)=>setTransferForm({
+                                                                    ...transferForm,
+                                                                    date: e.target.value
+                                                                })
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 406,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 404,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
+                                                    className: "space-y-1",
+                                                    children: [
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("label", {
+                                                            className: "text-xs font-bold text-gray-500 uppercase tracking-widest",
+                                                            children: "Remarks"
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 410,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("textarea", {
+                                                            className: "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none h-24",
+                                                            placeholder: "Enter details...",
+                                                            value: transferForm.remarks,
+                                                            onChange: (e)=>setTransferForm({
+                                                                    ...transferForm,
+                                                                    remarks: e.target.value
+                                                                })
+                                                        }, void 0, false, {
+                                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                            lineNumber: 411,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 409,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
+                                                    type: "submit",
+                                                    className: "w-full bg-amber-600 text-white py-4 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-amber-600/20 hover:bg-amber-700 transition-all active:scale-[0.98]",
+                                                    children: "Send Transfer"
+                                                }, void 0, false, {
+                                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                                    lineNumber: 414,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                            lineNumber: 398,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "<[project]/src/app/cash-book/page.tsx>",
+                                    lineNumber: 392,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "<[project]/src/app/cash-book/page.tsx>",
+                            lineNumber: 390,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "<[project]/src/app/cash-book/page.tsx>",
+                        lineNumber: 388,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "<[project]/src/app/cash-book/page.tsx>",
-                lineNumber: 128,
+                lineNumber: 150,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "<[project]/src/app/cash-book/page.tsx>",
-        lineNumber: 126,
+        lineNumber: 148,
         columnNumber: 5
     }, this);
 };
-_s(CashBook, "XX5hlQD7WPiCbnHFtEPs5/7WliY=");
+_s(CashBook, "0lVb+c+yr3e+xIMSsEhJd/qum0s=");
 _c = CashBook;
 const __TURBOPACK__default__export__ = CashBook;
 var _c;

@@ -124,11 +124,32 @@ const Sidebar = ()=>{
             icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ShieldCheck$7d$__["ShieldCheck"]
         },
         {
+            name: 'Manage Admins',
+            path: '/manage-admin',
+            icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ShieldCheck$7d$__["ShieldCheck"]
+        },
+        {
             name: 'Reports',
             path: '/reports',
             icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__FileText$7d$__["FileText"]
         }
     ];
+    const filteredNavItems = navItems.filter((item)=>{
+        if (user?.role === 'branch_admin') {
+            return [
+                '/branch-stock',
+                '/sales',
+                '/cash-book'
+            ].includes(item.path);
+        }
+        return true; // Admin and others see all
+    });
+    const getMenuName = (item)=>{
+        if (user?.role === 'branch_admin' && item.path === '/branch-stock') {
+            return user?.branchName || 'My Branch';
+        }
+        return item.name;
+    };
     const handleLogout = ()=>{
         localStorage.removeItem('user');
         router.push('/login');
@@ -140,7 +161,7 @@ const Sidebar = ()=>{
                 onClick: ()=>setIsMobileMenuOpen(false)
             }, void 0, false, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 69,
+                lineNumber: 82,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -150,18 +171,18 @@ const Sidebar = ()=>{
                     className: "w-6 h-6"
                 }, void 0, false, {
                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                    lineNumber: 80,
+                    lineNumber: 93,
                     columnNumber: 29
                 }, this) : /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__Menu$7d$__["Menu"], {
                     className: "w-6 h-6"
                 }, void 0, false, {
                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                    lineNumber: 80,
+                    lineNumber: 93,
                     columnNumber: 57
                 }, this)
             }, void 0, false, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 76,
+                lineNumber: 89,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("aside", {
@@ -180,12 +201,12 @@ const Sidebar = ()=>{
                                         className: "w-full h-full object-contain"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 94,
+                                        lineNumber: 107,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 93,
+                                    lineNumber: 106,
                                     columnNumber: 13
                                 }, this),
                                 !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -196,7 +217,7 @@ const Sidebar = ()=>{
                                             children: "Emjay"
                                         }, void 0, false, {
                                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                                            lineNumber: 98,
+                                            lineNumber: 111,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -204,24 +225,24 @@ const Sidebar = ()=>{
                                             children: "Brewery"
                                         }, void 0, false, {
                                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                                            lineNumber: 99,
+                                            lineNumber: 112,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 97,
+                                    lineNumber: 110,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "<[project]/src/components/Sidebar.tsx>",
-                            lineNumber: 92,
+                            lineNumber: 105,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 91,
+                        lineNumber: 104,
                         columnNumber: 9
                     }, this),
                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -233,12 +254,12 @@ const Sidebar = ()=>{
                                     className: "w-5 h-5"
                                 }, void 0, false, {
                                     fileName: "<[project]/src/components/Sidebar.tsx>",
-                                    lineNumber: 109,
+                                    lineNumber: 122,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 108,
+                                lineNumber: 121,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -249,7 +270,7 @@ const Sidebar = ()=>{
                                         children: user?.name || 'Admin'
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 112,
+                                        lineNumber: 125,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -257,24 +278,24 @@ const Sidebar = ()=>{
                                         children: user?.role || 'Manager'
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 113,
+                                        lineNumber: 126,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 111,
+                                lineNumber: 124,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 107,
+                        lineNumber: 120,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("nav", {
                         className: "flex-1 mt-4 px-3 space-y-1",
-                        children: navItems.map((item)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                        children: filteredNavItems.map((item)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                 href: item.path,
                                 className: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cn$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"]("flex items-center gap-3 px-4 py-3 rounded-lg transition-all", pathname === item.path ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"),
                                 children: [
@@ -282,26 +303,26 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 131,
+                                        lineNumber: 144,
                                         columnNumber: 15
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
                                         className: "text-sm font-semibold",
-                                        children: item.name
+                                        children: getMenuName(item)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 132,
+                                        lineNumber: 145,
                                         columnNumber: 32
                                     }, this)
                                 ]
                             }, item.path, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 121,
+                                lineNumber: 134,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 119,
+                        lineNumber: 132,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -315,13 +336,13 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 143,
+                                        lineNumber: 156,
                                         columnNumber: 28
                                     }, this) : /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ChevronLeft$7d$__["ChevronLeft"], {
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 143,
+                                        lineNumber: 156,
                                         columnNumber: 67
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -329,13 +350,13 @@ const Sidebar = ()=>{
                                         children: "Collapse"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 144,
+                                        lineNumber: 157,
                                         columnNumber: 30
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 139,
+                                lineNumber: 152,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -346,7 +367,7 @@ const Sidebar = ()=>{
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 151,
+                                        lineNumber: 164,
                                         columnNumber: 13
                                     }, this),
                                     !isCollapsed && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -354,25 +375,25 @@ const Sidebar = ()=>{
                                         children: "Logout"
                                     }, void 0, false, {
                                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                                        lineNumber: 152,
+                                        lineNumber: 165,
                                         columnNumber: 30
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                                lineNumber: 147,
+                                lineNumber: 160,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/components/Sidebar.tsx>",
-                        lineNumber: 138,
+                        lineNumber: 151,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "<[project]/src/components/Sidebar.tsx>",
-                lineNumber: 83,
+                lineNumber: 96,
                 columnNumber: 7
             }, this)
         ]
@@ -632,11 +653,13 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ArrowUp$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/arrow-up.js [app-client] (ecmascript) {export default as ArrowUp}");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$map$2d$pin$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__MapPin$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/map-pin.js [app-client] (ecmascript) {export default as MapPin}");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ChevronDown$7d$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/chevron-down.js [app-client] (ecmascript) {export default as ChevronDown}");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cn$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/src/utils/cn.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$MonthYearFilter$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/src/components/MonthYearFilter.tsx [app-client] (ecmascript)");
 "__TURBOPACK__ecmascript__hoisting__location__";
 ;
 var _s = __turbopack_refresh__.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -650,6 +673,11 @@ const BranchStock = ()=>{
     const [products, setProducts] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"]([]);
     const [parties, setParties] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"]([]);
     const [loading, setLoading] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](true);
+    const [user, setUser] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](null);
+    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"](()=>{
+        const userStr = localStorage.getItem('user');
+        if (userStr) setUser(JSON.parse(userStr));
+    }, []);
     const [selectedBranch, setSelectedBranch] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"]('');
     const [isTransferInOpen, setIsTransferInOpen] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
     const [selectedProduct, setSelectedProduct] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](null);
@@ -789,12 +817,12 @@ const BranchStock = ()=>{
             className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
         }, void 0, false, {
             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-            lineNumber: 154,
+            lineNumber: 160,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-        lineNumber: 153,
+        lineNumber: 159,
         columnNumber: 5
     }, this);
     return /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -802,11 +830,11 @@ const BranchStock = ()=>{
         children: [
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                lineNumber: 160,
+                lineNumber: 166,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("main", {
-                className: "flex-1 lg:ml-64 overflow-y-auto p-6 md:p-8",
+                className: "flex-1 lg:ml-64 overflow-y-auto p-4 pt-20 lg:p-8 lg:pt-8",
                 children: [
                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                         className: "max-w-7xl mx-auto space-y-6",
@@ -821,7 +849,7 @@ const BranchStock = ()=>{
                                                 children: "Branch Stock"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 167,
+                                                lineNumber: 173,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -829,13 +857,13 @@ const BranchStock = ()=>{
                                                 children: "Track branch inventory"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 168,
+                                                lineNumber: 174,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 166,
+                                        lineNumber: 172,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -850,61 +878,62 @@ const BranchStock = ()=>{
                                                 }
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 171,
+                                                lineNumber: 177,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
                                                 className: "relative",
                                                 children: [
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("select", {
-                                                        className: "appearance-none bg-white border border-slate-200 text-slate-700 pl-10 pr-10 py-2 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 cursor-pointer shadow-sm flex items-center h-[42px]",
-                                                        value: selectedBranch,
+                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cn$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"]("appearance-none border pl-10 pr-10 py-2 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 flex items-center h-[42px]", user?.role === 'branch_admin' ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white border-slate-200 text-slate-700 cursor-pointer shadow-sm"),
+                                                        value: user?.role === 'branch_admin' ? user?.branchId : selectedBranch,
                                                         onChange: (e)=>setSelectedBranch(e.target.value),
+                                                        disabled: user?.role === 'branch_admin',
                                                         children: [
-                                                            /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
+                                                            user?.role !== 'branch_admin' && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                 value: "",
                                                                 disabled: true,
                                                                 children: "Select Branch..."
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 180,
-                                                                columnNumber: 21
+                                                                lineNumber: 187,
+                                                                columnNumber: 55
                                                             }, this),
-                                                            parties.map((p)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
+                                                            parties.filter((p)=>user?.role === 'branch_admin' ? p._id === user?.branchId : true).map((p)=>/*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("option", {
                                                                     value: p._id,
                                                                     children: p.name
                                                                 }, p._id, false, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 182,
+                                                                    lineNumber: 189,
                                                                     columnNumber: 24
                                                                 }, this))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 177,
+                                                        lineNumber: 183,
                                                         columnNumber: 18
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$map$2d$pin$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__MapPin$7d$__["MapPin"], {
                                                         className: "w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 185,
+                                                        lineNumber: 192,
                                                         columnNumber: 18
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$7b$export__default__as__ChevronDown$7d$__["ChevronDown"], {
                                                         className: "w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 186,
+                                                        lineNumber: 193,
                                                         columnNumber: 18
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 176,
+                                                lineNumber: 182,
                                                 columnNumber: 15
                                             }, this),
-                                            /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
+                                            user?.role !== 'branch_admin' && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
                                                 onClick: ()=>{
                                                     setEditingPartyId(null);
                                                     setBranchForm({
@@ -921,26 +950,26 @@ const BranchStock = ()=>{
                                                         className: "w-4 h-4"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 196,
-                                                        columnNumber: 19
+                                                        lineNumber: 204,
+                                                        columnNumber: 21
                                                     }, this),
                                                     "New Branch"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 188,
-                                                columnNumber: 15
+                                                lineNumber: 196,
+                                                columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 170,
+                                        lineNumber: 176,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 165,
+                                lineNumber: 171,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -969,7 +998,7 @@ const BranchStock = ()=>{
                                                                         className: "w-8 h-8 text-blue-500"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 218,
+                                                                        lineNumber: 227,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -979,18 +1008,18 @@ const BranchStock = ()=>{
                                                                             strokeWidth: 3
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 219,
+                                                                            lineNumber: 228,
                                                                             columnNumber: 95
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 219,
+                                                                        lineNumber: 228,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 217,
+                                                                lineNumber: 226,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1000,7 +1029,7 @@ const BranchStock = ()=>{
                                                                         children: "Stock Received"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 222,
+                                                                        lineNumber: 231,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1010,12 +1039,12 @@ const BranchStock = ()=>{
                                                                             children: stockReceived
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 224,
+                                                                            lineNumber: 233,
                                                                             columnNumber: 41
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 223,
+                                                                        lineNumber: 232,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -1023,19 +1052,19 @@ const BranchStock = ()=>{
                                                                         children: "Bottles"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 226,
+                                                                        lineNumber: 235,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 221,
+                                                                lineNumber: 230,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 216,
+                                                        lineNumber: 225,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1048,7 +1077,7 @@ const BranchStock = ()=>{
                                                                         className: "w-8 h-8 text-rose-500"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 232,
+                                                                        lineNumber: 241,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1058,18 +1087,18 @@ const BranchStock = ()=>{
                                                                             strokeWidth: 3
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 233,
+                                                                            lineNumber: 242,
                                                                             columnNumber: 95
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 233,
+                                                                        lineNumber: 242,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 231,
+                                                                lineNumber: 240,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1079,7 +1108,7 @@ const BranchStock = ()=>{
                                                                         children: "Stock Sold"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 236,
+                                                                        lineNumber: 245,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1089,12 +1118,12 @@ const BranchStock = ()=>{
                                                                             children: stockSold
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 238,
+                                                                            lineNumber: 247,
                                                                             columnNumber: 41
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 237,
+                                                                        lineNumber: 246,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -1102,19 +1131,19 @@ const BranchStock = ()=>{
                                                                         children: "Bottles"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 240,
+                                                                        lineNumber: 249,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 235,
+                                                                lineNumber: 244,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 230,
+                                                        lineNumber: 239,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1127,7 +1156,7 @@ const BranchStock = ()=>{
                                                                         className: "w-10 h-10 text-emerald-500"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 246,
+                                                                        lineNumber: 255,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1137,18 +1166,18 @@ const BranchStock = ()=>{
                                                                             strokeWidth: 3
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 247,
+                                                                            lineNumber: 256,
                                                                             columnNumber: 80
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 247,
+                                                                        lineNumber: 256,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 245,
+                                                                lineNumber: 254,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1158,7 +1187,7 @@ const BranchStock = ()=>{
                                                                         children: "Current Stock"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 250,
+                                                                        lineNumber: 259,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1168,12 +1197,12 @@ const BranchStock = ()=>{
                                                                             children: currentTotalStock
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 252,
+                                                                            lineNumber: 261,
                                                                             columnNumber: 41
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 251,
+                                                                        lineNumber: 260,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("span", {
@@ -1181,25 +1210,25 @@ const BranchStock = ()=>{
                                                                         children: "Bottles"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 254,
+                                                                        lineNumber: 263,
                                                                         columnNumber: 37
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 249,
+                                                                lineNumber: 258,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 244,
+                                                        lineNumber: 253,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 215,
+                                                lineNumber: 224,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1215,12 +1244,12 @@ const BranchStock = ()=>{
                                                                     className: "w-6 h-6 text-amber-600"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 266,
+                                                                    lineNumber: 275,
                                                                     columnNumber: 45
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 265,
+                                                                lineNumber: 274,
                                                                 columnNumber: 41
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1230,7 +1259,7 @@ const BranchStock = ()=>{
                                                                         children: p.name
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 269,
+                                                                        lineNumber: 278,
                                                                         columnNumber: 45
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1238,7 +1267,7 @@ const BranchStock = ()=>{
                                                                         children: stock
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 270,
+                                                                        lineNumber: 279,
                                                                         columnNumber: 45
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1246,25 +1275,25 @@ const BranchStock = ()=>{
                                                                         children: "Bottles"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 271,
+                                                                        lineNumber: 280,
                                                                         columnNumber: 45
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 268,
+                                                                lineNumber: 277,
                                                                 columnNumber: 41
                                                             }, this)
                                                         ]
                                                     }, p._id, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 264,
+                                                        lineNumber: 273,
                                                         columnNumber: 37
                                                     }, this);
                                                 })
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 260,
+                                                lineNumber: 269,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1280,12 +1309,12 @@ const BranchStock = ()=>{
                                                                     children: "Recent Transactions"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 282,
+                                                                    lineNumber: 291,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 281,
+                                                                lineNumber: 290,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1302,7 +1331,7 @@ const BranchStock = ()=>{
                                                                                         children: "Date"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 288,
+                                                                                        lineNumber: 297,
                                                                                         columnNumber: 49
                                                                                     }, this),
                                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1310,7 +1339,7 @@ const BranchStock = ()=>{
                                                                                         children: "Product"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 289,
+                                                                                        lineNumber: 298,
                                                                                         columnNumber: 49
                                                                                     }, this),
                                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1318,7 +1347,7 @@ const BranchStock = ()=>{
                                                                                         children: "IN (+)"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 290,
+                                                                                        lineNumber: 299,
                                                                                         columnNumber: 49
                                                                                     }, this),
                                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1326,18 +1355,18 @@ const BranchStock = ()=>{
                                                                                         children: "OUT (-)"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 291,
+                                                                                        lineNumber: 300,
                                                                                         columnNumber: 49
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 287,
+                                                                                lineNumber: 296,
                                                                                 columnNumber: 45
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 286,
+                                                                            lineNumber: 295,
                                                                             columnNumber: 41
                                                                         }, this),
                                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tbody", {
@@ -1347,7 +1376,7 @@ const BranchStock = ()=>{
                                                                                         className: "hover:bg-slate-50/50 transition-colors",
                                                                                         children: [
                                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                                                className: "px-6 py-4 text-xs font-bold text-slate-500",
+                                                                                                className: "px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap",
                                                                                                 children: new Date(t.date).toLocaleDateString('en-GB', {
                                                                                                     day: 'numeric',
                                                                                                     month: 'short',
@@ -1355,37 +1384,37 @@ const BranchStock = ()=>{
                                                                                                 })
                                                                                             }, void 0, false, {
                                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                                lineNumber: 297,
+                                                                                                lineNumber: 306,
                                                                                                 columnNumber: 53
                                                                                             }, this),
                                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                                                className: "px-6 py-4 text-sm font-bold text-slate-900",
+                                                                                                className: "px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap",
                                                                                                 children: t.juiceType?.name
                                                                                             }, void 0, false, {
                                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                                lineNumber: 298,
+                                                                                                lineNumber: 307,
                                                                                                 columnNumber: 53
                                                                                             }, this),
                                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                                                className: "px-6 py-4 text-sm font-black text-emerald-600 text-center",
+                                                                                                className: "px-6 py-4 text-sm font-black text-emerald-600 text-center whitespace-nowrap",
                                                                                                 children: t.type === 'IN' ? t.quantity : '-'
                                                                                             }, void 0, false, {
                                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                                lineNumber: 299,
+                                                                                                lineNumber: 308,
                                                                                                 columnNumber: 53
                                                                                             }, this),
                                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
-                                                                                                className: "px-6 py-4 text-sm font-black text-rose-600 text-center",
+                                                                                                className: "px-6 py-4 text-sm font-black text-rose-600 text-center whitespace-nowrap",
                                                                                                 children: t.type === 'OUT' ? t.quantity : '-'
                                                                                             }, void 0, false, {
                                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                                lineNumber: 300,
+                                                                                                lineNumber: 309,
                                                                                                 columnNumber: 53
                                                                                             }, this)
                                                                                         ]
                                                                                     }, i, true, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 296,
+                                                                                        lineNumber: 305,
                                                                                         columnNumber: 49
                                                                                     }, this)),
                                                                                 selectedBranchTransfers.length === 0 && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tr", {
@@ -1395,29 +1424,29 @@ const BranchStock = ()=>{
                                                                                         children: "No transactions found"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 304,
+                                                                                        lineNumber: 313,
                                                                                         columnNumber: 53
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                    lineNumber: 304,
+                                                                                    lineNumber: 313,
                                                                                     columnNumber: 49
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 294,
+                                                                            lineNumber: 303,
                                                                             columnNumber: 41
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 285,
+                                                                    lineNumber: 294,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 284,
+                                                                lineNumber: 293,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1430,24 +1459,24 @@ const BranchStock = ()=>{
                                                                             className: "w-4 h-4"
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 310,
+                                                                            lineNumber: 319,
                                                                             columnNumber: 155
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 310,
+                                                                    lineNumber: 319,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 309,
+                                                                lineNumber: 318,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 280,
+                                                        lineNumber: 289,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1460,12 +1489,12 @@ const BranchStock = ()=>{
                                                                     children: "Low Stock"
                                                                 }, void 0, false, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 317,
+                                                                    lineNumber: 326,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 316,
+                                                                lineNumber: 325,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1482,12 +1511,12 @@ const BranchStock = ()=>{
                                                                                         className: "w-5 h-5 text-rose-400"
                                                                                     }, void 0, false, {
                                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                        lineNumber: 325,
+                                                                                        lineNumber: 334,
                                                                                         columnNumber: 53
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                    lineNumber: 324,
+                                                                                    lineNumber: 333,
                                                                                     columnNumber: 49
                                                                                 }, this),
                                                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1497,7 +1526,7 @@ const BranchStock = ()=>{
                                                                                             children: p.name
                                                                                         }, void 0, false, {
                                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                            lineNumber: 328,
+                                                                                            lineNumber: 337,
                                                                                             columnNumber: 53
                                                                                         }, this),
                                                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1505,7 +1534,7 @@ const BranchStock = ()=>{
                                                                                             children: stock
                                                                                         }, void 0, false, {
                                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                            lineNumber: 329,
+                                                                                            lineNumber: 338,
                                                                                             columnNumber: 53
                                                                                         }, this),
                                                                                         /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1513,19 +1542,19 @@ const BranchStock = ()=>{
                                                                                             children: "Bottles Left"
                                                                                         }, void 0, false, {
                                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                            lineNumber: 330,
+                                                                                            lineNumber: 339,
                                                                                             columnNumber: 53
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                    lineNumber: 327,
+                                                                                    lineNumber: 336,
                                                                                     columnNumber: 49
                                                                                 }, this)
                                                                             ]
                                                                         }, p._id, true, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 323,
+                                                                            lineNumber: 332,
                                                                             columnNumber: 45
                                                                         }, this);
                                                                     }),
@@ -1534,13 +1563,13 @@ const BranchStock = ()=>{
                                                                         children: "All items adequately stocked"
                                                                     }, void 0, false, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 336,
+                                                                        lineNumber: 345,
                                                                         columnNumber: 41
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 319,
+                                                                lineNumber: 328,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1553,30 +1582,30 @@ const BranchStock = ()=>{
                                                                             className: "w-4 h-4"
                                                                         }, void 0, false, {
                                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                            lineNumber: 340,
+                                                                            lineNumber: 349,
                                                                             columnNumber: 152
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                    lineNumber: 340,
+                                                                    lineNumber: 349,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 339,
+                                                                lineNumber: 348,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 315,
+                                                        lineNumber: 324,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 278,
+                                                lineNumber: 287,
                                                 columnNumber: 25
                                             }, this)
                                         ]
@@ -1584,13 +1613,13 @@ const BranchStock = ()=>{
                                 })()
                             }, void 0, false, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 202,
+                                lineNumber: 211,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                        lineNumber: 163,
+                        lineNumber: 169,
                         columnNumber: 9
                     }, this),
                     isManageWholesalersOpen && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1601,7 +1630,7 @@ const BranchStock = ()=>{
                                 onClick: ()=>setIsManageWholesalersOpen(false)
                             }, void 0, false, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 353,
+                                lineNumber: 362,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1615,7 +1644,7 @@ const BranchStock = ()=>{
                                                 children: "Manage Branches"
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 356,
+                                                lineNumber: 365,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1625,24 +1654,24 @@ const BranchStock = ()=>{
                                                     className: "w-5 h-5"
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                    lineNumber: 357,
+                                                    lineNumber: 366,
                                                     columnNumber: 129
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 357,
+                                                lineNumber: 366,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 355,
+                                        lineNumber: 364,
                                         columnNumber: 21
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
-                                        className: "max-h-[60vh] overflow-y-auto",
+                                        className: "max-h-[60vh] overflow-y-auto overflow-x-auto",
                                         children: /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("table", {
-                                            className: "w-full text-left text-sm",
+                                            className: "w-full text-left text-sm min-w-[500px]",
                                             children: [
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("thead", {
                                                     className: "bg-gray-50 sticky top-0 border-b border-gray-200",
@@ -1653,7 +1682,7 @@ const BranchStock = ()=>{
                                                                 children: "Branch"
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 363,
+                                                                lineNumber: 372,
                                                                 columnNumber: 37
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1661,7 +1690,7 @@ const BranchStock = ()=>{
                                                                 children: "Contact"
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 364,
+                                                                lineNumber: 373,
                                                                 columnNumber: 37
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("th", {
@@ -1669,18 +1698,18 @@ const BranchStock = ()=>{
                                                                 children: "Actions"
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 365,
+                                                                lineNumber: 374,
                                                                 columnNumber: 37
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 362,
+                                                        lineNumber: 371,
                                                         columnNumber: 33
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                    lineNumber: 361,
+                                                    lineNumber: 370,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tbody", {
@@ -1697,7 +1726,7 @@ const BranchStock = ()=>{
                                                                                 children: p.name
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 372,
+                                                                                lineNumber: 381,
                                                                                 columnNumber: 45
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1705,13 +1734,13 @@ const BranchStock = ()=>{
                                                                                 children: p.address
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 373,
+                                                                                lineNumber: 382,
                                                                                 columnNumber: 45
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 371,
+                                                                        lineNumber: 380,
                                                                         columnNumber: 41
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
@@ -1722,7 +1751,7 @@ const BranchStock = ()=>{
                                                                                 children: p.contactPerson || 'N/A'
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 376,
+                                                                                lineNumber: 385,
                                                                                 columnNumber: 45
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("p", {
@@ -1730,13 +1759,13 @@ const BranchStock = ()=>{
                                                                                 children: p.phone
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 377,
+                                                                                lineNumber: 386,
                                                                                 columnNumber: 45
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 375,
+                                                                        lineNumber: 384,
                                                                         columnNumber: 41
                                                                     }, this),
                                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("td", {
@@ -1749,12 +1778,12 @@ const BranchStock = ()=>{
                                                                                     className: "w-4 h-4"
                                                                                 }, void 0, false, {
                                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                    lineNumber: 381,
+                                                                                    lineNumber: 390,
                                                                                     columnNumber: 49
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 380,
+                                                                                lineNumber: 389,
                                                                                 columnNumber: 45
                                                                             }, this),
                                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1764,24 +1793,24 @@ const BranchStock = ()=>{
                                                                                     className: "w-4 h-4"
                                                                                 }, void 0, false, {
                                                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                    lineNumber: 384,
+                                                                                    lineNumber: 393,
                                                                                     columnNumber: 49
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                                lineNumber: 383,
+                                                                                lineNumber: 392,
                                                                                 columnNumber: 45
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                        lineNumber: 379,
+                                                                        lineNumber: 388,
                                                                         columnNumber: 41
                                                                     }, this)
                                                                 ]
                                                             }, p._id, true, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 370,
+                                                                lineNumber: 379,
                                                                 columnNumber: 37
                                                             }, this)),
                                                         parties.length === 0 && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("tr", {
@@ -1791,41 +1820,41 @@ const BranchStock = ()=>{
                                                                 children: "No branches found."
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 390,
+                                                                lineNumber: 399,
                                                                 columnNumber: 41
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                            lineNumber: 390,
+                                                            lineNumber: 399,
                                                             columnNumber: 37
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                    lineNumber: 368,
+                                                    lineNumber: 377,
                                                     columnNumber: 29
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                            lineNumber: 360,
+                                            lineNumber: 369,
                                             columnNumber: 25
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 359,
+                                        lineNumber: 368,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 354,
+                                lineNumber: 363,
                                 columnNumber: 17
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                        lineNumber: 352,
+                        lineNumber: 361,
                         columnNumber: 13
                     }, this),
                     isCreateBranchOpen && /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1836,7 +1865,7 @@ const BranchStock = ()=>{
                                 onClick: ()=>setIsCreateBranchOpen(false)
                             }, void 0, false, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 402,
+                                lineNumber: 411,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1850,7 +1879,7 @@ const BranchStock = ()=>{
                                                 children: editingPartyId ? 'Edit Branch' : 'New Branch'
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 405,
+                                                lineNumber: 414,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -1860,18 +1889,18 @@ const BranchStock = ()=>{
                                                     className: "w-5 h-5"
                                                 }, void 0, false, {
                                                     fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                    lineNumber: 406,
+                                                    lineNumber: 415,
                                                     columnNumber: 124
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 406,
+                                                lineNumber: 415,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 404,
+                                        lineNumber: 413,
                                         columnNumber: 21
                                     }, this),
                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("form", {
@@ -1885,7 +1914,7 @@ const BranchStock = ()=>{
                                                         children: "Branch Name"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 410,
+                                                        lineNumber: 419,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1899,13 +1928,13 @@ const BranchStock = ()=>{
                                                             })
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 411,
+                                                        lineNumber: 420,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 409,
+                                                lineNumber: 418,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1918,7 +1947,7 @@ const BranchStock = ()=>{
                                                                 children: "Contact Person"
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 415,
+                                                                lineNumber: 424,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1931,13 +1960,13 @@ const BranchStock = ()=>{
                                                                     })
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 416,
+                                                                lineNumber: 425,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 414,
+                                                        lineNumber: 423,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1947,7 +1976,7 @@ const BranchStock = ()=>{
                                                                 children: "Phone"
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 419,
+                                                                lineNumber: 428,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1960,19 +1989,19 @@ const BranchStock = ()=>{
                                                                     })
                                                             }, void 0, false, {
                                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                                lineNumber: 420,
+                                                                lineNumber: 429,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 418,
+                                                        lineNumber: 427,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 413,
+                                                lineNumber: 422,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("div", {
@@ -1982,7 +2011,7 @@ const BranchStock = ()=>{
                                                         children: "Address"
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 424,
+                                                        lineNumber: 433,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("input", {
@@ -1995,13 +2024,13 @@ const BranchStock = ()=>{
                                                             })
                                                     }, void 0, false, {
                                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                        lineNumber: 425,
+                                                        lineNumber: 434,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 423,
+                                                lineNumber: 432,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"]("button", {
@@ -2010,41 +2039,41 @@ const BranchStock = ()=>{
                                                 children: editingPartyId ? 'Save Changes' : 'Create Branch'
                                             }, void 0, false, {
                                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                                lineNumber: 427,
+                                                lineNumber: 436,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                        lineNumber: 408,
+                                        lineNumber: 417,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                                lineNumber: 403,
+                                lineNumber: 412,
                                 columnNumber: 17
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                        lineNumber: 401,
+                        lineNumber: 410,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "<[project]/src/app/branch-stock/page.tsx>",
-                lineNumber: 162,
+                lineNumber: 168,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "<[project]/src/app/branch-stock/page.tsx>",
-        lineNumber: 159,
+        lineNumber: 165,
         columnNumber: 5
     }, this);
 };
-_s(BranchStock, "6lSSAjPz7RpLrIMHuKpYBSNwihs=");
+_s(BranchStock, "G1YfyzrqxvjF8DnLZdJoXe1P+Zc=");
 _c = BranchStock;
 const __TURBOPACK__default__export__ = BranchStock;
 var _c;

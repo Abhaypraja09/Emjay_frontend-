@@ -38,6 +38,12 @@ const Sales = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) setUser(JSON.parse(userStr));
+  }, []);
 
   
   const router = useRouter();
@@ -456,7 +462,7 @@ const Sales = () => {
         paidAmount: '', 
         paidCash: '',
         paidOnline: '',
-        sourceBranchId: '',
+        sourceBranchId: user?.role === 'branch_admin' ? user.branchId : '',
         gst: '', 
         discount: '', 
         paymentMode: 'Cash', 
@@ -479,15 +485,15 @@ const Sales = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 p-6">
+      <main className="flex-1 lg:ml-64 p-4 pt-20 lg:p-6 lg:pt-6">
         
         {/* Simple Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Sales Record</h1>
-              <p className="text-gray-500 text-sm">Daily sales and customer tracking</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800">Sales Record</h1>
+              <p className="text-gray-500 text-xs md:text-sm">Daily sales and customer tracking</p>
            </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
                 <MonthYearFilter 
                     selectedMonth={selectedMonth} 
                     selectedYear={selectedYear} 
@@ -520,18 +526,18 @@ const Sales = () => {
         </div>
 
         {/* Main Tab System */}
-        <div className="flex bg-gray-200/50 p-1.5 rounded-2xl w-fit mb-8 shadow-inner">
+        <div className="flex flex-col sm:flex-row bg-gray-200/50 p-1.5 rounded-2xl w-full sm:w-fit mb-8 shadow-inner gap-1">
             <button 
                 onClick={() => setActiveMainTab('ledger')}
                 className={cn(
-                    "px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                    "px-4 sm:px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full sm:w-auto",
                     activeMainTab === 'ledger' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
                 )}
             >Sales Ledger</button>
             <button 
                 onClick={() => setActiveMainTab('customers')}
                 className={cn(
-                    "px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                    "px-4 sm:px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full sm:w-auto",
                     activeMainTab === 'customers' ? "bg-white text-blue-600 shadow-xl scale-[1.02]" : "text-gray-500 hover:text-gray-900"
                 )}
             >Customers / Buyers</button>
@@ -540,7 +546,7 @@ const Sales = () => {
         {activeMainTab === 'ledger' ? (
           <>
             {/* Sales Ledger Content (Original) */}
-            <div className="flex bg-white p-1 rounded-lg border border-gray-200 w-fit mb-6">
+            <div className="flex flex-wrap sm:flex-nowrap bg-white p-1 rounded-lg border border-gray-200 w-full sm:w-fit mb-6 gap-1">
                 {['All', 'Wholesale', 'Retail'].map(tab => (
                     <button 
                         key={tab}
@@ -557,7 +563,7 @@ const Sales = () => {
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[800px]">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
@@ -571,22 +577,22 @@ const Sales = () => {
                         <tbody className="divide-y divide-gray-100 italic-none">
                             {filteredOrders.length > 0 ? filteredOrders.map((o, i) => (
                                 <tr key={i} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-600">
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-600 whitespace-nowrap">
                                         {new Date(o.date).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <p className="font-bold text-gray-800 leading-tight">{o.customerName}</p>
                                         <p className="text-[10px] text-gray-400 uppercase font-bold mt-0.5">{o.paymentMode || 'Cash'}</p>
                                     </td>
-                                    <td className="px-6 py-4 text-xs font-bold text-gray-700">
+                                    <td className="px-6 py-4 text-xs font-bold text-gray-700 whitespace-nowrap">
                                         {o.items.map((item: any, idx: number) => (
                                             <div key={idx}>{item.juiceType?.name} ({item.quantity})</div>
                                         ))}
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-800">
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-800 whitespace-nowrap">
                                         {o.items.reduce((acc: number, item: any) => acc + item.quantity, 0)} Pcs
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <p className="text-sm font-bold text-gray-800">₹{(o.grandTotal || o.totalAmount || 0).toLocaleString()}</p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase",
@@ -595,7 +601,7 @@ const Sales = () => {
                                             {o.paidAmount >= (o.grandTotal || o.totalAmount) ? 'Fully Paid' : `Due: ₹${(o.grandTotal || o.totalAmount) - o.paidAmount}`}
                                         </p>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
                                         <div className="flex justify-end gap-3">
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); generateInvoice(o); }} 
@@ -657,7 +663,7 @@ const Sales = () => {
 
             <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
                     <tr className="bg-gradient-to-r from-slate-50 to-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100">
                       <th className="px-8 py-5">Customer Details</th>
@@ -781,7 +787,7 @@ const Sales = () => {
                         </div>
                         
                         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Sale Type</label>
                                     <select required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800" value={form.type} onChange={e => {
@@ -834,13 +840,17 @@ const Sales = () => {
                                     <label className="text-[11px] font-bold text-gray-500 uppercase">Stock Location (Source)</label>
                                     <select 
                                         required
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-blue-500" 
-                                        value={form.sourceBranchId} 
+                                        className={cn("w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold outline-none", user?.role === 'branch_admin' ? "text-gray-500 cursor-not-allowed opacity-70" : "text-gray-800 focus:border-blue-500")}
+                                        value={user?.role === 'branch_admin' ? user?.branchId : form.sourceBranchId} 
                                         onChange={e => setForm({...form, sourceBranchId: e.target.value})}
+                                        disabled={user?.role === 'branch_admin'}
                                     >
-                                        <option value="" disabled>-- Select Source --</option>
-                                        <option value="production">Main Production</option>
-                                        {parties.filter(p => p.isBranch || (p.type?.toLowerCase() === 'customer' && p.name.toLowerCase().includes('branch'))).map(b => (
+                                        {user?.role !== 'branch_admin' && <option value="" disabled>-- Select Source --</option>}
+                                        {user?.role !== 'branch_admin' && <option value="production">Main Production</option>}
+                                        {parties.filter(p => {
+                                            if (user?.role === 'branch_admin') return p._id === user?.branchId;
+                                            return p.isBranch || (p.type?.toLowerCase() === 'customer' && p.name.toLowerCase().includes('branch'));
+                                        }).map(b => (
                                             <option key={b._id} value={b._id}>{b.name} Stock</option>
                                         ))}
                                     </select>

@@ -13,6 +13,12 @@ const BranchStock = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [parties, setParties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) setUser(JSON.parse(userStr));
+  }, []);
   
   const [selectedBranch, setSelectedBranch] = useState<string>('');
 
@@ -159,7 +165,7 @@ const BranchStock = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       
-      <main className="flex-1 lg:ml-64 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 lg:ml-64 overflow-y-auto p-4 pt-20 lg:p-8 lg:pt-8">
         <div className="max-w-7xl mx-auto space-y-6">
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -174,28 +180,31 @@ const BranchStock = () => {
                 onFilterChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
               />
               <div className="relative">
-                 <select className="appearance-none bg-white border border-slate-200 text-slate-700 pl-10 pr-10 py-2 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 cursor-pointer shadow-sm flex items-center h-[42px]"
-                 value={selectedBranch}
-                 onChange={(e) => setSelectedBranch(e.target.value)}>
-                    <option value="" disabled>Select Branch...</option>
-                    {parties.map(p => (
+                 <select className={cn("appearance-none border pl-10 pr-10 py-2 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 flex items-center h-[42px]", user?.role === 'branch_admin' ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white border-slate-200 text-slate-700 cursor-pointer shadow-sm")}
+                 value={user?.role === 'branch_admin' ? user?.branchId : selectedBranch}
+                 onChange={(e) => setSelectedBranch(e.target.value)}
+                 disabled={user?.role === 'branch_admin'}>
+                    {user?.role !== 'branch_admin' && <option value="" disabled>Select Branch...</option>}
+                    {parties.filter(p => user?.role === 'branch_admin' ? p._id === user?.branchId : true).map(p => (
                        <option key={p._id} value={p._id}>{p.name}</option>
                     ))}
                  </select>
                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <button 
-                  onClick={() => {
-                      setEditingPartyId(null);
-                      setBranchForm({ name: '', contactPerson: '', phone: '', address: '' });
-                      setIsCreateBranchOpen(true);
-                  }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center h-[42px] gap-2 shadow-sm"
-              >
-                  <Plus className="w-4 h-4" />
-                  New Branch
-              </button>
+              {user?.role !== 'branch_admin' && (
+                <button 
+                    onClick={() => {
+                        setEditingPartyId(null);
+                        setBranchForm({ name: '', contactPerson: '', phone: '', address: '' });
+                        setIsCreateBranchOpen(true);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center h-[42px] gap-2 shadow-sm"
+                >
+                    <Plus className="w-4 h-4" />
+                    New Branch
+                </button>
+              )}
             </div>
           </div>
 
@@ -294,10 +303,10 @@ const BranchStock = () => {
                                         <tbody className="divide-y divide-slate-50">
                                             {selectedBranchTransfers.slice(0,5).map((t, i) => (
                                                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                                                    <td className="px-6 py-4 text-xs font-bold text-slate-500">{new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</td>
-                                                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{t.juiceType?.name}</td>
-                                                    <td className="px-6 py-4 text-sm font-black text-emerald-600 text-center">{t.type === 'IN' ? t.quantity : '-'}</td>
-                                                    <td className="px-6 py-4 text-sm font-black text-rose-600 text-center">{t.type === 'OUT' ? t.quantity : '-'}</td>
+                                                    <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">{new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</td>
+                                                    <td className="px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap">{t.juiceType?.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-black text-emerald-600 text-center whitespace-nowrap">{t.type === 'IN' ? t.quantity : '-'}</td>
+                                                    <td className="px-6 py-4 text-sm font-black text-rose-600 text-center whitespace-nowrap">{t.type === 'OUT' ? t.quantity : '-'}</td>
                                                 </tr>
                                             ))}
                                             {selectedBranchTransfers.length === 0 && (
@@ -356,8 +365,8 @@ const BranchStock = () => {
                         <h2 className="text-lg font-semibold text-gray-900">Manage Branches</h2>
                         <button onClick={() => setIsManageWholesalersOpen(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-5 h-5" /></button>
                     </div>
-                    <div className="max-h-[60vh] overflow-y-auto">
-                        <table className="w-full text-left text-sm">
+                    <div className="max-h-[60vh] overflow-y-auto overflow-x-auto">
+                        <table className="w-full text-left text-sm min-w-[500px]">
                             <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
                                 <tr>
                                     <th className="px-4 py-3 font-semibold text-gray-600">Branch</th>

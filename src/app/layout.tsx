@@ -11,11 +11,20 @@ export const metadata: Metadata = {
   description: "Enterprise resource planning for craft brewery management, inventory tracking, and sales logistics.",
   keywords: ["brewery erp", "inventory management", "production tracking", "sales logistics"],
   authors: [{ name: "Emjay Brewery" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Emjay ERP",
+  },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#2563eb",
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

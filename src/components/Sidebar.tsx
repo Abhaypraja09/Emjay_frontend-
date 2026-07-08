@@ -52,10 +52,23 @@ const Sidebar = () => {
     { name: 'Bank Book', path: '/bank-book', icon: Landmark },
     { name: 'Party Ledgers', path: '/party-ledgers', icon: CreditCard },
     { name: 'Staff', path: '/staff', icon: ShieldCheck },
+    { name: 'Manage Admins', path: '/manage-admin', icon: ShieldCheck },
     { name: 'Reports', path: '/reports', icon: FileText },
   ];
 
+  const filteredNavItems = navItems.filter(item => {
+    if (user?.role === 'branch_admin') {
+      return ['/branch-stock', '/sales', '/cash-book'].includes(item.path);
+    }
+    return true; // Admin and others see all
+  });
 
+  const getMenuName = (item: any) => {
+    if (user?.role === 'branch_admin' && item.path === '/branch-stock') {
+      return user?.branchName || 'My Branch';
+    }
+    return item.name;
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -117,7 +130,7 @@ const Sidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 mt-4 px-3 space-y-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <Link
               key={item.path}
               href={item.path}
@@ -129,7 +142,7 @@ const Sidebar = () => {
               )}
             >
               <item.icon className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm font-semibold">{item.name}</span>}
+              {!isCollapsed && <span className="text-sm font-semibold">{getMenuName(item)}</span>}
             </Link>
           ))}
         </nav>

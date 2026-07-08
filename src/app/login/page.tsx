@@ -20,6 +20,8 @@ export default function LoginPage() {
       toast.success('Successfully logged in!');
       if (data.role === 'Staff' || data.role === 'staff') {
         router.push('/staff-portal');
+      } else if (data.role === 'branch_admin') {
+        router.push('/sales');
       } else {
         router.push('/dashboard');
       }
