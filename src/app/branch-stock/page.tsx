@@ -27,7 +27,11 @@ const BranchStock = () => {
 
   const [isCreateBranchOpen, setIsCreateBranchOpen] = useState(false);
   const [isManageWholesalersOpen, setIsManageWholesalersOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null);
+  
+  const [transactionDateFilter, setTransactionDateFilter] = useState('');
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
   
   const [branchForm, setBranchForm] = useState({
     name: '', contactPerson: '', phone: '', address: ''
@@ -285,14 +289,23 @@ const BranchStock = () => {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Recent Transactions */}
-                            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-                                <div className="p-6 border-b border-slate-50">
-                                    <h2 className="text-lg font-black text-slate-900 tracking-tight">Recent Transactions</h2>
+                            {/* Transactions */}
+                            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                                <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <h2 className="text-lg font-black text-slate-900 tracking-tight">Transactions</h2>
+                                    <div className="relative">
+                                        <input
+                                            type="date"
+                                            value={transactionDateFilter}
+                                            onChange={(e) => setTransactionDateFilter(e.target.value)}
+                                            className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 w-full sm:w-auto"
+                                        />
+                                        <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    </div>
                                 </div>
-                                <div className="overflow-x-auto flex-1">
+                                <div className="overflow-y-auto flex-1 custom-scrollbar">
                                     <table className="w-full text-left">
-                                        <thead className="bg-white border-b border-slate-100">
+                                        <thead className="bg-white border-b border-slate-100 sticky top-0 z-10">
                                             <tr>
                                                 <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Date</th>
                                                 <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Product</th>
@@ -301,23 +314,39 @@ const BranchStock = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
-                                            {selectedBranchTransfers.slice(0,5).map((t, i) => (
-                                                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                                                    <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">{new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</td>
-                                                    <td className="px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap">{t.juiceType?.name}</td>
-                                                    <td className="px-6 py-4 text-sm font-black text-emerald-600 text-center whitespace-nowrap">{t.type === 'IN' ? t.quantity : '-'}</td>
-                                                    <td className="px-6 py-4 text-sm font-black text-rose-600 text-center whitespace-nowrap">{t.type === 'OUT' ? t.quantity : '-'}</td>
-                                                </tr>
-                                            ))}
-                                            {selectedBranchTransfers.length === 0 && (
-                                                <tr><td colSpan={4} className="p-12 text-center text-slate-400 italic font-bold uppercase tracking-widest text-xs">No transactions found</td></tr>
-                                            )}
+                                            {(() => {
+                                                const filteredTx = transactionDateFilter 
+                                                    ? selectedBranchTransfers.filter(t => new Date(t.date).toISOString().split('T')[0] === transactionDateFilter)
+                                                    : selectedBranchTransfers;
+                                                const displayTx = showAllTransactions ? filteredTx : filteredTx.slice(0, 5);
+                                                
+                                                if (displayTx.length === 0) {
+                                                    return (
+                                                        <tr><td colSpan={4} className="p-12 text-center text-slate-400 italic font-bold uppercase tracking-widest text-xs">No transactions found</td></tr>
+                                                    );
+                                                }
+                                                return displayTx.map((t, i) => (
+                                                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                                                        <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">{new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</td>
+                                                        <td className="px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap">{t.juiceType?.name}</td>
+                                                        <td className="px-6 py-4 text-sm font-black text-emerald-600 text-center whitespace-nowrap">{t.type === 'IN' ? t.quantity : '-'}</td>
+                                                        <td className="px-6 py-4 text-sm font-black text-rose-600 text-center whitespace-nowrap">{t.type === 'OUT' ? t.quantity : '-'}</td>
+                                                    </tr>
+                                                ));
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="p-6 border-t border-slate-50">
-                                    <button className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700">View All Transactions <ArrowRight className="w-4 h-4" /></button>
-                                </div>
+                                {!showAllTransactions && selectedBranchTransfers.length > 5 && (
+                                    <div className="p-4 border-t border-slate-50 bg-white">
+                                        <button 
+                                            onClick={() => setShowAllTransactions(true)}
+                                            className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 mx-auto"
+                                        >
+                                            View All Transactions <ArrowDown className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Low Stock */}

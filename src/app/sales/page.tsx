@@ -365,20 +365,24 @@ const Sales = () => {
   }, [selectedMonth, selectedYear]);
 
   const [productions, setProductions] = useState<any[]>([]);
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
+  
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [orderRes, productRes, prodRes, ledgerRes, partiesRes] = await Promise.all([
+      const [orderRes, productRes, prodRes, ledgerRes, partiesRes, txRes] = await Promise.all([
         api.get('/orders', { params: { month: selectedMonth, year: selectedYear } }),
         api.get('/products'),
         api.get('/production', { params: { month: selectedMonth, year: selectedYear } }),
         api.get('/reports/global-stock', { params: { month: selectedMonth, year: selectedYear } }),
-        api.get('/parties')
+        api.get('/parties'),
+        api.get('/parties/all/transactions', { params: { month: selectedMonth, year: selectedYear } })
       ]);
       setOrders(orderRes.data);
       setProducts(productRes.data);
       setProductions(prodRes.data);
       setGlobalLedger(ledgerRes.data);
+      setAllTransactions(txRes.data);
       const allCustomers = partiesRes.data.filter((p: any) => p.type?.toLowerCase() === 'customer');
       setParties(allCustomers);
       setBranches(allCustomers.filter((p: any) => p.isBranch || p.name.toLowerCase().includes('branch')));
@@ -568,11 +572,11 @@ const Sales = () => {
                         <p className="text-xs text-gray-400 mt-2">Combined balance of all customers</p>
                     </div>
                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Advance Received</p>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Collected</p>
                         <h3 className="text-2xl font-bold text-emerald-600">
-                            ₹{Math.abs(parties.reduce((a, p) => a + ((p.balance && p.balance < 0) ? p.balance : 0), 0)).toLocaleString()}
+                            ₹{(orders.reduce((a, b) => a + (b.paidAmount || 0), 0) + allTransactions.filter(t => t.partyId?.type === 'customer' && t.type === 'debit').reduce((a, b) => a + (b.amount || 0), 0)).toLocaleString()}
                         </h3>
-                        <p className="text-xs text-gray-400 mt-2">Extra money deposited by customers</p>
+                        <p className="text-xs text-gray-400 mt-2">Amount received in selected period</p>
                     </div>
                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Due (To Receive)</p>
