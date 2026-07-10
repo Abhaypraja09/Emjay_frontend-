@@ -230,10 +230,10 @@ const Sales = () => {
                 const valX = 194;
                 
                 let sumY = finalY + 10;
-                const totalAmount = order.totalAmount || order.grandTotal || 0;
+                const subtotal = order.totalAmount || 0;
                 const gst = order.gst || 0;
                 const discount = order.discount || 0;
-                const subtotal = totalAmount - gst + discount;
+                const grandTotal = subtotal + gst - discount;
 
                 doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
                 doc.text('Subtotal:', rightColX, sumY);
@@ -263,7 +263,7 @@ const Sales = () => {
                 
                 doc.setFont('helvetica', 'bold');
                 doc.text('Grand Total:', rightColX, sumY + 3);
-                doc.text(`Rs. ${totalAmount.toLocaleString()}`, valX, sumY + 3, { align: 'right' });
+                doc.text(`Rs. ${grandTotal.toLocaleString()}`, valX, sumY + 3, { align: 'right' });
                 sumY += 15;
                 
                 // Payment Status
@@ -274,7 +274,7 @@ const Sales = () => {
                 doc.text(`Rs. ${(order.paidAmount || 0).toLocaleString()}`, valX, sumY, { align: 'right' });
                 sumY += 7;
                 
-                const due = totalAmount - (order.paidAmount || 0);
+                const due = grandTotal - (order.paidAmount || 0);
                 if (due > 0) {
                     doc.setTextColor(220, 38, 38);
                     doc.setFont('helvetica', 'bold');
